@@ -1,0 +1,14 @@
+# Credentials and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Local data and generated output
+data/
+tmp/
+coverage/
+*.log
+.DS_Store
+Thumbs.db
