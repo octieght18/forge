@@ -2,7 +2,7 @@
 
 Owner: ahmad
 
-Status: D01–D08 accepted on 4 October 2026. Detailed architecture and baseline thresholds require later consultation. Approval is recorded only for explicit owner responses.
+Status: D01–D08 accepted on 4 October 2026; F01 review and F02 decisions D09–D14 recorded on 5 October 2026. Baseline thresholds and detailed implementation schemas/configuration require later consultation. Approval is recorded only for explicit responses; delegated selections are identified.
 
 ## D01 — First representative workflow
 
@@ -85,13 +85,41 @@ Alternative offered: set numerical performance and recovery targets now.
 
 Decision: **Use the proposed acceptance measures and set performance thresholds after F08**, selected by the owner on 4 October 2026. Apply the failure/authorization and corpus-citation tests to the first release. Because D07 defers environment provisioning, its 10-manual/10-self-service comparison belongs to the later provisioning phase. Do not expand the first release to satisfy that deferred measurement.
 
-## Decisions to consult on after F01
+## Remaining implementation and baseline decisions
 
 - Quantitative success thresholds and test conditions after the agreed baseline milestone.
-- Exact operator/developer action matrix within the approved owner-private access model; future side-effecting tools require a separate decision.
-- Architecture choices in F02: state ownership, API contracts, workflow engine, policy engine, model backend, isolation mechanism, cloud target, and delivery strategy.
+- Future side-effecting tools, sharing/ownership transfer and any expansion of operator mutation privileges require a separate decision. F02 accepts the initial owner-only mutation/operator inspection matrix.
+- Exact API/tool/evidence schemas, OIDC clients/claims and in-flight revocation semantics, pinned dependencies/images, timeout/retry/request bounds, and model routing eligibility during implementation. F02 establishes the integration boundaries; dynamic policy, Kubernetes provisioning and delivery/operations decisions follow their later phases.
 - Retention periods, deployment exposure, cloud budget, and operational recovery objectives.
 
 ## Decision process
 
 For each material choice, record the question, options and tradeoffs, the owner's response, and the resulting change to requirements or acceptance criteria. Do not treat silence as approval. Distinguish requirements taken directly from the supplied plan from proposed design choices.
+
+## D09 — First-release foundation
+
+Accepted on 5 October 2026: Go HTTP/JSON with OpenAPI, PostgreSQL product persistence, Temporal durable execution and Docker Compose locally. The owner responded “Accept the recommended foundation”. Public gRPC and both transports were compared; Kubernetes from day one was offered as an alternative.
+
+## D10 — Inference backend
+
+Accepted on 5 October 2026: **OpenRouter**, named by the owner instead of the proposed direct OpenAI backend or local Ollama. F02 selects a narrow HTTP provider adapter, not another agent framework or model-serving system.
+
+## D11 — Deployment target and release timing
+
+Accepted on 5 October 2026: **Local Kubernetes**, explicitly named instead of AWS EKS/GCP GKE. In the follow-up the owner accepted **Docker Compose first; kind later**. The original F02 criterion to choose a cloud target is therefore amended to a local target; managed-cloud selection/provisioning is deferred. Cloud alternatives and dated management-fee costs remain documented for comparison.
+
+## D12 — State, access and MCP boundaries
+
+Accepted on 5 October 2026: PostgreSQL product records/evidence plus a durable start/cancel handoff; Temporal authoritative execution history/status; a worker-owned read-only MCP stdio process and fixed retrieval/generation stages; owner-only mutations and operator inspection. The owner accepted these boundaries while replacing the proposed static identities with **OIDC from the first release**. Architecture records the crash windows, replay/rerun distinction, citation limitations and future failure tests.
+
+## D13 — Local OIDC provider
+
+Accepted on 5 October 2026: **Local Keycloak**, chosen over an existing issuer or local Dex. The consultation included two developer identities and one operator, persistent identity storage, API access-token validation, issuer/subject ownership and authorization-code login with PKCE. This adds identity setup to the first-release quickstart/estimates. Exact client configuration and token/revocation behavior require implementation consultation.
+
+## D14 — Free testing model
+
+Owner instruction on 5 October 2026: **“use a free model from open router for testing”**. The owner delegated selection within this constraint instead of accepting the paid Gemini proposal. Selected `google/gemma-4-26b-a4b-it:free` from the live catalog, with zero prompt/completion token prices and the listed `google-ai-studio` endpoint. This exact slug is an agent selection under delegation, not an explicit owner-named model.
+
+Use public/synthetic fixtures, no paid model/plugin fallback, record actual model/provider identity and validate output locally. Routing/data-policy eligibility is not proven by catalog metadata and must be checked during implementation; failures must not silently broaden routing or spend. Free-tier capacity is not a platform SLO. This documentation task created no credentials, model calls, cloud resources or runtime services.
+
+See [F02 architecture](architecture.md) and [ADRs](adr/README.md) for alternatives, costs, reversibility and verification obligations.

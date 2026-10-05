@@ -6,14 +6,17 @@ Forge's purpose is to show how an engineering team can compose existing infrastr
 
 ## Current work
 
-**F01 — Write the internal platform product brief** is ready for review. This repository contains the brief and the owner's product decisions, not an implemented platform.
+**F01 — Write the internal platform product brief** is accepted. **F02 — Record architecture boundaries and integration decisions** is recorded with accepted boundaries. This repository currently contains requirements and architecture documentation; runtime implementation follows.
 
 The accepted first release is the **API and durable research workflow only**: one engineering team, owner-private workloads/runs, operator visibility, and a fixed local document corpus accessed through read-only MCP tools. Available project capacity is five hours/week. Environment provisioning and broader platform capabilities follow in later releases.
 
 - [Internal product brief](docs/product-brief.md)
-- [Open product and design decisions](docs/decision-log.md)
+- [Product and design decisions](docs/decision-log.md)
+- [Architecture and integration boundaries](docs/architecture.md)
+- [Architecture decision records](docs/adr/README.md)
+- [F02 documentation validation](docs/f02-validation.md)
 
-The owner must review product and design choices before they become accepted decisions. Architecture selection belongs to F02; no framework, cloud, model provider, or deployment approach is selected by this draft.
+The owner must review product and design choices before they become accepted decisions. F02 records the accepted Go HTTP/OpenAPI, PostgreSQL and Temporal foundation, OpenRouter backend and local Kubernetes target. Keycloak OIDC is included from the first release. The testing model is `google/gemma-4-26b-a4b-it:free`; Docker Compose comes first and kind later. Detailed implementation and operational parameters still require consultation.
 
 ## Delivery plan
 

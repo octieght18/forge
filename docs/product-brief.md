@@ -1,6 +1,6 @@
 # F01 — Internal platform product brief
 
-**Status:** Ready for review; product decisions D01–D08 accepted  
+**Status:** Accepted by the owner on 5 October 2026; product decisions D01–D08 accepted  
 **Product:** Forge (working name inherited from the Wekan project)  
 **Owner:** ahmad  
 **Prepared:** 4 October 2026  
@@ -143,7 +143,7 @@ The owner is responsible for deferred target decisions. Test workloads, hardware
 - Document the threat model, tested properties, incomplete controls, and additional requirements before production use.
 - Publish evidence-backed technical and career artifacts; do not claim scale, security or adoption that has not been demonstrated.
 
-F02 will record architecture decisions and alternatives. This brief identifies user-facing requirements without choosing implementation mechanisms prematurely.
+F02 records architecture decisions and alternatives in [architecture.md](architecture.md). The owner selected OpenRouter and local Kubernetes on 5 October 2026, superseding the original managed-cloud selection requirement; the testing model is `google/gemma-4-26b-a4b-it:free`, with Docker Compose first and kind later. Keycloak OIDC is included from the first release. This brief identifies user-facing requirements without choosing implementation mechanisms prematurely.
 
 ## 10. Delivery and capacity
 
@@ -170,8 +170,8 @@ Study, interview practice and applications run alongside the build. The product'
 
 ## 12. F01 completion checklist
 
-- [ ] Internal team request and problem statement reviewed by the owner.
-- [ ] Platform operator and application developer personas and journeys accepted.
+- [x] Internal team request and problem statement reviewed by the owner.
+- [x] Platform operator and application developer personas and journeys accepted.
 - [x] All twelve capabilities mapped to observable acceptance evidence and distinguished from the first-release cut.
 - [x] D01 first workflow decided and its concrete journey documented.
 - [x] D02 initial customer shape decided; detailed access policy is tracked in D05.
@@ -180,6 +180,6 @@ Study, interview practice and applications run alongside the build. The product'
 - [x] D07 concrete release cut and D08 acceptance procedure accepted.
 - [x] First-release cut accepted; numerical thresholds deferred to owner review after F08.
 - [x] Requirements separated from unapproved architecture choices and unmeasured claims.
-- [ ] Brief reviewed; F01 may then move to Done and F02 becomes pullable.
+- [x] Brief reviewed by the owner with “looks good” on 5 October 2026; F02 authorized.
 
 No item is marked complete solely because this draft exists.
