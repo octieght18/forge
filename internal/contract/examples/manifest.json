@@ -1,0 +1,11 @@
+{
+  "create-workload.json": "CreateWorkloadRequest",
+  "create-version.json": "CreateVersionRequest",
+  "create-run.json": "CreateRunRequest",
+  "pending-run.json": "Run",
+  "unavailable-run.json": "Run",
+  "evidence-page.json": "EvidencePage",
+  "report.json": "Report",
+  "empty-workloads.json": "WorkloadPage",
+  "error.json": "ErrorResponse"
+}

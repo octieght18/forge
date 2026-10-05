@@ -129,3 +129,13 @@ See [F02 architecture](architecture.md) and [ADRs](adr/README.md) for alternativ
 Accepted on 5 October 2026: Go standard library HTTP and structured JSON logs; loopback-only port 8081; separate configuration, HTTP and lifecycle packages; public process-only `/healthz` and `/readyz`; safe JSON errors with stable code/message/request ID. The owner accepted configurable 5s header read, 10s request read, 15s response write, 60s idle and 10s shutdown grace defaults, draining followed by cancellation/connection close after grace, and Windows/Linux CI with Linux race detection.
 
 These operational defaults do not establish performance SLOs. PostgreSQL/Temporal/OIDC integration and product routes follow later tickets. Standard library dependencies avoid a framework/tool dependency at this stage; a future router can replace the transport internals behind the injected handler without changing lifecycle ownership. See [service conventions](service-foundation.md) and [F03 evidence](f03-validation.md).
+
+## D16 — F04 identifiers, concurrency and bounded research profile
+
+Accepted on 5 October 2026: server-issued UUID v4 IDs; revision/ETag checks for metadata updates; 64 KiB mutation bodies; questions up to 4,000 characters; scopes up to 64 documents; immutable versions with ceilings of 16 passages/2,048 output tokens and example settings of 8/1,024. Reports use structured claims with evidence IDs and explicit limitations. These are contract bounds, not F08 performance/quality targets.
+
+## D17 — F04 API shape and release amendment
+
+Accepted on 5 October 2026: `/api/v1/runs` for Forge logical research jobs; contract/Go validation now, persistent endpoints later; only the fixed research workflow in versions, rejecting deferred deployment/resource fields; opaque cursor pages of 20 (maximum 100); run idempotency keys; real OIDC requirements and no fake auth. This explicitly amends the original F04 broad declaration criterion while preserving the deferred capabilities in the backlog. Workloads, immutable versions, run history/evidence/report reads, cancellation and controlled rerun follow the accepted first-release boundaries.
+
+See [API contract](api-contract.md) and [F04 validation](f04-validation.md). Payload validation is not authentication, authorization, durable acceptance or proof of citation support. Cursor signing/lifetime, Keycloak client/role details, database constraints and Temporal/MCP activity parameters remain implementation decisions for consultation.

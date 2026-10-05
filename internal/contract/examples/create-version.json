@@ -1,0 +1,22 @@
+{
+  "spec": {
+    "workflow_type": "research.v1",
+    "corpus_snapshot_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "tools": [
+      "corpus.search",
+      "corpus.read"
+    ],
+    "permissions": {
+      "document_ids": [
+        "platform-brief",
+        "architecture-notes"
+      ]
+    },
+    "limits": {
+      "max_passages": 8,
+      "max_output_tokens": 1024
+    },
+    "prompt_version": "research-report.v1",
+    "model_id": "google/gemma-4-26b-a4b-it:free"
+  }
+}

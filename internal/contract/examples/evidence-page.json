@@ -1,0 +1,14 @@
+{
+  "items": [
+    {
+      "evidence_id": "44444444-4444-4444-8444-444444444444",
+      "run_id": "33333333-3333-4333-8333-333333333333",
+      "corpus_snapshot_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "document_id": "architecture-notes",
+      "passage_id": "state-ownership",
+      "text_sha256": "e408c3b7eb84361f0ffea8f931dd90598571b03d339cac0635dfad3ed5daf1be",
+      "excerpt": "PostgreSQL stores product records. Temporal owns durable execution."
+    }
+  ],
+  "next_cursor": null
+}

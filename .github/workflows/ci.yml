@@ -21,7 +21,7 @@ jobs:
       - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
         with:
           go-version-file: go.mod
-          cache: false # Standard library only; no go.sum yet.
+          cache: true
       - name: Formatting
         shell: bash
         run: |
@@ -30,6 +30,7 @@ jobs:
             printf '%s\n' "$files"
             exit 1
           fi
+      - run: go mod verify
       - run: go vet ./...
       - run: go test -timeout 60s ./...
       - run: go build ./...

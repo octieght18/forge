@@ -1,0 +1,21 @@
+{
+  "run_id": "33333333-3333-4333-8333-333333333333",
+  "generated_at": "2026-10-05T20:02:00Z",
+  "model": {
+    "requested_id": "google/gemma-4-26b-a4b-it:free",
+    "actual_id": "google/gemma-4-26b-a4b-it",
+    "provider_id": "google-ai-studio"
+  },
+  "outcome": "answered",
+  "claims": [
+    {
+      "text": "PostgreSQL owns product records and Temporal owns durable execution.",
+      "evidence_ids": [
+        "44444444-4444-4444-8444-444444444444"
+      ]
+    }
+  ],
+  "limitations": [
+    "Reference integrity alone does not prove claim support."
+  ]
+}

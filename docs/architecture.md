@@ -59,7 +59,7 @@ The responsibilities above follow the products' official documentation; release 
 
 OpenAPI describes HTTP APIs; gRPC commonly uses protobuf service definitions and supports streaming. These are contract/transport options, not performance conclusions. Temporal's Go SDK can use its own gRPC transport without requiring Forge to expose public gRPC. [OpenAPI 3.1.1](https://spec.openapis.org/oas/v3.1.1.html), [gRPC introduction](https://grpc.io/docs/what-is-grpc/introduction/), [Temporal Go client](https://docs.temporal.io/develop/go/client/temporal-client).
 
-Public routes use `/api/v1` and asynchronous run acceptance. Exact schemas, code-generation tooling and dependencies belong to the API implementation task. F02 does not invent throughput claims or implement an OpenAPI file prematurely.
+Public routes use `/api/v1` and asynchronous run acceptance. F04 now records accepted schemas and validation in the [API contract](api-contract.md) and [OpenAPI document](../internal/contract/openapi.json). Runtime endpoints follow implementation tickets; no throughput claim is implied.
 
 ## 4. State ownership and crash-safe submission
 
@@ -81,7 +81,7 @@ Replay reconstructs deterministic workflow state from recorded history. External
 
 ## 5. Research, evidence and model boundary
 
-Accepted flow: authorize/freeze input → retrieve bounded passages → persist evidence → generate report → validate citation references → persist result. Exact tool/output schemas and bounded request values require implementation-task consultation. Start with fixed retrieval and generation stages instead of an open-ended autonomous tool loop.
+Accepted flow: authorize/freeze input → retrieve bounded passages → persist evidence → generate report → validate citation references → persist result. F04 records accepted tool/output schemas and bounded request values; activity retry/timeout and MCP transport implementation details still require consultation. Start with fixed retrieval and generation stages instead of an open-ended autonomous tool loop.
 
 The corpus snapshot has a content checksum and stable document/passage IDs. Evidence records include snapshot, document, passage, text checksum and the retrieved excerpt. The MCP server accepts document IDs and scope, never arbitrary paths. The server is launched from an operator-configured command by the trusted worker, not from a workload-supplied executable. A read-only mount and allowlisted tool schema enforce the boundary; “read-only” is not trusted merely because a tool advertises it.
 

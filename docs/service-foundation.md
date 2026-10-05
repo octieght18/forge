@@ -4,7 +4,7 @@ The owner accepted the standard library HTTP server, `slog` JSON logging, loopba
 
 ## Run and check
 
-Install Go 1.27.1 from the [official downloads](https://go.dev/dl/). The module has no external Go dependencies, so it needs no `go.sum`. Its toolchain version is shared by local builds and CI.
+Install Go 1.27.1 from the [official downloads](https://go.dev/dl/). The HTTP service uses the standard library; F04 adds a pinned JSON Schema validator and `go.sum`. The toolchain version is shared by local builds and CI.
 
 ```sh
 go run ./cmd/api

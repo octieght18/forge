@@ -1,0 +1,2836 @@
+{
+  "openapi": "3.1.1",
+  "jsonSchemaDialect": "https://json-schema.org/draft/2020-12/schema",
+  "info": {
+    "title": "Forge API",
+    "version": "0.1.0",
+    "description": "F04 accepted contract. Product routes are not implemented by F03. OIDC/ownership, persistence and Temporal must be integrated before enabling mutations. Rejected/deferred: arbitrary tools, writable/network permissions, CPU/memory requests, deployment policy and desired state."
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:8081",
+      "description": "Local development. Product API availability follows implementation tickets."
+    }
+  ],
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ],
+  "paths": {
+    "/api/v1/workloads": {
+      "get": {
+        "operationId": "listWorkloads",
+        "summary": "List visible workloads",
+        "description": "Owner-filtered before pagination; operators may inspect all owners. Order created_at DESC, workload_id DESC. No total count.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/Cursor"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "headers": {
+              "X-Request-ID": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "minLength": 0,
+                  "maxLength": 32,
+                  "pattern": "^([0-9a-f]{32})?$"
+                },
+                "description": "Server-generated correlation; empty only if secure ID generation fails."
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkloadPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/Internal"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createWorkload",
+        "summary": "Register owned workload",
+        "description": "Owner comes from validated issuer/subject. Name uniqueness is per owner. Initial revision is 1.",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Successful response",
+            "headers": {
+              "X-Request-ID": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "minLength": 0,
+                  "maxLength": 32,
+                  "pattern": "^([0-9a-f]{32})?$"
+                },
+                "description": "Server-generated correlation; empty only if secure ID generation fails."
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              },
+              "ETag": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "minLength": 40,
+                  "maxLength": 64,
+                  "pattern": "^\"[0-9a-f-]{36}:[1-9][0-9]*\"$"
+                }
+              },
+              "Location": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "pattern": "^/api/v1/workloads/"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Workload"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "413": {
+            "$ref": "#/components/responses/TooLarge"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMedia"
+          },
+          "422": {
+            "$ref": "#/components/responses/Invalid"
+          },
+          "500": {
+            "$ref": "#/components/responses/Internal"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateWorkloadRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workloads/{workload_id}": {
+      "get": {
+        "operationId": "getWorkload",
+        "summary": "Read visible workload",
+        "description": "",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/WorkloadID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "headers": {
+              "X-Request-ID": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "minLength": 0,
+                  "maxLength": 32,
+                  "pattern": "^([0-9a-f]{32})?$"
+                },
+                "description": "Server-generated correlation; empty only if secure ID generation fails."
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              },
+              "ETag": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "minLength": 40,
+                  "maxLength": 64,
+                  "pattern": "^\"[0-9a-f-]{36}:[1-9][0-9]*\"$"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Workload"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/Internal"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateWorkload",
+        "summary": "Update own workload metadata",
+        "description": "Atomic optimistic concurrency. Updates metadata only; existing versions and runs are unchanged. No delete or ownership transfer.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/WorkloadID"
+          },
+          {
+            "$ref": "#/components/parameters/IfMatch"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "headers": {
+              "X-Request-ID": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "minLength": 0,
+                  "maxLength": 32,
+                  "pattern": "^([0-9a-f]{32})?$"
+                },
+                "description": "Server-generated correlation; empty only if secure ID generation fails."
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              },
+              "ETag": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "minLength": 40,
+                  "maxLength": 64,
+                  "pattern": "^\"[0-9a-f-]{36}:[1-9][0-9]*\"$"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Workload"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "412": {
+            "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "413": {
+            "$ref": "#/components/responses/TooLarge"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMedia"
+          },
+          "422": {
+            "$ref": "#/components/responses/Invalid"
+          },
+          "428": {
+            "$ref": "#/components/responses/PreconditionRequired"
+          },
+          "500": {
+            "$ref": "#/components/responses/Internal"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateWorkloadRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workloads/{workload_id}/versions": {
+      "get": {
+        "operationId": "listVersions",
+        "summary": "List immutable versions",
+        "description": "Order version_number DESC; enforce workload visibility first.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/WorkloadID"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/Cursor"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "headers": {
+              "X-Request-ID": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "minLength": 0,
+                  "maxLength": 32,
+                  "pattern": "^([0-9a-f]{32})?$"
+                },
+                "description": "Server-generated correlation; empty only if secure ID generation fails."
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/Internal"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createVersion",
+        "summary": "Register immutable owned version",
+        "description": "Operator policy must approve snapshot/document scope and supported tools. Store the fully explicit spec, content fingerprint and next per-workload version number atomically. No PATCH/DELETE.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/WorkloadID"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful response",
+            "headers": {
+              "X-Request-ID": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "minLength": 0,
+                  "maxLength": 32,
+                  "pattern": "^([0-9a-f]{32})?$"
+                },
+                "description": "Server-generated correlation; empty only if secure ID generation fails."
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              },
+              "Location": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "pattern": "^/api/v1/workloads/"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkloadVersion"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "413": {
+            "$ref": "#/components/responses/TooLarge"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMedia"
+          },
+          "422": {
+            "$ref": "#/components/responses/Invalid"
+          },
+          "500": {
+            "$ref": "#/components/responses/Internal"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateVersionRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workloads/{workload_id}/versions/{version_id}": {
+      "get": {
+        "operationId": "getVersion",
+        "summary": "Read immutable version",
+        "description": "Version must belong to the path workload; mismatch is 404.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/WorkloadID"
+          },
+          {
+            "$ref": "#/components/parameters/VersionID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "headers": {
+              "X-Request-ID": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "minLength": 0,
+                  "maxLength": 32,
+                  "pattern": "^([0-9a-f]{32})?$"
+                },
+                "description": "Server-generated correlation; empty only if secure ID generation fails."
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkloadVersion"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/Internal"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        }
+      }
+    },
+    "/api/v1/runs": {
+      "get": {
+        "operationId": "listRuns",
+        "summary": "List visible research runs",
+        "description": "Owner-filtered before pagination. Operators may inspect all owners. Order created_at DESC, run_id DESC. Current execution state may be unknown if Temporal is unavailable.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/Cursor"
+          },
+          {
+            "$ref": "#/components/parameters/WorkloadFilter"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "headers": {
+              "X-Request-ID": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "minLength": 0,
+                  "maxLength": 32,
+                  "pattern": "^([0-9a-f]{32})?$"
+                },
+                "description": "Server-generated correlation; empty only if secure ID generation fails."
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/Internal"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createRun",
+        "summary": "Durably accept research run",
+        "description": "202 only after run plus pending start command commit in one PostgreSQL transaction. Same owner/key and semantic request returns same run and 202; changed request returns 409. Version must belong to owned workload; selected documents must be a subset of version permissions. Response is not workflow completion.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Successful response",
+            "headers": {
+              "X-Request-ID": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "minLength": 0,
+                  "maxLength": 32,
+                  "pattern": "^([0-9a-f]{32})?$"
+                },
+                "description": "Server-generated correlation; empty only if secure ID generation fails."
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              },
+              "Location": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "pattern": "^/api/v1/runs/"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Run"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "413": {
+            "$ref": "#/components/responses/TooLarge"
+          },
+          "415": {
+            "$ref": "#/components/responses/UnsupportedMedia"
+          },
+          "422": {
+            "$ref": "#/components/responses/Invalid"
+          },
+          "500": {
+            "$ref": "#/components/responses/Internal"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRunRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/runs/{run_id}": {
+      "get": {
+        "operationId": "getRun",
+        "summary": "Read visible run and execution freshness",
+        "description": "Product record can be read during Temporal outage. Execution state becomes unknown, with explicit last-known observation if available.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/RunID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "headers": {
+              "X-Request-ID": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "minLength": 0,
+                  "maxLength": 32,
+                  "pattern": "^([0-9a-f]{32})?$"
+                },
+                "description": "Server-generated correlation; empty only if secure ID generation fails."
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Run"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/Internal"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        }
+      }
+    },
+    "/api/v1/runs/{run_id}/cancel": {
+      "post": {
+        "operationId": "cancelRun",
+        "summary": "Durably request own-run cancellation",
+        "description": "No request body. Repeated requests return 202 and one logical cancel command. Serialize cancel after start delivery. Completion may win the race; accepted cancellation does not guarantee canceled execution.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/RunID"
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Successful response",
+            "headers": {
+              "X-Request-ID": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "minLength": 0,
+                  "maxLength": 32,
+                  "pattern": "^([0-9a-f]{32})?$"
+                },
+                "description": "Server-generated correlation; empty only if secure ID generation fails."
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CancelResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/Internal"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        }
+      }
+    },
+    "/api/v1/runs/{run_id}/rerun": {
+      "post": {
+        "operationId": "rerun",
+        "summary": "Accept controlled rerun of own terminal run",
+        "description": "No request body. Authenticate/authorize, then check owner/key/fingerprint before evaluating a new rerun. A matching accepted retry returns its existing run even during a Temporal outage. For a new rerun, require currently confirmed terminal status; unavailable Temporal returns 503. Copy original version/question/source selection into a new run and set rerun_of. A new run may regenerate results and is not replay. Idempotency scope is shared with createRun; fingerprint includes operation and parent run.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/RunID"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Successful response",
+            "headers": {
+              "X-Request-ID": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "minLength": 0,
+                  "maxLength": 32,
+                  "pattern": "^([0-9a-f]{32})?$"
+                },
+                "description": "Server-generated correlation; empty only if secure ID generation fails."
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              },
+              "Location": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "pattern": "^/api/v1/runs/"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Run"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/Internal"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        }
+      }
+    },
+    "/api/v1/runs/{run_id}/history": {
+      "get": {
+        "operationId": "listHistory",
+        "summary": "Read sanitized execution history",
+        "description": "Authorize run before fetching history. Sequence ASC. Pending start has empty history; unavailable Temporal returns 503. Raw provider errors, tokens and Temporal payloads are never exposed.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/RunID"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/Cursor"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "headers": {
+              "X-Request-ID": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "minLength": 0,
+                  "maxLength": 32,
+                  "pattern": "^([0-9a-f]{32})?$"
+                },
+                "description": "Server-generated correlation; empty only if secure ID generation fails."
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HistoryPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/Internal"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        }
+      }
+    },
+    "/api/v1/runs/{run_id}/evidence": {
+      "get": {
+        "operationId": "listEvidence",
+        "summary": "Read persisted cited evidence",
+        "description": "Authorize the run and every evidence lookup. Order evidence_id ASC. Data is persisted independently of current Temporal availability.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/RunID"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/Cursor"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "headers": {
+              "X-Request-ID": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "minLength": 0,
+                  "maxLength": 32,
+                  "pattern": "^([0-9a-f]{32})?$"
+                },
+                "description": "Server-generated correlation; empty only if secure ID generation fails."
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvidencePage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/Internal"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        }
+      }
+    },
+    "/api/v1/runs/{run_id}/report": {
+      "get": {
+        "operationId": "getReport",
+        "summary": "Read persisted validated report",
+        "description": "409 until a validated report artifact is persisted. Artifact availability does not assert current workflow success. Evidence IDs must resolve to this run and snapshot; schema/reference validity is not proof of claim support.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/RunID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "headers": {
+              "X-Request-ID": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "minLength": 0,
+                  "maxLength": 32,
+                  "pattern": "^([0-9a-f]{32})?$"
+                },
+                "description": "Server-generated correlation; empty only if secure ID generation fails."
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Report"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "500": {
+            "$ref": "#/components/responses/Internal"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        }
+      }
+    },
+    "/healthz": {
+      "get": {
+        "operationId": "health",
+        "summary": "Public process health",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Process ready to respond",
+            "headers": {
+              "X-Request-ID": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "minLength": 0,
+                  "maxLength": 32,
+                  "pattern": "^([0-9a-f]{32})?$"
+                },
+                "description": "Server-generated correlation; empty only if secure ID generation fails."
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Safe panic response",
+            "headers": {
+              "X-Request-ID": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "minLength": 0,
+                  "maxLength": 32,
+                  "pattern": "^([0-9a-f]{32})?$"
+                },
+                "description": "Server-generated correlation; empty only if secure ID generation fails."
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Process not ready or request ID unavailable",
+            "headers": {
+              "X-Request-ID": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "minLength": 0,
+                  "maxLength": 32,
+                  "pattern": "^([0-9a-f]{32})?$"
+                },
+                "description": "Server-generated correlation; empty only if secure ID generation fails."
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "head": {
+        "operationId": "headHealth",
+        "summary": "Health headers without response body",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Process ready to respond",
+            "headers": {
+              "X-Request-ID": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "minLength": 0,
+                  "maxLength": 32,
+                  "pattern": "^([0-9a-f]{32})?$"
+                },
+                "description": "Server-generated correlation; empty only if secure ID generation fails."
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Safe panic response without body",
+            "headers": {
+              "X-Request-ID": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "minLength": 0,
+                  "maxLength": 32,
+                  "pattern": "^([0-9a-f]{32})?$"
+                },
+                "description": "Server-generated correlation; empty only if secure ID generation fails."
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Process not ready or request ID unavailable",
+            "headers": {
+              "X-Request-ID": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "minLength": 0,
+                  "maxLength": 32,
+                  "pattern": "^([0-9a-f]{32})?$"
+                },
+                "description": "Server-generated correlation; empty only if secure ID generation fails."
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/readyz": {
+      "get": {
+        "operationId": "readiness",
+        "summary": "Public process health",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Process ready to respond",
+            "headers": {
+              "X-Request-ID": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "minLength": 0,
+                  "maxLength": 32,
+                  "pattern": "^([0-9a-f]{32})?$"
+                },
+                "description": "Server-generated correlation; empty only if secure ID generation fails."
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Safe panic response",
+            "headers": {
+              "X-Request-ID": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "minLength": 0,
+                  "maxLength": 32,
+                  "pattern": "^([0-9a-f]{32})?$"
+                },
+                "description": "Server-generated correlation; empty only if secure ID generation fails."
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Process not ready or request ID unavailable",
+            "headers": {
+              "X-Request-ID": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "minLength": 0,
+                  "maxLength": 32,
+                  "pattern": "^([0-9a-f]{32})?$"
+                },
+                "description": "Server-generated correlation; empty only if secure ID generation fails."
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "head": {
+        "operationId": "headReadiness",
+        "summary": "Health headers without response body",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Process ready to respond",
+            "headers": {
+              "X-Request-ID": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "minLength": 0,
+                  "maxLength": 32,
+                  "pattern": "^([0-9a-f]{32})?$"
+                },
+                "description": "Server-generated correlation; empty only if secure ID generation fails."
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Safe panic response without body",
+            "headers": {
+              "X-Request-ID": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "minLength": 0,
+                  "maxLength": 32,
+                  "pattern": "^([0-9a-f]{32})?$"
+                },
+                "description": "Server-generated correlation; empty only if secure ID generation fails."
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Process not ready or request ID unavailable",
+            "headers": {
+              "X-Request-ID": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "minLength": 0,
+                  "maxLength": 32,
+                  "pattern": "^([0-9a-f]{32})?$"
+                },
+                "description": "Server-generated correlation; empty only if secure ID generation fails."
+              },
+              "Cache-Control": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Real OIDC API access token from configured Keycloak issuer. Validate issuer/audience/signature/expiry and configured role claim; ownership is (iss,sub). No fake identity or auth placeholder."
+      }
+    },
+    "schemas": {
+      "ID": {
+        "type": "string",
+        "minLength": 36,
+        "maxLength": 36,
+        "format": "uuid",
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+        "description": "Server-issued lowercase UUID v4. A Forge run ID is not a Temporal execution Run ID."
+      },
+      "SHA256": {
+        "type": "string",
+        "minLength": 64,
+        "maxLength": 64,
+        "pattern": "^[0-9a-f]{64}$"
+      },
+      "DocumentID": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 64,
+        "pattern": "^[a-z0-9][a-z0-9._-]*$",
+        "description": "Corpus document identifier, never a path or URL."
+      },
+      "Timestamp": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "Cursor": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 2048,
+        "pattern": "^[A-Za-z0-9_-]+$",
+        "description": "Opaque server-issued cursor bound to caller, collection and filters. Never a substitute for authorization."
+      },
+      "IdempotencyKey": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 128,
+        "pattern": "^[A-Za-z0-9._:-]+$",
+        "description": "Scoped to validated issuer/subject for all run submissions, including reruns. Retained for the lifetime of the run record."
+      },
+      "WorkloadName": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 63,
+        "pattern": "^[a-z][a-z0-9-]*$",
+        "description": "Unique within an owner; case-sensitive lowercase slug."
+      },
+      "Owner": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "issuer": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2048,
+            "format": "uri"
+          },
+          "subject": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          }
+        },
+        "required": [
+          "issuer",
+          "subject"
+        ]
+      },
+      "ErrorBody": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "message": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ]
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/ErrorBody"
+          },
+          "request_id": {
+            "type": "string",
+            "minLength": 0,
+            "maxLength": 32,
+            "pattern": "^([0-9a-f]{32})?$"
+          }
+        },
+        "required": [
+          "error",
+          "request_id"
+        ]
+      },
+      "HealthResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "ok"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "CreateWorkloadRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "$ref": "#/components/schemas/WorkloadName"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 0,
+            "maxLength": 1024
+          }
+        },
+        "required": [
+          "name",
+          "description"
+        ]
+      },
+      "UpdateWorkloadRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "$ref": "#/components/schemas/WorkloadName"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 0,
+            "maxLength": 1024
+          }
+        },
+        "required": [],
+        "minProperties": 1
+      },
+      "Workload": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "workload_id": {
+            "$ref": "#/components/schemas/ID"
+          },
+          "owner": {
+            "$ref": "#/components/schemas/Owner"
+          },
+          "name": {
+            "$ref": "#/components/schemas/WorkloadName"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 0,
+            "maxLength": 1024
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "created_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "updated_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          }
+        },
+        "required": [
+          "workload_id",
+          "owner",
+          "name",
+          "description",
+          "revision",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "ResearchPermissions": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "document_ids": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DocumentID"
+            },
+            "minItems": 1,
+            "maxItems": 64,
+            "uniqueItems": true,
+            "description": "Requested source scope. Registration requires platform approval of snapshot/document availability; a valid schema alone grants no access."
+          }
+        },
+        "required": [
+          "document_ids"
+        ]
+      },
+      "ResearchLimits": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "max_passages": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 16
+          },
+          "max_output_tokens": {
+            "type": "integer",
+            "minimum": 128,
+            "maximum": 2048
+          }
+        },
+        "required": [
+          "max_passages",
+          "max_output_tokens"
+        ]
+      },
+      "ResearchSpec": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "workflow_type": {
+            "type": "string",
+            "const": "research.v1"
+          },
+          "corpus_snapshot_id": {
+            "$ref": "#/components/schemas/SHA256"
+          },
+          "tools": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "corpus.search",
+                "corpus.read"
+              ]
+            },
+            "minItems": 2,
+            "maxItems": 2,
+            "uniqueItems": true,
+            "description": "Exactly these read-only tools. Worker selects fixed stages; model cannot add tools."
+          },
+          "permissions": {
+            "$ref": "#/components/schemas/ResearchPermissions"
+          },
+          "limits": {
+            "$ref": "#/components/schemas/ResearchLimits"
+          },
+          "prompt_version": {
+            "type": "string",
+            "const": "research-report.v1"
+          },
+          "model_id": {
+            "type": "string",
+            "const": "google/gemma-4-26b-a4b-it:free",
+            "description": "Requested testing model. No paid/model/provider fallback; routing policy is operator-owned."
+          }
+        },
+        "required": [
+          "workflow_type",
+          "corpus_snapshot_id",
+          "tools",
+          "permissions",
+          "limits",
+          "prompt_version",
+          "model_id"
+        ]
+      },
+      "CreateVersionRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "spec": {
+            "$ref": "#/components/schemas/ResearchSpec"
+          }
+        },
+        "required": [
+          "spec"
+        ]
+      },
+      "WorkloadVersion": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "version_id": {
+            "$ref": "#/components/schemas/ID"
+          },
+          "workload_id": {
+            "$ref": "#/components/schemas/ID"
+          },
+          "version_number": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "spec": {
+            "$ref": "#/components/schemas/ResearchSpec"
+          },
+          "spec_sha256": {
+            "$ref": "#/components/schemas/SHA256"
+          },
+          "created_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          }
+        },
+        "required": [
+          "version_id",
+          "workload_id",
+          "version_number",
+          "spec",
+          "spec_sha256",
+          "created_at"
+        ]
+      },
+      "CreateRunRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "workload_id": {
+            "$ref": "#/components/schemas/ID"
+          },
+          "version_id": {
+            "$ref": "#/components/schemas/ID"
+          },
+          "question": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000,
+            "pattern": "[^ \t\n\r\f\u000b   -     　]"
+          },
+          "document_ids": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DocumentID"
+            },
+            "minItems": 1,
+            "maxItems": 64,
+            "uniqueItems": true,
+            "description": "Required explicit subset of the immutable version source scope."
+          }
+        },
+        "required": [
+          "workload_id",
+          "version_id",
+          "question",
+          "document_ids"
+        ]
+      },
+      "ExecutionStatus": {
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "source": {
+                "const": "not_started"
+              },
+              "state": {
+                "const": "not_started"
+              },
+              "observed_at": {
+                "type": "null"
+              },
+              "last_known_state": {
+                "type": "null"
+              }
+            },
+            "required": [
+              "source",
+              "state",
+              "observed_at",
+              "last_known_state"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "source": {
+                "const": "temporal"
+              },
+              "state": {
+                "type": "string",
+                "enum": [
+                  "running",
+                  "succeeded",
+                  "failed",
+                  "canceled",
+                  "timed_out",
+                  "terminated"
+                ]
+              },
+              "observed_at": {
+                "$ref": "#/components/schemas/Timestamp"
+              },
+              "last_known_state": {
+                "type": "null"
+              }
+            },
+            "required": [
+              "source",
+              "state",
+              "observed_at",
+              "last_known_state"
+            ]
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "source": {
+                "const": "unavailable"
+              },
+              "state": {
+                "const": "unknown"
+              },
+              "observed_at": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/Timestamp"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "last_known_state": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "running",
+                      "succeeded",
+                      "failed",
+                      "canceled",
+                      "timed_out",
+                      "terminated"
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "source",
+              "state",
+              "observed_at",
+              "last_known_state"
+            ]
+          }
+        ],
+        "description": "Temporal is authoritative. Unavailable state is unknown; a cached last-known state cannot be reported as current."
+      },
+      "Run": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "run_id": {
+            "$ref": "#/components/schemas/ID"
+          },
+          "workload_id": {
+            "$ref": "#/components/schemas/ID"
+          },
+          "version_id": {
+            "$ref": "#/components/schemas/ID"
+          },
+          "owner": {
+            "$ref": "#/components/schemas/Owner"
+          },
+          "question": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          },
+          "document_ids": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DocumentID"
+            },
+            "minItems": 1,
+            "maxItems": 64,
+            "uniqueItems": true
+          },
+          "created_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "rerun_of": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ID"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "submission_state": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "dispatched"
+            ]
+          },
+          "cancellation_state": {
+            "type": "string",
+            "enum": [
+              "not_requested",
+              "requested",
+              "delivered"
+            ]
+          },
+          "execution": {
+            "$ref": "#/components/schemas/ExecutionStatus"
+          }
+        },
+        "required": [
+          "run_id",
+          "workload_id",
+          "version_id",
+          "owner",
+          "question",
+          "document_ids",
+          "created_at",
+          "rerun_of",
+          "submission_state",
+          "cancellation_state",
+          "execution"
+        ]
+      },
+      "CancelResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "run_id": {
+            "$ref": "#/components/schemas/ID"
+          },
+          "cancellation_state": {
+            "type": "string",
+            "enum": [
+              "requested",
+              "delivered"
+            ]
+          }
+        },
+        "required": [
+          "run_id",
+          "cancellation_state"
+        ]
+      },
+      "HistoryEvent": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "sequence": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "step": {
+            "type": "string",
+            "enum": [
+              "workflow",
+              "retrieval",
+              "generation",
+              "citation_validation",
+              "persistence"
+            ]
+          },
+          "attempt": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "event_type": {
+            "type": "string",
+            "enum": [
+              "started",
+              "succeeded",
+              "failed",
+              "retry_scheduled",
+              "cancellation_requested",
+              "canceled",
+              "timed_out",
+              "terminated"
+            ]
+          },
+          "occurred_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "failure": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorBody"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "event_id",
+          "sequence",
+          "step",
+          "attempt",
+          "event_type",
+          "occurred_at",
+          "failure"
+        ]
+      },
+      "Evidence": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "evidence_id": {
+            "$ref": "#/components/schemas/ID"
+          },
+          "run_id": {
+            "$ref": "#/components/schemas/ID"
+          },
+          "corpus_snapshot_id": {
+            "$ref": "#/components/schemas/SHA256"
+          },
+          "document_id": {
+            "$ref": "#/components/schemas/DocumentID"
+          },
+          "passage_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "pattern": "^[a-z0-9][a-z0-9._-]*$"
+          },
+          "text_sha256": {
+            "$ref": "#/components/schemas/SHA256"
+          },
+          "excerpt": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 16000
+          }
+        },
+        "required": [
+          "evidence_id",
+          "run_id",
+          "corpus_snapshot_id",
+          "document_id",
+          "passage_id",
+          "text_sha256",
+          "excerpt"
+        ]
+      },
+      "Claim": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000,
+            "pattern": "[^ \t\n\r\f\u000b   -     　]"
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ID"
+            },
+            "minItems": 1,
+            "maxItems": 16,
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "text",
+          "evidence_ids"
+        ]
+      },
+      "ModelIdentity": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "requested_id": {
+            "const": "google/gemma-4-26b-a4b-it:free"
+          },
+          "actual_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "provider_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "requested_id",
+          "actual_id",
+          "provider_id"
+        ]
+      },
+      "Report": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "run_id": {
+            "$ref": "#/components/schemas/ID"
+          },
+          "generated_at": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "model": {
+            "$ref": "#/components/schemas/ModelIdentity"
+          },
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "answered",
+              "insufficient_evidence",
+              "conflicting_evidence"
+            ]
+          },
+          "claims": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Claim"
+            },
+            "minItems": 0,
+            "maxItems": 32
+          },
+          "limitations": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000
+            },
+            "minItems": 0,
+            "maxItems": 16
+          }
+        },
+        "required": [
+          "run_id",
+          "generated_at",
+          "model",
+          "outcome",
+          "claims",
+          "limitations"
+        ],
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "outcome": {
+                  "const": "answered"
+                }
+              },
+              "required": [
+                "outcome"
+              ]
+            },
+            "then": {
+              "properties": {
+                "claims": {
+                  "minItems": 1
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "outcome": {
+                  "enum": [
+                    "insufficient_evidence",
+                    "conflicting_evidence"
+                  ]
+                }
+              },
+              "required": [
+                "outcome"
+              ]
+            },
+            "then": {
+              "properties": {
+                "limitations": {
+                  "minItems": 1
+                }
+              }
+            }
+          }
+        ]
+      },
+      "WorkloadPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Workload"
+            },
+            "minItems": 0,
+            "maxItems": 100
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Cursor"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ]
+      },
+      "VersionPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkloadVersion"
+            },
+            "minItems": 0,
+            "maxItems": 100
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Cursor"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ]
+      },
+      "RunPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Run"
+            },
+            "minItems": 0,
+            "maxItems": 100
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Cursor"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ]
+      },
+      "HistoryPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HistoryEvent"
+            },
+            "minItems": 0,
+            "maxItems": 100
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Cursor"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ]
+      },
+      "EvidencePage": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Evidence"
+            },
+            "minItems": 0,
+            "maxItems": 100
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Cursor"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ]
+      }
+    },
+    "parameters": {
+      "Limit": {
+        "name": "limit",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 20
+        },
+        "description": "Page size; smaller final pages are valid."
+      },
+      "Cursor": {
+        "name": "cursor",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "$ref": "#/components/schemas/Cursor"
+        }
+      },
+      "WorkloadFilter": {
+        "name": "workload_id",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "$ref": "#/components/schemas/ID"
+        }
+      },
+      "IdempotencyKey": {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "$ref": "#/components/schemas/IdempotencyKey"
+        }
+      },
+      "IfMatch": {
+        "name": "If-Match",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "minLength": 40,
+          "maxLength": 64,
+          "pattern": "^\"[0-9a-f-]{36}:[1-9][0-9]*\"$"
+        },
+        "description": "Strong workload ETag from a prior authorized read. Wildcards and weak ETags are unsupported."
+      },
+      "WorkloadID": {
+        "name": "workload_id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "$ref": "#/components/schemas/ID"
+        }
+      },
+      "VersionID": {
+        "name": "version_id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "$ref": "#/components/schemas/ID"
+        }
+      },
+      "RunID": {
+        "name": "run_id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "$ref": "#/components/schemas/ID"
+        }
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Malformed/duplicate-key JSON, invalid parameter or cursor, missing/invalid idempotency key: invalid_request.",
+        "headers": {
+          "X-Request-ID": {
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 0,
+              "maxLength": 32,
+              "pattern": "^([0-9a-f]{32})?$"
+            },
+            "description": "Server-generated correlation; empty only if secure ID generation fails."
+          },
+          "Cache-Control": {
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "no-store"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Missing or invalid API access token: unauthenticated. Includes WWW-Authenticate: Bearer.",
+        "headers": {
+          "X-Request-ID": {
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 0,
+              "maxLength": 32,
+              "pattern": "^([0-9a-f]{32})?$"
+            },
+            "description": "Server-generated correlation; empty only if secure ID generation fails."
+          },
+          "Cache-Control": {
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "no-store"
+            }
+          },
+          "WWW-Authenticate": {
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "Bearer"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "Forbidden": {
+        "description": "Valid identity lacks an allowed API role: forbidden. Object ownership denials use 404.",
+        "headers": {
+          "X-Request-ID": {
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 0,
+              "maxLength": 32,
+              "pattern": "^([0-9a-f]{32})?$"
+            },
+            "description": "Server-generated correlation; empty only if secure ID generation fails."
+          },
+          "Cache-Control": {
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "no-store"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Missing or inaccessible object: not_found. Do not disclose another owner's existence.",
+        "headers": {
+          "X-Request-ID": {
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 0,
+              "maxLength": 32,
+              "pattern": "^([0-9a-f]{32})?$"
+            },
+            "description": "Server-generated correlation; empty only if secure ID generation fails."
+          },
+          "Cache-Control": {
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "no-store"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "Conflict": {
+        "description": "Duplicate workload name, changed input under an existing idempotency key, unsupported rerun state or unavailable report: conflict.",
+        "headers": {
+          "X-Request-ID": {
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 0,
+              "maxLength": 32,
+              "pattern": "^([0-9a-f]{32})?$"
+            },
+            "description": "Server-generated correlation; empty only if secure ID generation fails."
+          },
+          "Cache-Control": {
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "no-store"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "PreconditionFailed": {
+        "description": "If-Match does not match current workload revision: precondition_failed.",
+        "headers": {
+          "X-Request-ID": {
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 0,
+              "maxLength": 32,
+              "pattern": "^([0-9a-f]{32})?$"
+            },
+            "description": "Server-generated correlation; empty only if secure ID generation fails."
+          },
+          "Cache-Control": {
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "no-store"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "TooLarge": {
+        "description": "Request body exceeds 64 KiB: request_too_large.",
+        "headers": {
+          "X-Request-ID": {
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 0,
+              "maxLength": 32,
+              "pattern": "^([0-9a-f]{32})?$"
+            },
+            "description": "Server-generated correlation; empty only if secure ID generation fails."
+          },
+          "Cache-Control": {
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "no-store"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "UnsupportedMedia": {
+        "description": "JSON mutation requires application/json (optional charset=utf-8): unsupported_media_type.",
+        "headers": {
+          "X-Request-ID": {
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 0,
+              "maxLength": 32,
+              "pattern": "^([0-9a-f]{32})?$"
+            },
+            "description": "Server-generated correlation; empty only if secure ID generation fails."
+          },
+          "Cache-Control": {
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "no-store"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "Invalid": {
+        "description": "Well-formed JSON violates schema or allowed snapshot/document/version policy: invalid_input.",
+        "headers": {
+          "X-Request-ID": {
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 0,
+              "maxLength": 32,
+              "pattern": "^([0-9a-f]{32})?$"
+            },
+            "description": "Server-generated correlation; empty only if secure ID generation fails."
+          },
+          "Cache-Control": {
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "no-store"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "PreconditionRequired": {
+        "description": "Workload metadata update requires If-Match: precondition_required.",
+        "headers": {
+          "X-Request-ID": {
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 0,
+              "maxLength": 32,
+              "pattern": "^([0-9a-f]{32})?$"
+            },
+            "description": "Server-generated correlation; empty only if secure ID generation fails."
+          },
+          "Cache-Control": {
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "no-store"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "Unavailable": {
+        "description": "Dependency unavailable, no durable acceptance, or no current Temporal history: unavailable.",
+        "headers": {
+          "X-Request-ID": {
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 0,
+              "maxLength": 32,
+              "pattern": "^([0-9a-f]{32})?$"
+            },
+            "description": "Server-generated correlation; empty only if secure ID generation fails."
+          },
+          "Cache-Control": {
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "no-store"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "Internal": {
+        "description": "Unexpected server failure: internal_error. No dependency error, credential or prompt is returned.",
+        "headers": {
+          "X-Request-ID": {
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 0,
+              "maxLength": 32,
+              "pattern": "^([0-9a-f]{32})?$"
+            },
+            "description": "Server-generated correlation; empty only if secure ID generation fails."
+          },
+          "Cache-Control": {
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "no-store"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      }
+    }
+  }
+}

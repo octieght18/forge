@@ -1,0 +1,7 @@
+{
+  "error": {
+    "code": "invalid_input",
+    "message": "Request does not match the supported contract"
+  },
+  "request_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+}
