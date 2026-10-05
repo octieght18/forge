@@ -123,3 +123,9 @@ Owner instruction on 5 October 2026: **“use a free model from open router for 
 Use public/synthetic fixtures, no paid model/plugin fallback, record actual model/provider identity and validate output locally. Routing/data-policy eligibility is not proven by catalog metadata and must be checked during implementation; failures must not silently broaden routing or spend. Free-tier capacity is not a platform SLO. This documentation task created no credentials, model calls, cloud resources or runtime services.
 
 See [F02 architecture](architecture.md) and [ADRs](adr/README.md) for alternatives, costs, reversibility and verification obligations.
+
+## D15 — Go service foundation and operational conventions
+
+Accepted on 5 October 2026: Go standard library HTTP and structured JSON logs; loopback-only port 8081; separate configuration, HTTP and lifecycle packages; public process-only `/healthz` and `/readyz`; safe JSON errors with stable code/message/request ID. The owner accepted configurable 5s header read, 10s request read, 15s response write, 60s idle and 10s shutdown grace defaults, draining followed by cancellation/connection close after grace, and Windows/Linux CI with Linux race detection.
+
+These operational defaults do not establish performance SLOs. PostgreSQL/Temporal/OIDC integration and product routes follow later tickets. Standard library dependencies avoid a framework/tool dependency at this stage; a future router can replace the transport internals behind the injected handler without changing lifecycle ownership. See [service conventions](service-foundation.md) and [F03 evidence](f03-validation.md).

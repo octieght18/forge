@@ -1,0 +1,55 @@
+name: Go CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        with:
+          go-version-file: go.mod
+          cache: false # Standard library only; no go.sum yet.
+      - name: Formatting
+        shell: bash
+        run: |
+          files=$(gofmt -l .)
+          if [ -n "$files" ]; then
+            printf '%s\n' "$files"
+            exit 1
+          fi
+      - run: go vet ./...
+      - run: go test -timeout 60s ./...
+      - run: go build ./...
+      - name: Race detection
+        if: runner.os == 'Linux'
+        run: go test -race -timeout 60s ./...
+      - name: Process signal smoke test
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          go build -o /tmp/forge-api ./cmd/api
+          if FORGE_HTTP_ADDR=0.0.0.0:8081 /tmp/forge-api; then
+            echo 'Unsafe configuration was accepted'
+            exit 1
+          fi
+          /tmp/forge-api > /tmp/forge-api.log 2>&1 &
+          pid=$!
+          trap 'kill "$pid" 2>/dev/null || true' EXIT
+          curl --fail --silent --retry 20 --retry-delay 1 --retry-connrefused http://127.0.0.1:8081/readyz
+          kill -TERM "$pid"
+          wait "$pid"
+          grep -q 'API stopped' /tmp/forge-api.log
+          trap - EXIT

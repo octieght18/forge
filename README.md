@@ -6,7 +6,7 @@ Forge's purpose is to show how an engineering team can compose existing infrastr
 
 ## Current work
 
-**F01 — Write the internal platform product brief** is accepted. **F02 — Record architecture boundaries and integration decisions** is recorded with accepted boundaries. This repository currently contains requirements and architecture documentation; runtime implementation follows.
+**F01** and **F02** establish the accepted product and architecture. **F03 — Create the repository and Go service foundation** adds a runnable Go HTTP service with health endpoints, structured errors/logs, validated configuration, bounded shutdown and CI.
 
 The accepted first release is the **API and durable research workflow only**: one engineering team, owner-private workloads/runs, operator visibility, and a fixed local document corpus accessed through read-only MCP tools. Available project capacity is five hours/week. Environment provisioning and broader platform capabilities follow in later releases.
 
@@ -15,8 +15,20 @@ The accepted first release is the **API and durable research workflow only**: on
 - [Architecture and integration boundaries](docs/architecture.md)
 - [Architecture decision records](docs/adr/README.md)
 - [F02 documentation validation](docs/f02-validation.md)
+- [Go service setup and conventions](docs/service-foundation.md)
+- [F03 validation](docs/f03-validation.md)
 
-The owner must review product and design choices before they become accepted decisions. F02 records the accepted Go HTTP/OpenAPI, PostgreSQL and Temporal foundation, OpenRouter backend and local Kubernetes target. Keycloak OIDC is included from the first release. The testing model is `google/gemma-4-26b-a4b-it:free`; Docker Compose comes first and kind later. Detailed implementation and operational parameters still require consultation.
+The owner must review product and design choices before they become accepted decisions. F02 records the accepted Go HTTP/OpenAPI, PostgreSQL and Temporal foundation, OpenRouter backend and local Kubernetes target. Keycloak OIDC is included from the first release. The testing model is `google/gemma-4-26b-a4b-it:free`; Docker Compose comes first and kind later. F03's HTTP defaults and lifecycle conventions are accepted; new API/identity/workflow decisions still require consultation.
+
+## Run the foundation
+
+With Go 1.27.1 installed:
+
+```sh
+go run ./cmd/api
+```
+
+Open `http://127.0.0.1:8081/healthz` or `/readyz`. Only process health is implemented so far. Read the [service guide](docs/service-foundation.md) for configuration, tests and this PC's portable Go setup.
 
 ## Delivery plan
 
