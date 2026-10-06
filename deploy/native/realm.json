@@ -1,0 +1,28 @@
+{
+  "realm": "forge",
+  "enabled": true,
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "resetPasswordAllowed": false,
+  "loginWithEmailAllowed": false,
+  "accessTokenLifespan": 300,
+  "defaultSignatureAlgorithm": "RS256",
+  "roles": {"client": {"forge-api": [{"name": "developer"}, {"name": "operator"}]}},
+  "clients": [
+    {"clientId": "forge-api", "enabled": true, "protocol": "openid-connect", "bearerOnly": true},
+    {
+      "clientId": "forge-local-login", "enabled": true, "protocol": "openid-connect",
+      "publicClient": true, "standardFlowEnabled": true, "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false, "serviceAccountsEnabled": false,
+      "redirectUris": ["http://127.0.0.1:8083/callback"], "webOrigins": [],
+      "fullScopeAllowed": true,
+      "attributes": {"pkce.code.challenge.method": "S256"},
+      "defaultClientScopes": ["basic", "roles", "profile"],
+      "protocolMappers": [{
+        "name": "forge-api-audience", "protocol": "openid-connect",
+        "protocolMapper": "oidc-audience-mapper",
+        "config": {"included.client.audience": "forge-api", "access.token.claim": "true", "id.token.claim": "false"}
+      }]
+    }
+  ]
+}

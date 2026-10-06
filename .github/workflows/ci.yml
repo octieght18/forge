@@ -98,3 +98,49 @@ jobs:
         env:
           FORGE_TEST_RESTART_PHASE: verify
         run: go test -count=1 -v -run '^TestPostgreSQLRestartPersistence$' ./internal/store
+
+  native:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Install native prerequisites
+        shell: bash
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl --fail --silent --show-error https://www.postgresql.org/media/keys/ACCC4CF8.asc -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc
+          printf 'deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt noble-pgdg main\n' | sudo tee /etc/apt/sources.list.d/forge-pgdg.list > /dev/null
+          sudo apt-get update -qq
+          pg_version=$(apt-cache madison postgresql-18 | awk '$3 ~ /^18[.]6-/ {print $3; exit}')
+          test -n "$pg_version"
+          sudo apt-get install -y --no-install-recommends openjdk-21-jre-headless "postgresql-18=$pg_version" python3
+      - name: Native lifecycle guard tests
+        run: python3 -m unittest discover -s deploy/native -p 'test_*.py'
+      - name: Cold start and real authorization-code smoke
+        shell: bash
+        run: |
+          sudo python3 deploy/native/stack.py up --user "$USER" --go "$(command -v go)"
+          python3 deploy/native/smoke.py seed
+      - name: Stop retains data
+        shell: bash
+        run: |
+          sudo python3 deploy/native/stack.py stop --user "$USER"
+          test -s "$HOME/.local/share/forge-native/postgres/PG_VERSION"
+          test -s "$HOME/.local/share/forge-native/validation-proof.json"
+          if curl --fail --silent http://127.0.0.1:8081/readyz; then exit 1; fi
+      - name: Restart and verify retained identity and product records
+        shell: bash
+        run: |
+          sudo python3 deploy/native/stack.py up --user "$USER" --go "$(command -v go)"
+          python3 deploy/native/smoke.py verify
+      - name: Native teardown
+        if: always()
+        shell: bash
+        run: |
+          if [ -f "$HOME/.local/share/forge-native/installation.json" ]; then
+            sudo python3 deploy/native/stack.py stop --user "$USER"
+          fi

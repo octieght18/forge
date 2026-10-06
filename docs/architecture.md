@@ -8,7 +8,7 @@ This document records accepted boundaries, alternatives and verification obligat
 
 ## 1. First-release composition
 
-Go exposes an authenticated HTTP/JSON API described by OpenAPI. PostgreSQL stores workload ownership, immutable versions, accepted run requests, intermediate artifacts and evidence. Temporal owns durable orchestration, task delivery, execution history and authoritative execution status. A Go worker executes bounded activities: read permitted corpus passages through MCP, call the selected model, validate references, and persist a report. A local Docker Compose runtime starts infrastructure; deployment implementation is a later task.
+Go exposes an authenticated HTTP/JSON API described by OpenAPI. PostgreSQL stores workload ownership, immutable versions, accepted run requests, intermediate artifacts and evidence. Temporal owns durable orchestration, task delivery, execution history and authoritative execution status. A Go worker executes bounded activities: read permitted corpus passages through MCP, call the selected model, validate references, and persist a report. **F07/D20 supersedes the original Compose-first local deployment choice:** the owner requested no containers and accepted native PostgreSQL, Keycloak and API services in Ubuntu WSL. See the [native stack guide](local-stack.md); Temporal/worker deployment follows its implementation ticket. Earlier Compose/Kubernetes comparisons below remain the original F02 decision context, not the current local startup procedure.
 
 ```mermaid
 flowchart LR

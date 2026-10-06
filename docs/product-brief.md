@@ -145,6 +145,8 @@ The owner is responsible for deferred target decisions. Test workloads, hardware
 
 F02 records architecture decisions and alternatives in [architecture.md](architecture.md). The owner selected OpenRouter and local Kubernetes on 5 October 2026, superseding the original managed-cloud selection requirement; the testing model is `google/gemma-4-26b-a4b-it:free`, with Docker Compose first and kind later. Keycloak OIDC is included from the first release. This brief identifies user-facing requirements without choosing implementation mechanisms prematurely.
 
+On 6 October 2026, D20 superseded Compose-first startup for F07: the owner requested no containers and accepted native PostgreSQL, Keycloak and Go API services inside Ubuntu WSL. The [native stack](local-stack.md) is now the first-release local startup path; later Kubernetes work remains outside this ticket.
+
 ## 10. Delivery and capacity
 
 The imported project proposes 26 weeks from 5 October 2026 to 4 April 2027, originally covering API foundation, self-service provisioning, durable workflows, tenant security, operations, and evidence/launch. At the newly accepted capacity, that full-scope schedule is superseded by a smaller first release within the same six-month horizon; remaining capabilities move to a later roadmap.
