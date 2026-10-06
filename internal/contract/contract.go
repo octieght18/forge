@@ -75,6 +75,20 @@ func New() (*Validator, error) {
 		}
 		v.schemas[name] = schema
 	}
+	// Operator-only approval metadata; not another public product schema.
+	policyURL := documentURL + "/corpus-policy"
+	policy := map[string]any{"type": "object", "minProperties": 1, "maxProperties": 64,
+		"propertyNames": map[string]any{"$ref": documentURL + "#/components/schemas/SHA256"},
+		"additionalProperties": map[string]any{"type": "array", "minItems": 1, "maxItems": 64, "uniqueItems": true,
+			"items": map[string]any{"$ref": documentURL + "#/components/schemas/DocumentID"}}}
+	if err := compiler.AddResource(policyURL, policy); err != nil {
+		return nil, err
+	}
+	compiled, err := compiler.Compile(policyURL)
+	if err != nil {
+		return nil, err
+	}
+	v.schemas["CorpusPolicy"] = compiled
 	return v, nil
 }
 
