@@ -112,6 +112,7 @@ Numerical SLOs, retention periods, concurrency targets, budget and recovery obje
 | Measure | Evidence to collect | Target status |
 |---|---|---|
 | Environment setup improvement | Repeated manual baseline versus self-service provisioning, with equivalent prerequisites | Numerical reduction target pending |
+| Initial native API baseline (D21) | Five retained-data startups, ten authenticated registration/read journeys and occupied-port detection/recovery; raw timings and conditions retained | Descriptive observations; targets pending owner review |
 | Developer effort | Number and nature of manual steps removed; clean-onboarding observations | Target pending |
 | Provisioning reliability | Successful/failed reconciliations, duplicate-resource checks, convergence and recovery duration | Scenario set and threshold pending |
 | Durable execution behavior | Research success, transient tool failure, worker loss, timeout, cancellation, insufficient/conflicting evidence, and controlled rerun results | Acceptance procedure approved in D08; full replay follows later scope |

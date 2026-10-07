@@ -26,6 +26,8 @@ The accepted first release is the **API and durable research workflow only**: on
 - [F06 validation](docs/f06-validation.md)
 - [Native local startup, login and retained data](docs/local-stack.md)
 - [F07 validation](docs/f07-validation.md)
+- [Baseline procedure and measurement commands](docs/baseline-procedure.md)
+- [F08 observed timings and raw evidence](docs/f08-baseline.md)
 
 The owner must review product and design choices before they become accepted decisions. F02 records the accepted Go HTTP/OpenAPI, PostgreSQL and Temporal foundation, OpenRouter backend and local Kubernetes target. Keycloak OIDC is included from the first release. The testing model is `google/gemma-4-26b-a4b-it:free`. The owner's F07 instruction to use **no containers** supersedes the earlier Compose-first deployment choice: this stack runs natively in WSL. F03's HTTP defaults and lifecycle conventions are accepted; new API/identity/workflow decisions still require consultation.
 

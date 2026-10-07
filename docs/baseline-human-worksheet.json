@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "status": "unmeasured",
+  "instructions": "Copy per actual human trial. Null means unmeasured, never zero. Exclude credentials and tokens. Provisioning trials are deferred until that capability exists.",
+  "onboarding": {
+    "participant": null,
+    "documentation_commit": null,
+    "prerequisites_already_present": null,
+    "started_utc": null,
+    "finished_utc": null,
+    "elapsed_seconds": null,
+    "active_human_seconds": null,
+    "machine_wait_seconds": null,
+    "manual_commands_and_clicks": null,
+    "mistakes_assistance_and_recovery": null,
+    "outcome": null
+  },
+  "provisioning_comparison": {
+    "status": "deferred",
+    "required_manual_trials": 10,
+    "required_self_service_trials": 10,
+    "equivalent_readiness_criterion": null,
+    "hardware_and_software": null,
+    "matched_prerequisites": null,
+    "trials": [],
+    "trial_template": {
+      "path": null,
+      "trial": null,
+      "bootstrap_class": null,
+      "start_utc": null,
+      "ready_utc": null,
+      "elapsed_seconds": null,
+      "active_human_seconds": null,
+      "commands_and_steps": null,
+      "outcome": null,
+      "failure_detection_and_recovery": null,
+      "resource_ids_and_cleanup": null
+    }
+  }
+}

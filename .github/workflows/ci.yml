@@ -34,6 +34,17 @@ jobs:
       - run: go vet ./...
       - run: go test -timeout 60s ./...
       - run: go build ./...
+      - name: Baseline statistics tests
+        if: runner.os == 'Linux'
+        run: python3 -m unittest discover -s scripts/baseline -p 'test_*.py'
+      - name: Baseline PowerShell syntax
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $parseTokens = $null
+          $parseErrors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile("$PWD/scripts/measure-baseline.ps1", [ref]$parseTokens, [ref]$parseErrors) | Out-Null
+          if ($parseErrors) { $parseErrors; exit 1 }
       - name: Race detection
         if: runner.os == 'Linux'
         run: go test -race -timeout 60s ./...
