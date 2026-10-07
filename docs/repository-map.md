@@ -18,6 +18,7 @@ Start with the [quickstart](quickstart.md), [seven current API operations/exampl
 | [scripts/local-stack.ps1](../scripts/local-stack.ps1) | Windows `up`, `status`, `stop`, `login` entry point. |
 | [scripts/api-examples.ps1](../scripts/api-examples.ps1) | Runnable seven-operation example with a private access-token file. |
 | [scripts/measure-baseline.ps1](../scripts/measure-baseline.ps1) | F08 retained-data startup/registration/recovery measurements. |
+| [scripts/profile-summary.py](../scripts/profile-summary.py) | F10 raw request/journey latency and error summary. The opt-in profiling harness lives in `internal/service/profile_test.go`. |
 | [.github/workflows/ci.yml](../.github/workflows/ci.yml) | Windows/Linux checks, real PostgreSQL/race/restart and isolated native clean-start/quickstart checks. |
 
 Product intent is in the [brief](product-brief.md), approved choices in the [decision log](decision-log.md), and boundaries/alternatives in [architecture](architecture.md) and [ADRs](adr/README.md). [Persistence](persistence.md), [registration](registration-api.md) and [native setup](local-stack.md) cover operator details. F01–F08 documents retain ticket-stage context; current availability is described in this quickstart/API reference. [F08 baseline](f08-baseline.md) contains observed timings, not performance SLOs. [F09 validation](f09-validation.md) states which clean-checkout paths were actually exercised.

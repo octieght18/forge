@@ -1,0 +1,55 @@
+{
+  "ticket": "F10",
+  "client_date": "2026-10-07",
+  "measured_local_source": "79ac8323c830447b1d3aa3cb389ef7109584a344",
+  "public_code_source": "7ed1732634c94bdf713b595a46a28cdf73da98c2",
+  "runtime_tests_harness_scripts_ci_byte_identical": true,
+  "publication": "Code, procedure, report and aggregate summaries only; raw records/profiles, detailed machine files and raw outputs remain local",
+  "linux": {
+    "real_postgres": "18.6; isolated random test databases and runtime roles",
+    "command": "go test -race -count=1 -timeout 120s -json ./...",
+    "passed_packages": [
+      "github.com/octieght18/forge/internal/config",
+      "github.com/octieght18/forge/cmd/forge-migrate",
+      "github.com/octieght18/forge/internal/contract",
+      "github.com/octieght18/forge/internal/login",
+      "github.com/octieght18/forge/internal/store",
+      "github.com/octieght18/forge/internal/httpapi",
+      "github.com/octieght18/forge/internal/auth",
+      "github.com/octieght18/forge/internal/service"
+    ],
+    "failed_tests": 0
+  },
+  "windows": {
+    "database_tests": "skipped; no test database configured",
+    "command": "go test -count=1 -timeout 60s -json ./...",
+    "passed_packages": [
+      "github.com/octieght18/forge/cmd/forge-migrate",
+      "github.com/octieght18/forge/internal/config",
+      "github.com/octieght18/forge/internal/httpapi",
+      "github.com/octieght18/forge/internal/store",
+      "github.com/octieght18/forge/internal/contract",
+      "github.com/octieght18/forge/internal/login",
+      "github.com/octieght18/forge/internal/service",
+      "github.com/octieght18/forge/internal/auth"
+    ],
+    "failed_tests": 0
+  },
+  "initial_regression": {
+    "failed_before_fix": true,
+    "passed_after_fix": true,
+    "test": "TestRegistrationJWKSHTTPDisconnect"
+  },
+  "other_local_checks": [
+    "Windows/Linux go vet and build passed",
+    "gofmt clean",
+    "2 profile-summary statistical tests passed",
+    "29 Markdown documents/193 relative links passed",
+    "4 PowerShell scripts/16 documented blocks parsed",
+    "Raw schema contains only synthetic measurements/statuses; no bodies/credentials",
+    "25 private artifact hashes verified",
+    "Fixture committed counts match all successful preflight/warmup/measured creates",
+    "One/two-client measurement completed without race instrumentation",
+    "Native startup/API/identity Windows loopback readiness passed after profiling"
+  ]
+}

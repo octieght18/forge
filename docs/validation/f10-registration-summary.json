@@ -1,0 +1,147 @@
+{
+  "quantile_method": "nearest rank; all measured outcomes included",
+  "levels": [
+    {
+      "clients": 1,
+      "smoke": false,
+      "elapsed_seconds_including_drain": 15.002785126,
+      "request_latency": {
+        "count": 17948,
+        "min_ms": 0.322283,
+        "p50_ms": 0.934358,
+        "p95_ms": 1.392868,
+        "p99_ms": 1.716785,
+        "max_ms": 2.906668
+      },
+      "journey_latency": {
+        "count": 4487,
+        "min_ms": 2.750672,
+        "p50_ms": 3.279327,
+        "p95_ms": 3.972726,
+        "p99_ms": 4.42149,
+        "max_ms": 5.821863
+      },
+      "operation_latency": {
+        "create_version": {
+          "count": 4487,
+          "min_ms": 0.948624,
+          "p50_ms": 1.236643,
+          "p95_ms": 1.57193,
+          "p99_ms": 1.945561,
+          "max_ms": 2.906668
+        },
+        "create_workload": {
+          "count": 4487,
+          "min_ms": 0.868472,
+          "p50_ms": 1.134558,
+          "p95_ms": 1.41445,
+          "p99_ms": 1.730622,
+          "max_ms": 2.539341
+        },
+        "read_version": {
+          "count": 4487,
+          "min_ms": 0.334035,
+          "p50_ms": 0.444075,
+          "p95_ms": 0.558783,
+          "p99_ms": 0.934548,
+          "max_ms": 1.438627
+        },
+        "read_workload": {
+          "count": 4487,
+          "min_ms": 0.322283,
+          "p50_ms": 0.42621,
+          "p95_ms": 0.537192,
+          "p99_ms": 0.814008,
+          "max_ms": 1.396325
+        }
+      },
+      "status_counts": {
+        "200": 8974,
+        "201": 8974
+      },
+      "transport_errors": 0,
+      "failed_requests": 0,
+      "request_error_fraction": 0.0,
+      "failed_journeys": 0,
+      "journey_error_fraction": 0.0,
+      "completed_requests_per_second": 1196.3112081700024,
+      "successful_journeys_per_second": 299.0778020425006,
+      "rows_by_phase": {
+        "measure": 22435,
+        "preflight": 5,
+        "warmup": 7305
+      }
+    },
+    {
+      "clients": 2,
+      "smoke": false,
+      "elapsed_seconds_including_drain": 15.002214735,
+      "request_latency": {
+        "count": 32232,
+        "min_ms": 0.252069,
+        "p50_ms": 1.024749,
+        "p95_ms": 1.614451,
+        "p99_ms": 1.976309,
+        "max_ms": 7.318461
+      },
+      "journey_latency": {
+        "count": 8058,
+        "min_ms": 2.864489,
+        "p50_ms": 3.64338,
+        "p95_ms": 4.499868,
+        "p99_ms": 4.97731,
+        "max_ms": 9.508897
+      },
+      "operation_latency": {
+        "create_version": {
+          "count": 8058,
+          "min_ms": 1.007846,
+          "p50_ms": 1.385445,
+          "p95_ms": 1.845651,
+          "p99_ms": 2.248497,
+          "max_ms": 7.318461
+        },
+        "create_workload": {
+          "count": 8058,
+          "min_ms": 0.86748,
+          "p50_ms": 1.259905,
+          "p95_ms": 1.644639,
+          "p99_ms": 1.978665,
+          "max_ms": 5.937562
+        },
+        "read_version": {
+          "count": 8058,
+          "min_ms": 0.286186,
+          "p50_ms": 0.48264,
+          "p95_ms": 0.668682,
+          "p99_ms": 1.084891,
+          "max_ms": 1.625933
+        },
+        "read_workload": {
+          "count": 8058,
+          "min_ms": 0.252069,
+          "p50_ms": 0.459124,
+          "p95_ms": 0.628587,
+          "p99_ms": 0.974756,
+          "max_ms": 1.550045
+        }
+      },
+      "status_counts": {
+        "200": 16116,
+        "201": 16116
+      },
+      "transport_errors": 0,
+      "failed_requests": 0,
+      "request_error_fraction": 0.0,
+      "failed_journeys": 0,
+      "journey_error_fraction": 0.0,
+      "completed_requests_per_second": 2148.4827786662127,
+      "successful_journeys_per_second": 537.1206946665532,
+      "rows_by_phase": {
+        "measure": 40290,
+        "preflight": 5,
+        "warmup": 13435
+      }
+    }
+  ]
+}
