@@ -1,0 +1,12 @@
+{
+  "source_commit": "ecd3bf57b657d246f97c4f9739d9a7ad0719dbf3",
+  "clean_checkout": true,
+  "real_keycloak_pkce": true,
+  "api_result": {
+    "workload_id": "c23778f0-f643-4972-a276-be700be01de3",
+    "version_id": "84d55677-c6d2-42b2-b0a9-a0431d7e4c2f",
+    "revision": 2,
+    "seven_operations_verified": true
+  },
+  "observed_utc": "2026-10-07T17:29:57.4058579Z"
+}
