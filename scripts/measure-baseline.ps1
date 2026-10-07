@@ -9,6 +9,14 @@ param(
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path -Parent $PSScriptRoot
 $native = Join-Path $PSScriptRoot 'local-stack.ps1'
+$prefix='f08-' + [DateTime]::UtcNow.ToString('yyyyMMddTHHmmss').ToLowerInvariant() + '-' + [Guid]::NewGuid().ToString('N').Substring(0,6)
+$nameSchema=(Get-Content -LiteralPath (Join-Path $repo 'internal/contract/openapi.json') -Raw | ConvertFrom-Json).components.schemas.WorkloadName
+for ($fixtureTrial=1; $fixtureTrial -le $RegistrationTrials; $fixtureTrial++) {
+    $fixtureName="$prefix-$fixtureTrial"
+    if ($fixtureName -cnotmatch $nameSchema.pattern -or $fixtureName.Length -gt $nameSchema.maxLength -or $fixtureName.Length -lt $nameSchema.minLength) {
+        throw 'Baseline fixture name violates the workload contract; no trials started'
+    }
+}
 if (!$OutputDirectory) { $OutputDirectory = Join-Path $repo ('tmp/f08/' + [DateTime]::UtcNow.ToString('yyyyMMddTHHmmssZ')) }
 $outputPath = [IO.Path]::GetFullPath($OutputDirectory)
 if (Test-Path -LiteralPath $outputPath) { throw 'Choose a new results directory; previous raw runs are never overwritten' }
@@ -100,7 +108,6 @@ try {
     if ($setupFailed) { throw 'Private PKCE setup failed' }
     $token = ((& wsl.exe -d $Distro -u $ServiceUser --exec cat "$statePath/tokens/ahmad.json") | ConvertFrom-Json).access_token
     $versionBody = Get-Content -LiteralPath (Join-Path $repo 'internal/contract/examples/create-version.json') -Raw | ConvertFrom-Json
-    $prefix='f08-' + [DateTime]::UtcNow.ToString('yyyyMMddTHHmmss') + '-' + [Guid]::NewGuid().ToString('N').Substring(0,6)
     for ($trial=1; $trial -le $RegistrationTrials; $trial++) {
         $workload=$null; $version=$null
         $start=[DateTime]::UtcNow; $watch=[Diagnostics.Stopwatch]::StartNew(); $outcome='failure'
