@@ -37,14 +37,13 @@ jobs:
       - name: Baseline statistics tests
         if: runner.os == 'Linux'
         run: python3 -m unittest discover -s scripts/baseline -p 'test_*.py'
-      - name: Baseline PowerShell syntax
+      - name: Documentation links and fences
+        if: runner.os == 'Linux'
+        run: python3 scripts/check-docs.py
+      - name: PowerShell scripts and documented examples
         if: runner.os == 'Windows'
         shell: pwsh
-        run: |
-          $parseTokens = $null
-          $parseErrors = $null
-          [System.Management.Automation.Language.Parser]::ParseFile("$PWD/scripts/measure-baseline.ps1", [ref]$parseTokens, [ref]$parseErrors) | Out-Null
-          if ($parseErrors) { $parseErrors; exit 1 }
+        run: ./scripts/check-powershell.ps1
       - name: Race detection
         if: runner.os == 'Linux'
         run: go test -race -timeout 60s ./...
@@ -136,6 +135,9 @@ jobs:
         run: |
           sudo python3 deploy/native/stack.py up --user "$USER" --go "$(command -v go)"
           python3 deploy/native/smoke.py seed
+      - name: Quickstart examples from clean checkout with real token
+        shell: pwsh
+        run: ./scripts/api-examples.ps1 -TokenFile "$HOME/.local/share/forge-native/tokens/ahmad.json"
       - name: Stop retains data
         shell: bash
         run: |

@@ -4,6 +4,8 @@ F06 implements the seven F04 workload/version operations with PostgreSQL, real a
 
 The owner accepted this scope, Keycloak token/role conventions, 15-minute signed cursors, a five-second operation timeout, database readiness and operator-managed corpus approvals on 6 October 2026. Registration POSTs have **no idempotency guarantee**. Workload duplicate names conflict within an owner; retrying version POST may create another immutable version. F05's owner/key idempotency applies to future run submission/rerun endpoints. The original ticket's broader CRUD/idempotency wording is amended accordingly.
 
+F07 deploys real native Keycloak and PostgreSQL, and F09 supplies the [developer quickstart](quickstart.md) and [current runnable API examples](api-examples.md). Use those for generated credentials, browser/PKCE login and the exact local issuer. The configuration below is for an operator managing the process independently.
+
 ## Activate the product API
 
 The default process retains F03's health-only mode. Enable registration explicitly with complete private configuration; partial configuration fails startup rather than serving unauthenticated product endpoints. The database must already have F05 migrations and runtime grants. Startup verifies required tables/permissions and performs OIDC discovery; it never migrates. Use the runtime database role, not an administrator or migration role.
@@ -24,13 +26,13 @@ PowerShell example with credentials supplied through your private password mecha
 ```powershell
 $env:FORGE_PRODUCT_API = 'true'
 $env:FORGE_DATABASE_URL = 'postgres://forge_runtime@127.0.0.1:5432/forge?sslmode=disable'
-$env:FORGE_OIDC_ISSUER = 'http://localhost:8082/realms/forge'
+$env:FORGE_OIDC_ISSUER = 'http://127.0.0.1:8082/realms/forge'
 $env:FORGE_CURSOR_KEY_FILE = 'C:\private\forge-cursor.key'
 $env:FORGE_CORPUS_POLICY_FILE = 'C:\private\forge-corpus-policy.json'
 go run ./cmd/api
 ```
 
-Those paths/issuer are examples, not provisioned resources. Keycloak deployment, realm bootstrap, persistent identity data and a token acquisition helper belong to the local-stack/quickstart work. F06 does not start or install Keycloak, Docker or a Compose stack. See [PostgreSQL setup](persistence.md).
+Those paths/database credentials are examples, not provisioned resources. The actual native stack uses dedicated PostgreSQL port **55436**, generates private configuration and starts the issuer above. The [native guide](local-stack.md) owns deployment, persistent identity data and token-helper setup; F06's handler code itself does not install them. See [PostgreSQL setup](persistence.md) for independently managed databases.
 
 ## Keycloak access-token policy
 
@@ -60,4 +62,4 @@ This policy approves IDs only. It does not prove files exist, compute their hash
 
 ## Verification limits
 
-Local and CI integration tests send signed RSA access tokens through real HTTP to actual PostgreSQL repositories under runtime credentials. They cover allowed/forbidden ownership, immutable versions, schema errors, strong preconditions, approved sources, cursor binding/tampering, concurrent updates, lock timeouts and database connection failure. JWT tests check invalid claims/signers, role mapping, cached keys and rotation. These use a test OIDC discovery/JWKS server; they do not claim a deployed Keycloak login/PKCE flow. The complete stack must validate real Keycloak configuration in its deployment ticket.
+Local and CI integration tests send signed RSA access tokens through real HTTP to actual PostgreSQL repositories under runtime credentials. They cover allowed/forbidden ownership, immutable versions, schema errors, strong preconditions, approved sources, cursor binding/tampering, concurrent updates, lock timeouts and database connection failure. JWT tests check invalid claims/signers, role mapping, cached keys and rotation. Those handler tests use a fixture OIDC discovery/JWKS server. Separate F07 native smoke/CI exercises deployed Keycloak login/PKCE and retained identity/product records; F09 also runs the published client example against the real token. See [F07 evidence](f07-validation.md) and [F09 verification](f09-validation.md).

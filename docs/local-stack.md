@@ -1,5 +1,7 @@
 # F07 — Native local stack
 
+For the developer path from checkout through authenticated API requests, use the [first quickstart](quickstart.md) and [runnable API examples](api-examples.md). This page covers native operator setup and retained data.
+
 The owner instructed **“don't containerize anything”** on 6 October 2026 and accepted native PostgreSQL, Keycloak and Go API services inside Ubuntu WSL, managed by systemd with a PowerShell entry point. This supersedes the original F07 Kubernetes title and the earlier Compose-first deployment decision for this stack. No Docker, container image or Kubernetes cluster is installed by F07. Temporal and its worker follow the workflow ticket.
 
 The owner also accepted generated private secrets, separate identity/product databases and roles, two developer demo identities plus an operator, authorization-code/S256 PKCE login, and retained data during ordinary stop/teardown. All services bind loopback; this is an operator's local development installation with no high availability or production identity claim.
@@ -65,6 +67,8 @@ Read the desired demo password privately from the retained `secrets.json` file; 
 ```
 
 Open the displayed loopback URL and log in. The helper binds state to a private browser cookie, exchanges the code using S256 PKCE, verifies the real signed API access token and role, and saves only the access token and attribution/expiry in `tokens/access.json`. It never prints tokens or saves refresh tokens. Wrong state/issuer, absent cookie and replayed callbacks fail. Access expires after five minutes; repeat login when needed. Treat the private token file as a credential.
+
+Keep the login terminal open until completion. Port 8083 exists only while this five-minute helper runs; it closes after successful login or timeout. Reopening an old callback URL can therefore fail even when the token file was saved successfully. Start a fresh `login` and use `http://127.0.0.1:8083/login`, then reload the access token in your client. The [quickstart](quickstart.md#3-log-in-and-obtain-an-access-token) gives PowerShell and Postman instructions.
 
 ## Retained data and teardown
 

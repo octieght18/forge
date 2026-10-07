@@ -1,6 +1,6 @@
 # F04 — Workload API contract
 
-**Status: accepted contract choices, recorded on 5 October 2026.** Product routes remain unimplemented. F04 supplies the versioned contract, executable payload validation and examples; F05 adds persistence and F06 implements registration endpoints. OIDC/owner checks must be implemented before product mutations are enabled. The current service still serves process health only.
+**Status: accepted contract choices, recorded on 5 October 2026.** F04 supplies the versioned contract, executable validation and examples; F05 adds persistence and F06 implements the seven workload/version registration operations with real OIDC/owner checks. F07 starts the complete native local stack. Run/history/evidence/report operations below remain future contracts. Use the [current API reference](api-examples.md) and [quickstart](quickstart.md) for availability and runnable requests. The default `go run ./cmd/api` command alone still serves health-only mode.
 
 ## Resource model
 
@@ -57,7 +57,7 @@ All spec fields are explicit; registration has no silent schema defaults. Scope/
 | GET | `/api/v1/runs/{run_id}/evidence` |
 | GET | `/api/v1/runs/{run_id}/report` |
 
-Existing public `GET/HEAD /healthz` and `/readyz` are also documented. No product route currently returns these defined product responses.
+Existing public `GET/HEAD /healthz` and `/readyz` are also documented. Workload/version product routes are available in explicitly configured product mode; the run-related paths remain unimplemented.
 
 Create workload/version returns 201 with `Location`. Submit/rerun returns 202 with `Location` only after the product transaction durably records the run and pending start command. Cancel returns 202 after its durable command commit; a completed run may win the race. Cancel/rerun accept no body. Repeated cancel has one logical command. Rerun requires confirmed terminal state, copies the original immutable inputs into a new run and links `rerun_of`; it may repeat generation and is distinct from replay.
 
@@ -67,7 +67,7 @@ Responses carry server-generated `X-Request-ID`, `Cache-Control: no-store` and t
 
 Collection responses contain `items` and `next_cursor` (null at the end), without a total count. Workloads/runs order by `(created_at DESC, id DESC)`; versions by version number DESC; history by sequence ASC; evidence by ID ASC. Authorization/filtering occurs before pagination. Run listing optionally filters by workload ID.
 
-Cursor encoding is opaque and implementation follows persistence. It must bind the caller/collection/filter/order/position, validate integrity and reject mismatched or invalid tokens with 400. The position must include a unique tie-breaker, remain stable when newer records are inserted, and be applied after owner filtering. Cursors must never grant access or carry trusted ownership. Role/authorization changes apply to every subsequent page. There is no cross-page transaction snapshot guarantee; metadata and run status may change during traversal. Signing-key management and cursor lifetime require implementation consultation.
+Cursor encoding is opaque; F06 implements HMAC-signed cursors with 15-minute expiry and a private persistent signing key. They bind caller/collection/filter/order/position, validate integrity and reject mismatched or invalid tokens with 400. The position includes a unique tie-breaker and is applied after owner filtering. Cursors never grant access. Role/authorization checks apply to every subsequent page. There is no cross-page transaction snapshot guarantee; metadata and run status may change during traversal. See [registration conventions](registration-api.md) for the implemented details.
 
 ## OIDC and owner checks
 
@@ -75,7 +75,7 @@ The bearer security scheme describes real OIDC API access tokens from the config
 
 Developers read/list/mutate their own records. Operators inspect all owners but cannot mutate another owner's records. Apply policy consistently to nested versions, history, evidence, reports and collection queries. Mutation ownership checks happen before precondition/idempotency lookup. Unauthorized object IDs return 404. A schema-valid permission request is not permission approval; enforce trusted platform source/tool policy when registering a version and again before running activities.
 
-No fake-auth endpoint or static identity header exists. Exact Keycloak client/role mapping/token-revocation behavior and tests follow implementation consultation. F04 documents required enforcement, not an implemented security guarantee.
+No fake-auth endpoint or static identity header exists. F06 implements the consulted Keycloak client/role mapping and token checks; F07 deploys real login. The original F04 contract alone did not prove security enforcement; see [registration conventions](registration-api.md) for actual validation/revocation behavior and evidence.
 
 ## Idempotency and durable execution
 

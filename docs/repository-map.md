@@ -1,0 +1,23 @@
+# Repository navigation
+
+Start with the [quickstart](quickstart.md), [seven current API operations/examples](api-examples.md) and [OpenAPI JSON](../internal/contract/openapi.json). The schema includes planned research-run APIs as well as implemented registration; the examples page identifies availability.
+
+| Path | Purpose |
+|---|---|
+| [cmd/api](../cmd/api) | API composition, configuration and process lifecycle. |
+| [cmd/forge-migrate](../cmd/forge-migrate) | Explicit migration command; migrations do not run inside API startup. |
+| [cmd/forge-login](../cmd/forge-login) | Five-minute browser/PKCE token helper on loopback 8083. |
+| [internal/httpapi](../internal/httpapi) | Health/registration handlers, owner-filtered pages, ETags, corpus approvals, errors and middleware. |
+| [internal/auth](../internal/auth) | Real OIDC discovery/JWKS and API token verification/roles. |
+| [internal/login](../internal/login) | State/cookie-bound authorization code exchange and private token file. |
+| [internal/contract](../internal/contract) | Shared OpenAPI, examples, schema validation and input fingerprints. |
+| [internal/store](../internal/store) | PostgreSQL queries, explicit checked migrations and durable run/start/cancel records. These run records are not HTTP execution endpoints. |
+| [internal/config](../internal/config), [internal/service](../internal/service) | Validated configuration, HTTP deadlines, readiness and graceful drain. |
+| [internal/testsupport](../internal/testsupport) | Real PostgreSQL integration fixtures. |
+| [deploy/native](../deploy/native) | Native PostgreSQL/Keycloak/API lifecycle, private launchers, realm and real-login smoke. |
+| [scripts/local-stack.ps1](../scripts/local-stack.ps1) | Windows `up`, `status`, `stop`, `login` entry point. |
+| [scripts/api-examples.ps1](../scripts/api-examples.ps1) | Runnable seven-operation example with a private access-token file. |
+| [scripts/measure-baseline.ps1](../scripts/measure-baseline.ps1) | F08 retained-data startup/registration/recovery measurements. |
+| [.github/workflows/ci.yml](../.github/workflows/ci.yml) | Windows/Linux checks, real PostgreSQL/race/restart and isolated native clean-start/quickstart checks. |
+
+Product intent is in the [brief](product-brief.md), approved choices in the [decision log](decision-log.md), and boundaries/alternatives in [architecture](architecture.md) and [ADRs](adr/README.md). [Persistence](persistence.md), [registration](registration-api.md) and [native setup](local-stack.md) cover operator details. F01–F08 documents retain ticket-stage context; current availability is described in this quickstart/API reference. [F08 baseline](f08-baseline.md) contains observed timings, not performance SLOs. [F09 validation](f09-validation.md) states which clean-checkout paths were actually exercised.

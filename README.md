@@ -6,6 +6,8 @@ Forge's purpose is to show how an engineering team can compose existing infrastr
 
 ## Current work
 
+Start with the [local quickstart](docs/quickstart.md), [current API examples](docs/api-examples.md) and [repository map](docs/repository-map.md). These cover native startup, real login, loading a Bearer token into a client and all seven available product operations.
+
 **F01/F02** establish the product and architecture; **F03** supplies the HTTP foundation; **F04/F05** add the contract and PostgreSQL persistence. **F06** implements authenticated workload/version registration, owner checks, ETag updates, signed cursor pages and corpus approvals. **F07** deploys PostgreSQL, Keycloak and the API natively in Ubuntu WSL, with private retained data and real browser/PKCE login. **F08** captures repeatable startup, registration and occupied-port recovery observations with raw evidence and an unmeasured human worksheet. Run HTTP endpoints and Temporal delivery follow later tickets.
 
 The accepted first release is the **API and durable research workflow only**: one engineering team, owner-private workloads/runs, operator visibility, and a fixed local document corpus accessed through read-only MCP tools. Available project capacity is five hours/week. Environment provisioning and broader platform capabilities follow in later releases.
@@ -28,6 +30,7 @@ The accepted first release is the **API and durable research workflow only**: on
 - [F07 validation](docs/f07-validation.md)
 - [Baseline procedure and measurement commands](docs/baseline-procedure.md)
 - [F08 observed timings and raw evidence](docs/f08-baseline.md)
+- [F09 quickstart validation](docs/f09-validation.md)
 
 The owner must review product and design choices before they become accepted decisions. F02 records the accepted Go HTTP/OpenAPI, PostgreSQL and Temporal foundation, OpenRouter backend and local Kubernetes target. Keycloak OIDC is included from the first release. The testing model is `google/gemma-4-26b-a4b-it:free`. The owner's F07 instruction to use **no containers** supersedes the earlier Compose-first deployment choice: this stack runs natively in WSL. F03's HTTP defaults and lifecycle conventions are accepted; new API/identity/workflow decisions still require consultation.
 

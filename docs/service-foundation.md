@@ -2,6 +2,8 @@
 
 The owner accepted the standard library HTTP server, `slog` JSON logging, loopback port 8081, package boundaries and operational conventions on 5 October 2026. This service provides process health and establishes the lifecycle used by later API implementation.
 
+This page retains F03 foundation context. F06/F07 now provide authenticated registration and database readiness when product mode is configured through the [native quickstart](quickstart.md); plain `go run ./cmd/api` remains health-only. Use [current API examples](api-examples.md) for the seven implemented product operations.
+
 ## Run and check
 
 Install Go 1.27.1 from the [official downloads](https://go.dev/dl/). The HTTP service uses the standard library; F04 adds a pinned JSON Schema validator and `go.sum`. The toolchain version is shared by local builds and CI.
