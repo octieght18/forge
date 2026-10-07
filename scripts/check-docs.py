@@ -11,6 +11,7 @@ for file in files:
     if len(re.findall(r"^```", source, re.M)) % 2:
         raise SystemExit(f"Unclosed code fence: {file.relative_to(root)}")
     prose = re.sub(r"^```[^\n]*\n.*?^```[^\n]*$", "", source, flags=re.M | re.S)
+    prose = re.sub(r"`[^`\n]+`", "", prose)
     for destination in re.findall(r"\[[^\]]*\]\(([^)]+)\)", prose):
         destination = destination.split("#", 1)[0]
         if not destination or urlparse(destination).scheme:
