@@ -37,6 +37,9 @@ jobs:
       - name: Baseline statistics tests
         if: runner.os == 'Linux'
         run: python3 -m unittest discover -s scripts/baseline -p 'test_*.py'
+      - name: Profile statistics tests
+        if: runner.os == 'Linux'
+        run: python3 -m unittest discover -s scripts -p 'test_profile_summary.py'
       - name: Documentation links and fences
         if: runner.os == 'Linux'
         run: python3 scripts/check-docs.py
@@ -90,6 +93,14 @@ jobs:
           go-version-file: go.mod
           cache: true
       - run: go test -race -count=1 -timeout 120s ./...
+      - name: F10 opt-in profile smoke and raw summary
+        env:
+          FORGE_PROFILE_OUTPUT: /tmp/forge-f10-profiles
+          FORGE_PROFILE_SMOKE: '1'
+        run: |
+          go test -count=1 -timeout 60s -run '^TestRegistrationLoadProfile$' ./internal/service
+          python3 scripts/profile-summary.py /tmp/forge-f10-profiles > /tmp/forge-f10-summary.json
+          python3 -c 'import json; s=json.load(open("/tmp/forge-f10-summary.json")); assert len(s["levels"]) == 2; assert all(x["smoke"] and x["failed_requests"] == 0 and x["failed_journeys"] == 0 for x in s["levels"])'
       - name: Seed restart proof
         env:
           FORGE_TEST_RESTART_PHASE: seed

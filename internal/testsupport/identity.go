@@ -25,13 +25,19 @@ type Identity struct {
 }
 
 func NewIdentity(t *testing.T) *Identity {
+	return NewIdentityWithMiddleware(t, nil)
+}
+
+// NewIdentityWithMiddleware permits controlled network stalls before taking the
+// fixture's signing-key mutex. Middleware must be installed before serving.
+func NewIdentityWithMiddleware(t *testing.T, middleware func(http.Handler) http.Handler) *Identity {
 	t.Helper()
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
 		t.Fatal(err)
 	}
 	i := &Identity{key: key, kid: "first"}
-	i.Server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		i.mu.Lock()
 		defer i.mu.Unlock()
 		i.Requests++
@@ -48,7 +54,11 @@ func NewIdentity(t *testing.T) *Identity {
 		default:
 			w.WriteHeader(404)
 		}
-	}))
+	})
+	if middleware != nil {
+		handler = middleware(handler)
+	}
+	i.Server = httptest.NewServer(handler)
 	t.Cleanup(i.Server.Close)
 	return i
 }

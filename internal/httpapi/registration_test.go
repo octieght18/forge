@@ -104,6 +104,11 @@ func TestRegistrationHTTPPostgreSQL(t *testing.T) {
 	if headers.Get("WWW-Authenticate") != "Bearer" {
 		t.Fatal("missing bearer challenge")
 	}
+	// F10: bounded input read precedes authentication; input validation does not.
+	status, _, _ = call(t, "POST", "/api/v1/workloads", "", `not-json`, nil)
+	expect(t, status, 401)
+	status, _, _ = call(t, "POST", "/api/v1/workloads", "", strings.Repeat(" ", contract.MaxBodyBytes+1), nil)
+	expect(t, status, 413)
 	status, body, headers := call(t, "POST", "/api/v1/workloads", "a", `{"name":"first","description":"fixture"}`, nil)
 	expect(t, status, 201)
 	if err := validator.Validate("Workload", body); err != nil {

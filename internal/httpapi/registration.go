@@ -107,6 +107,13 @@ func (h *registration) serve(w http.ResponseWriter, r *http.Request) {
 		WriteError(w, r, 405, "method_not_allowed", "Method not allowed")
 		return
 	}
+	// Reach body EOF before waiting on JWKS so net/http can observe a closed
+	// HTTP/1 connection and cancel this request. Buffering is bounded; JSON,
+	// media-type and schema validation still follow authentication.
+	body, err := h.readBody(w, r)
+	if err != nil {
+		return
+	}
 	p, err := h.Auth.Authenticate(ctx, r)
 	if err != nil {
 		if ctx.Err() != nil {
@@ -162,7 +169,7 @@ func (h *registration) serve(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "PATCH" {
 		schema = "UpdateWorkloadRequest"
 	}
-	body, err := h.body(w, r, schema)
+	err = h.validateBody(w, r, schema, body)
 	if err != nil {
 		return
 	}
@@ -238,7 +245,7 @@ func parseETag(id string, values []string) (int64, error) {
 	}
 	return n, nil
 }
-func (h *registration) body(w http.ResponseWriter, r *http.Request, schema string) ([]byte, error) {
+func (h *registration) validateBody(w http.ResponseWriter, r *http.Request, schema string, body []byte) error {
 	content := r.Header.Values("Content-Type")
 	media := ""
 	var params map[string]string
@@ -248,7 +255,18 @@ func (h *registration) body(w http.ResponseWriter, r *http.Request, schema strin
 	}
 	if len(content) != 1 || err != nil || media != "application/json" || len(params) > 1 || len(params) == 1 && !strings.EqualFold(params["charset"], "utf-8") {
 		WriteError(w, r, 415, "unsupported_media_type", "Use application/json with UTF-8")
-		return nil, errors.New("content type")
+		return errors.New("content type")
+	}
+	if err = h.validator.ValidateRequest(schema, body); err != nil {
+		h.fail(w, r, err)
+		return err
+	}
+	return nil
+}
+
+func (h *registration) readBody(w http.ResponseWriter, r *http.Request) ([]byte, error) {
+	if r.Body == nil || r.Body == http.NoBody {
+		return nil, nil
 	}
 	deadline, _ := r.Context().Deadline()
 	controller := http.NewResponseController(w)
@@ -265,10 +283,6 @@ func (h *registration) body(w http.ResponseWriter, r *http.Request, schema strin
 		} else {
 			err = contract.ErrInvalidJSON
 		}
-		h.fail(w, r, err)
-		return nil, err
-	}
-	if err = h.validator.ValidateRequest(schema, body); err != nil {
 		h.fail(w, r, err)
 		return nil, err
 	}

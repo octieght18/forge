@@ -14,3 +14,6 @@ coverage/
 Thumbs.db
 __pycache__/
 *.pyc
+
+# F10 raw/profile evidence stays local by owner instruction.
+docs/profiles/
