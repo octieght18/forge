@@ -2,7 +2,7 @@
 
 F10 uses an opt-in test harness around the real registration handler, lifecycle server, PostgreSQL repository and signed OIDC/JWKS fixture. Each client repeatedly creates a workload, creates its immutable version, reads the workload and reads the version over real loopback HTTP. One client level runs first, then two. Each uses five seconds of warmup and fifteen seconds of measurement, with no race instrumentation. The generator stops starting journeys at the phase deadline and drains journeys already started; actual durations include that drain.
 
-This is a closed-loop observation: slow responses reduce the offered request rate. The observed completion rate is not a capacity ceiling. There is one short sample per level, no SLO, and no statistical claim about sustained traffic. Do not compare these numbers directly with F08's resource-capped native process and real Keycloak journey.
+This is a closed-loop observation: slow responses reduce the offered request rate. The observed completion rate is not a capacity ceiling. There is one short sample per level, no production SLO, and no statistical claim about sustained traffic. D23 accepts a [5 ms request-p95 local repeat-test limit](performance-targets.md), separately at one/two clients. Do not compare these numbers directly with F08's resource-capped native process and real Keycloak journey.
 
 Use an isolated native PostgreSQL administrator DSN supplied privately in `FORGE_TEST_ADMIN_DATABASE_URL` and set `FORGE_REQUIRE_DB_TESTS=1`. The fixture creates random disposable databases and migration/runtime roles, applies real migrations, grants runtime permissions and removes only its own database/roles afterward. The fixture pool allows twelve connections. The API operation deadline is five seconds and the client deadline ten seconds. Never point a profile at the retained Forge product database or use real corpus content/tokens. No containers or public profiling endpoint are needed.
 
@@ -14,6 +14,7 @@ export FORGE_PROFILE_COMMIT=$(git rev-parse HEAD)
 export FORGE_PROFILE_OUTPUT=/tmp/forge-f10-new-observation
 go test -count=1 -timeout 120s -v -run '^TestRegistrationLoadProfile$' ./internal/service
 python3 scripts/profile-summary.py "$FORGE_PROFILE_OUTPUT" > "$FORGE_PROFILE_OUTPUT/summary.json"
+python3 scripts/check-performance-targets.py --profile-summary "$FORGE_PROFILE_OUTPUT/summary.json"
 go tool pprof -top "$FORGE_PROFILE_OUTPUT/clients-1/cpu.pprof"
 go tool pprof -top -tagfocus=component=api "$FORGE_PROFILE_OUTPUT/clients-1/cpu.pprof"
 go tool pprof -top -sample_index=inuse_space "$FORGE_PROFILE_OUTPUT/clients-1/heap-after.pprof"

@@ -52,6 +52,8 @@ def summarize(directory):
             "transport_errors": sum(r.get("transport_error", False) for r in requests),
             "failed_requests": failures, "request_error_fraction": failures / len(requests),
             "failed_journeys": failed_journeys, "journey_error_fraction": failed_journeys / len(journeys),
+            "all_phase_failed_requests": sum(r["kind"] == "request" and not r["success"] for r in rows),
+            "all_phase_failed_journeys": sum(r["kind"] == "journey" and not r["success"] for r in rows),
             "completed_requests_per_second": len(requests) / elapsed,
             "successful_journeys_per_second": (len(journeys) - failed_journeys) / elapsed,
             "rows_by_phase": dict(sorted(collections.Counter(r["phase"] for r in rows).items()))}

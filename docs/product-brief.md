@@ -112,7 +112,7 @@ Numerical SLOs, retention periods, concurrency targets, budget and recovery obje
 | Measure | Evidence to collect | Target status |
 |---|---|---|
 | Environment setup improvement | Repeated manual baseline versus self-service provisioning, with equivalent prerequisites | Numerical reduction target pending |
-| Initial native API baseline (D21) | Five retained-data startups, ten authenticated registration/read journeys and occupied-port detection/recovery; raw timings and conditions retained | Descriptive observations; targets pending owner review |
+| Initial native API baseline (D21) | Five retained-data startups, ten authenticated registration/read journeys and occupied-port detection/recovery; raw timings and conditions retained | [Balanced local limits accepted in D23](performance-targets.md); no production SLO |
 | Developer effort | Number and nature of manual steps removed; clean-onboarding observations | Target pending |
 | Provisioning reliability | Successful/failed reconciliations, duplicate-resource checks, convergence and recovery duration | Scenario set and threshold pending |
 | Durable execution behavior | Research success, transient tool failure, worker loss, timeout, cancellation, insufficient/conflicting evidence, and controlled rerun results | Acceptance procedure approved in D08; full replay follows later scope |
@@ -128,7 +128,7 @@ Never replace these pending targets with unmeasured claims. Preserve raw results
 1. Run the fixed-corpus research workflow for an answerable question, an unanswerable question and a conflicting-evidence question. Verify cited document/passage references resolve and the result communicates evidence limitations.
 2. Inject transient tool failure, worker interruption, timeout and cancellation. Verify bounded retry rules, inspectable attempts and terminal state, and persistence across restart. Verify duplicate submission using the same idempotency key does not create duplicate logical runs.
 3. With two workload owners, test allowed own-record operations and denied other-owner reads/writes across workloads, runs and evidence. Separately test operator visibility and document its permissions. Apply the same tests to usage when metering is implemented later.
-4. Have the owner review the F08 baseline and select numerical speed/capacity/recovery targets before subsequent benchmarks claim to meet them. Record test conditions and targets in the brief.
+4. Apply the owner-approved [D23 Balanced local targets](performance-targets.md) to comparable repeat tests. These resolve local startup, registration latency, occupied-port detection/recovery and healthy-test error limits. Capacity, workflow and production SLO/recovery decisions remain for later owner review.
 
 For the later provisioning phase, retain the approved comparison of **10 manual and 10 self-service provisioning measurements** under comparable prerequisites. Report timing distribution, steps removed and failure/recovery behavior. Do not count cluster/bootstrap time on one side while excluding it from the other. Quota/rate-limit denial tests belong to their later implementation phase. These deferred criteria do not expand the API-and-workflow first release.
 

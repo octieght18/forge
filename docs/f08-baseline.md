@@ -1,6 +1,6 @@
 # F08 native developer-experience baseline
 
-Measured on **7 October 2026** using the owner-approved D21 [procedure](baseline-procedure.md). The complete corrected protocol has five retained-data starts, ten authenticated registration/read journeys (40 HTTP requests) and one occupied-port detection/recovery case. Every required operation passed or produced its expected failure. These are observations on this PC; performance thresholds remain pending owner review.
+Measured on **7 October 2026** using the owner-approved D21 [procedure](baseline-procedure.md). The complete corrected protocol has five retained-data starts, ten authenticated registration/read journeys (40 HTTP requests) and one occupied-port detection/recovery case. Every required operation passed or produced its expected failure. These are observations on this PC. After measurement, the owner accepted the [Balanced local limits](performance-targets.md); a separate assessment records that the existing observations meet them.
 
 | Measurement | Completed samples | Median (seconds) | Min–max (seconds) |
 |---|---|---:|---:|
@@ -43,4 +43,4 @@ Port 8081 is occupied only by the harness's isolated socket fixture. Native star
 
 The [human worksheet](baseline-human-worksheet.json) deliberately contains null timings. No person has completed measured onboarding/typing, and no developer-effort saving is claimed. The original ten-manual/ten-self-service provisioning comparison remains deferred until provisioning exists; the procedure records how to match prerequisites/readiness and retain steps, failures and recovery. Registration is not provisioning.
 
-Five startup and ten sequential journeys do not establish concurrent capacity, throughput, percentiles, production reliability or an SLO. The owner must review these observations before choosing numerical speed/capacity/recovery thresholds. The accepted first-release API/durable-workflow scope is unchanged.
+Five startup and ten sequential journeys do not establish concurrent capacity, throughput, percentiles, production reliability or an SLO. D23 accepts the [Balanced local repeat-test limits](performance-targets.md); broader capacity and production recovery targets remain unselected. The accepted first-release API/durable-workflow scope is unchanged.

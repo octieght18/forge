@@ -41,6 +41,6 @@ For each manual trial, start when the operator receives the same validated reque
 
 ## Interpretation
 
-Five startup and ten registration samples are descriptive, sequential observations on one PC. Report milliseconds or seconds with sample counts and median/min/max. Do not extrapolate throughput, concurrent capacity, percentiles, production reliability or an SLO from this sample. Occupied-port recovery is orderly and programmatic, not crash recovery or an operational recovery objective. Performance thresholds remain pending owner review of F08 results.
+Five startup and ten registration samples are descriptive, sequential observations on one PC. Report milliseconds or seconds with sample counts and median/min/max. Do not extrapolate throughput, concurrent capacity, percentiles, production reliability or an SLO from this sample. Occupied-port recovery is orderly and programmatic, not crash recovery or an operational recovery objective. D23 accepts the [Balanced local repeat-test limits](performance-targets.md). After generating a new comparable summary, run `python3 scripts/check-performance-targets.py --baseline-summary /absolute/path/to/new-run/summary.json` to assess them.
 
 See the [published report](f08-baseline.md) for actual observations and retained raw artifacts.

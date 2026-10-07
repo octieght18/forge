@@ -1,0 +1,139 @@
+{
+  "target_profile": "balanced-local-v1",
+  "assessment": "recorded observations; local repeat-test limits, not a production SLO",
+  "passed": true,
+  "checks": [
+    {
+      "metric": "retained_startup.max_ms",
+      "observed": 71100.2,
+      "maximum": 90000,
+      "passed": true
+    },
+    {
+      "metric": "registration_journey.max_ms",
+      "observed": 92.332,
+      "maximum": 150,
+      "passed": true
+    },
+    {
+      "metric": "occupied_port_detection.max_ms",
+      "observed": 373.289,
+      "maximum": 1000,
+      "passed": true
+    },
+    {
+      "metric": "port_release_recovery.max_ms",
+      "observed": 64743.928,
+      "maximum": 90000,
+      "passed": true
+    },
+    {
+      "metric": "port_release_recovery.unexpected_failures",
+      "observed": 0,
+      "maximum": 0,
+      "passed": true
+    },
+    {
+      "metric": "registration_journey.unexpected_failures",
+      "observed": 0,
+      "maximum": 0,
+      "passed": true
+    },
+    {
+      "metric": "http_request.unexpected_failures",
+      "observed": 0,
+      "maximum": 0,
+      "passed": true
+    },
+    {
+      "metric": "retained_startup.unexpected_failures",
+      "observed": 0,
+      "maximum": 0,
+      "passed": true
+    },
+    {
+      "metric": "automated_pkce_setup.unexpected_failures",
+      "observed": 0,
+      "maximum": 0,
+      "passed": true
+    },
+    {
+      "metric": "occupied_port_detection.unexpected_failures",
+      "observed": 0,
+      "maximum": 0,
+      "passed": true
+    },
+    {
+      "metric": "clients-1.request_p95_ms",
+      "observed": 1.392868,
+      "maximum": 5,
+      "passed": true
+    },
+    {
+      "metric": "clients-1.failed_requests",
+      "observed": 0,
+      "maximum": 0,
+      "passed": true
+    },
+    {
+      "metric": "clients-1.failed_journeys",
+      "observed": 0,
+      "maximum": 0,
+      "passed": true
+    },
+    {
+      "metric": "clients-1.transport_errors",
+      "observed": 0,
+      "maximum": 0,
+      "passed": true
+    },
+    {
+      "metric": "clients-1.all_phase_failed_requests",
+      "observed": 0,
+      "maximum": 0,
+      "passed": true
+    },
+    {
+      "metric": "clients-1.all_phase_failed_journeys",
+      "observed": 0,
+      "maximum": 0,
+      "passed": true
+    },
+    {
+      "metric": "clients-2.request_p95_ms",
+      "observed": 1.614451,
+      "maximum": 5,
+      "passed": true
+    },
+    {
+      "metric": "clients-2.failed_requests",
+      "observed": 0,
+      "maximum": 0,
+      "passed": true
+    },
+    {
+      "metric": "clients-2.failed_journeys",
+      "observed": 0,
+      "maximum": 0,
+      "passed": true
+    },
+    {
+      "metric": "clients-2.transport_errors",
+      "observed": 0,
+      "maximum": 0,
+      "passed": true
+    },
+    {
+      "metric": "clients-2.all_phase_failed_requests",
+      "observed": 0,
+      "maximum": 0,
+      "passed": true
+    },
+    {
+      "metric": "clients-2.all_phase_failed_journeys",
+      "observed": 0,
+      "maximum": 0,
+      "passed": true
+    }
+  ]
+}

@@ -64,6 +64,8 @@
       "request_error_fraction": 0.0,
       "failed_journeys": 0,
       "journey_error_fraction": 0.0,
+      "all_phase_failed_requests": 0,
+      "all_phase_failed_journeys": 0,
       "completed_requests_per_second": 1196.3112081700024,
       "successful_journeys_per_second": 299.0778020425006,
       "rows_by_phase": {
@@ -135,6 +137,8 @@
       "request_error_fraction": 0.0,
       "failed_journeys": 0,
       "journey_error_fraction": 0.0,
+      "all_phase_failed_requests": 0,
+      "all_phase_failed_journeys": 0,
       "completed_requests_per_second": 2148.4827786662127,
       "successful_journeys_per_second": 537.1206946665532,
       "rows_by_phase": {

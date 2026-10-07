@@ -31,6 +31,8 @@ class SummaryTests(unittest.TestCase):
             self.assertEqual(result["status_counts"], {"0": 1, "201": 1})
             self.assertEqual(result["completed_requests_per_second"], 1)
             self.assertEqual(result["rows_by_phase"]["warmup"], 1)
+            self.assertEqual(result["all_phase_failed_requests"], 2)
+            self.assertEqual(result["all_phase_failed_journeys"], 1)
 
 
 if __name__ == "__main__":

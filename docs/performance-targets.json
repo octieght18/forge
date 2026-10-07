@@ -1,0 +1,21 @@
+{
+  "profile": "balanced-local-v1",
+  "accepted_date": "2026-10-07",
+  "scope": "Repeat the approved F08 native and F10 profiling protocols on the same PC with comparable conditions; no production SLO or capacity claim",
+  "baseline_limits_ms": {
+    "retained_startup": 90000,
+    "registration_journey": 150,
+    "occupied_port_detection": 1000,
+    "port_release_recovery": 90000
+  },
+  "baseline_trials": {
+    "retained_startup": 5,
+    "registration_journey": 10,
+    "occupied_port_detection": 1,
+    "port_release_recovery": 1
+  },
+  "profile_clients": [1, 2],
+  "profile_measure_min_seconds": 15,
+  "profile_request_p95_ms": 5,
+  "unexpected_error_limit": 0
+}
