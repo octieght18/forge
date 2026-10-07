@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "human_effort_seconds": null,
+  "slo_assessment": "not_defined",
+  "groups": {
+    "retained_startup": {
+      "expected_trials": 5,
+      "observed_trials": 5,
+      "successful_trials": 5,
+      "expected_failures": 0,
+      "unexpected_failures": 0,
+      "sample_complete": true,
+      "median_ms": 67383.404,
+      "min_ms": 65939.158,
+      "max_ms": 78781.765
+    },
+    "automated_pkce_setup": {
+      "expected_trials": 1,
+      "observed_trials": 1,
+      "successful_trials": 1,
+      "expected_failures": 0,
+      "unexpected_failures": 0,
+      "sample_complete": true,
+      "median_ms": 2545.207,
+      "min_ms": 2545.207,
+      "max_ms": 2545.207
+    },
+    "registration_journey": {
+      "expected_trials": 10,
+      "observed_trials": 1,
+      "successful_trials": 0,
+      "expected_failures": 0,
+      "unexpected_failures": 1,
+      "sample_complete": false,
+      "median_ms": null,
+      "min_ms": null,
+      "max_ms": null
+    },
+    "http_request": {
+      "expected_trials": 40,
+      "observed_trials": 1,
+      "successful_trials": 0,
+      "expected_failures": 0,
+      "unexpected_failures": 1,
+      "sample_complete": false,
+      "median_ms": null,
+      "min_ms": null,
+      "max_ms": null
+    },
+    "occupied_port_detection": {
+      "expected_trials": 1,
+      "observed_trials": 0,
+      "successful_trials": 0,
+      "expected_failures": 0,
+      "unexpected_failures": 0,
+      "sample_complete": false,
+      "median_ms": null,
+      "min_ms": null,
+      "max_ms": null
+    },
+    "port_release_recovery": {
+      "expected_trials": 1,
+      "observed_trials": 0,
+      "successful_trials": 0,
+      "expected_failures": 0,
+      "unexpected_failures": 0,
+      "sample_complete": false,
+      "median_ms": null,
+      "min_ms": null,
+      "max_ms": null
+    }
+  },
+  "protocol_complete": false
+}

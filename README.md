@@ -6,7 +6,7 @@ Forge's purpose is to show how an engineering team can compose existing infrastr
 
 ## Current work
 
-**F01/F02** establish the product and architecture; **F03** supplies the HTTP foundation; **F04/F05** add the contract and PostgreSQL persistence. **F06** implements authenticated workload/version registration, owner checks, ETag updates, signed cursor pages and corpus approvals. **F07** deploys PostgreSQL, Keycloak and the API natively in Ubuntu WSL, with private retained data and real browser/PKCE login. Run HTTP endpoints and Temporal delivery follow later tickets.
+**F01/F02** establish the product and architecture; **F03** supplies the HTTP foundation; **F04/F05** add the contract and PostgreSQL persistence. **F06** implements authenticated workload/version registration, owner checks, ETag updates, signed cursor pages and corpus approvals. **F07** deploys PostgreSQL, Keycloak and the API natively in Ubuntu WSL, with private retained data and real browser/PKCE login. **F08** captures repeatable startup, registration and occupied-port recovery observations with raw evidence and an unmeasured human worksheet. Run HTTP endpoints and Temporal delivery follow later tickets.
 
 The accepted first release is the **API and durable research workflow only**: one engineering team, owner-private workloads/runs, operator visibility, and a fixed local document corpus accessed through read-only MCP tools. Available project capacity is five hours/week. Environment provisioning and broader platform capabilities follow in later releases.
 

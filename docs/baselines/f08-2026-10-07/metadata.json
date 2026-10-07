@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "protocol": "f08.native.v1",
+  "recorded_utc": "2026-10-07T16:26:43.0781138Z",
+  "local_timezone": "Eastern Standard Time",
+  "platform": "Windows client to native Ubuntu WSL services",
+  "cpu": {
+    "name": "AMD Ryzen 7 5800H with Radeon Graphics",
+    "NumberOfCores": 8,
+    "NumberOfLogicalProcessors": 16
+  },
+  "windows": {
+    "Caption": "Microsoft Windows 11 Home",
+    "Version": "10.0.26300",
+    "BuildNumber": "26300",
+    "physical_memory_gib": 15.405
+  },
+  "native": {
+    "kernel": "6.18.33.2-microsoft-standard-WSL2",
+    "python": "3.14.4",
+    "memory_kib": 7820960,
+    "swap_kib": 2097152,
+    "postgres": "postgres (PostgreSQL) 18.6 (Ubuntu 18.6-0ubuntu0.26.04.1)",
+    "java": "openjdk version \"21.0.12.1\" 2026-08-18",
+    "cpu_visible": 16
+  },
+  "powershell_version": "7.6.5",
+  "base_commit": "eb88e27308fbb9df0b8aa0f2a91f14317e56a6e9",
+  "source_tree_dirty": false,
+  "harness_sha256": "9a827b0b42a426fe1d855d1d8fae196a7cb526bf02f176c868e6ff2e5d9a7337",
+  "initial_units": {
+    "api": {
+      "unit": "forge-native-88f7f47c4c-api",
+      "active": true
+    },
+    "keycloak": {
+      "unit": "forge-native-88f7f47c4c-keycloak",
+      "active": true
+    },
+    "postgres": {
+      "unit": "forge-native-88f7f47c4c-postgres",
+      "active": true
+    }
+  },
+  "background_conditions": "Codex and local Wekan remain active; other host activity is uncontrolled",
+  "startup_class": "retained-data restart; prerequisites/archive and build caches already present",
+  "startup_includes": [
+    "WSL entry",
+    "Go build",
+    "explicit migration and grants",
+    "database and Keycloak readiness",
+    "API readiness",
+    "Windows loopback verification"
+  ],
+  "startup_excludes": [
+    "package installation",
+    "initial archive download/extraction",
+    "fresh cluster/realm initialization",
+    "human effort"
+  ],
+  "registration_includes": [
+    "four sequential Windows HTTP requests",
+    "request construction",
+    "response parsing and checks"
+  ],
+  "registration_excludes": [
+    "one-time PKCE token setup",
+    "human login/typing time",
+    "workflow/model execution"
+  ],
+  "expected_trials": {
+    "port_release_recovery": 1,
+    "registration_journey": 10,
+    "http_request": 40,
+    "retained_startup": 5,
+    "automated_pkce_setup": 1,
+    "occupied_port_detection": 1
+  },
+  "human_effort_seconds": null,
+  "performance_targets": "awaiting owner review; none applied",
+  "fixture_policy": "synthetic workload/version per journey retained; existing native data never deleted",
+  "commands": {
+    "native_stop": ".\\scripts\\local-stack.ps1 stop",
+    "create_version": "POST /api/v1/workloads/{workload_id}/versions",
+    "native_up": ".\\scripts\\local-stack.ps1 up",
+    "create_workload": "POST /api/v1/workloads",
+    "read_workload": "GET /api/v1/workloads/{workload_id}",
+    "read_version": "GET /api/v1/workloads/{workload_id}/versions/{version_id}"
+  }
+}
