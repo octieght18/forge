@@ -88,10 +88,7 @@ class Proof:
         time.sleep(2)
         assert self.get("fenv",name)["metadata"]["uid"]==initial["metadata"]["uid"]
         assert self.get("namespace",namespace)["metadata"]["uid"]==initial_ns["metadata"]["uid"]
-        for patch in ({"spec":{"profile":"large"}},{"spec":{"owner":{"subject":"someone-else"}}},{"spec":{"image":"arbitrary"}}):
-            assert self.kube("patch","fenv",name,"--type=merge","--dry-run=server","--validate=strict","-p",json.dumps(patch),okay=False).returncode!=0
-        bad=copy.deepcopy(first);bad["metadata"]["name"]="different-name"
-        assert self.kube("create","--dry-run=server","-f","-",data=bad,okay=False).returncode!=0
+        self.schema(first)
         # Controller interruption leaves durable intent; replay repairs deleted children.
         self.kube("scale","-n","forge-local","deployment/environment-controller","--replicas=0")
         self.kube("wait","-n","forge-local","--for=delete","pod","-l","app=environment-controller","--timeout=20s")
@@ -118,6 +115,20 @@ class Proof:
         with path.open("w") as out:
             os.fchmod(out.fileno(),0o600);json.dump(proof,out)
         print(json.dumps(dict(phase="seed",owner_mismatch=True,duplicate_identity=True,immutable_schema=True,controller_restart=True,partial_creation=True,drift_repair=True,admission=True,two_owner_boundaries=True,worker_rbac_denied=True)))
+
+    def schema(self,manifest):
+        current=self.get("fenv",manifest["metadata"]["name"])
+        for change in ({"profile":"large"},{"owner":{"subject":"someone-else"}},{"image":"arbitrary"}):
+            candidate=copy.deepcopy(current)
+            for key,value in change.items():
+                if key=="owner":candidate["spec"]["owner"].update(value)
+                else:candidate["spec"][key]=value
+            # replace supports strict validation; patch has no --validate flag.
+            result=self.kube("replace","--dry-run=server","--validate=strict","-f","-",data=candidate,okay=False)
+            assert result.returncode!=0 and any(reason in result.stderr.lower() for reason in (b"invalid",b"immutable",b"unknown field")), "API schema rejection was not observed"
+        bad=copy.deepcopy(manifest);bad["metadata"]["name"]="different-name"
+        result=self.kube("create","--dry-run=server","-f","-",data=bad,okay=False)
+        assert result.returncode!=0 and b"invalid" in result.stderr.lower(), "API name validation was not observed"
 
     def admission(self,namespace):
         image=json.loads((HERE/"images.json").read_text())["postgres"]

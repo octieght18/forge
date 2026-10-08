@@ -27,6 +27,8 @@ python3 deploy/kubernetes/environment_smoke.py verify
 
 `verify` checks exact environment and namespace UIDs after a whole-node restart, then creates a synthetic static CSI PV reference with no disk/Pod to prove cleanup refuses persistent storage. After the test removes only that synthetic PV, a test-owned ConfigMap finalizer holds namespace cleanup; the controller preserves it and retains its own environment finalizer. The test finalizer's owner releases its hold, normal cleanup completes, and `forge-local` plus the retained PostgreSQL PV remain.
 
+Review corrected the negative schema probes to use strict server-side dry-run replacement: `kubectl patch` does not support `--validate`. The corrected probes assert actual validation reasons and passed profile, immutable-owner, unknown-field and name rejections against the live API server. This supersedes the earlier negative-probe result.
+
 ## Local observations
 
 Real-kind `seed` passed all owner, replay, partial-creation, drift, schema, admission and worker-RBAC checks on this PC. Whole-node restart preserved exact environment/namespace UIDs. `verify` passed persistent-storage refusal, foreign-finalizer retention, normal cleanup and shared-database protection. The Windows operator wrapper separately passed apply, JSON status, Ready observation and delete for an existing synthetic fixture without adding another product record.
