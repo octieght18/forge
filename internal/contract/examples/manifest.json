@@ -7,5 +7,7 @@
   "evidence-page.json": "EvidencePage",
   "report.json": "Report",
   "empty-workloads.json": "WorkloadPage",
-  "error.json": "ErrorResponse"
+  "error.json": "ErrorResponse",
+  "ambiguous-start-run.json": "Run",
+  "cancel-completion-race-run.json": "Run"
 }

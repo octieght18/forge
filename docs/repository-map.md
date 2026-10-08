@@ -10,7 +10,7 @@ Start with the [quickstart](quickstart.md), [seven current API operations/exampl
 | [internal/httpapi](../internal/httpapi) | Health/registration handlers, owner-filtered pages, ETags, corpus approvals, errors and middleware. |
 | [internal/auth](../internal/auth) | Real OIDC discovery/JWKS and API token verification/roles. |
 | [internal/login](../internal/login) | State/cookie-bound authorization code exchange and private token file. |
-| [internal/contract](../internal/contract) | Shared OpenAPI, examples, schema validation and input fingerprints. |
+| [internal/contract](../internal/contract) | Shared OpenAPI, examples, schema validation, input fingerprints and run lifecycle consistency tests. |
 | [internal/store](../internal/store) | PostgreSQL queries, explicit checked migrations and durable run/start/cancel records. These run records are not HTTP execution endpoints. |
 | [internal/config](../internal/config), [internal/service](../internal/service) | Validated configuration, HTTP deadlines, readiness and graceful drain. |
 | [internal/testsupport](../internal/testsupport) | Real PostgreSQL integration fixtures. |

@@ -85,6 +85,8 @@ The fingerprint includes the operation and canonical request; rerun includes the
 
 Separate product submission state (`pending`/`dispatched`) and cancellation command state from Temporal execution. Current execution status is either `not_started`, a timestamped Temporal observation, or `unknown` when unavailable with an optional cached last-known observation. The schema rejects unavailable/current-success combinations. PG caches cannot manufacture completion. A persisted report may be available before the workflow's final acknowledgement; artifact availability alone does not claim execution success.
 
+F11 adds approved response consistency rules: delivered cancellation requires dispatched submission; dispatched submission cannot report not_started; and cached state/timestamp are present or absent together. Pending acknowledgement may still have an actual Temporal observation after an ambiguous start. See [the lifecycle contract](workload-lifecycle.md) for transition authority, completion races and the deferred environment boundary.
+
 ## Examples and validation
 
 Copy the [workload](../internal/contract/examples/create-workload.json), [version](../internal/contract/examples/create-version.json) and [run](../internal/contract/examples/create-run.json) examples when the runtime endpoints become available. IDs, corpus hash and issuer URL in examples are synthetic, not provisioned resources or chosen Keycloak ports. Set the real returned IDs/approved snapshot/issuer; acquire a real access token; keep it outside Git. Never replay example response identities as authentication.

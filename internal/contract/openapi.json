@@ -1835,7 +1835,8 @@
               "state",
               "observed_at",
               "last_known_state"
-            ]
+            ],
+            "description": "Only report not_started when the dispatcher can establish that no start has occurred. Pending acknowledgement alone is not proof."
           },
           {
             "type": "object",
@@ -1913,10 +1914,32 @@
               "state",
               "observed_at",
               "last_known_state"
+            ],
+            "oneOf": [
+              {
+                "properties": {
+                  "observed_at": {
+                    "type": "null"
+                  },
+                  "last_known_state": {
+                    "type": "null"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "observed_at": {
+                    "$ref": "#/components/schemas/Timestamp"
+                  },
+                  "last_known_state": {
+                    "type": "string"
+                  }
+                }
+              }
             ]
           }
         ],
-        "description": "Temporal is authoritative. Unavailable state is unknown; a cached last-known state cannot be reported as current."
+        "description": "Temporal is authoritative. Unavailable state is unknown; a cached last-known state cannot be reported as current. A cached last-known state and its observation timestamp must be present together; the timestamp is the cache observation, not the failed lookup time."
       },
       "Run": {
         "type": "object",
@@ -1992,7 +2015,55 @@
           "submission_state",
           "cancellation_state",
           "execution"
-        ]
+        ],
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "cancellation_state": {
+                  "const": "delivered"
+                }
+              },
+              "required": [
+                "cancellation_state"
+              ]
+            },
+            "then": {
+              "properties": {
+                "submission_state": {
+                  "const": "dispatched"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "submission_state": {
+                  "const": "dispatched"
+                }
+              },
+              "required": [
+                "submission_state"
+              ]
+            },
+            "then": {
+              "properties": {
+                "execution": {
+                  "properties": {
+                    "source": {
+                      "enum": [
+                        "temporal",
+                        "unavailable"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "description": "Submission/cancellation are PostgreSQL handoff states, not execution outcomes. Pending acknowledgement permits a Temporal observation after an ambiguous start. Delivered cancellation requires dispatched submission; dispatched submission cannot claim not_started."
       },
       "CancelResponse": {
         "type": "object",

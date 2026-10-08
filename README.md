@@ -12,6 +12,8 @@ Start with the [local quickstart](docs/quickstart.md), [current API examples](do
 
 The accepted first release is the **API and durable research workflow only**: one engineering team, owner-private workloads/runs, operator visibility, and a fixed local document corpus accessed through read-only MCP tools. Available project capacity is five hours/week. Environment provisioning and broader platform capabilities follow in later releases.
 
+**F11** defines the fixed research specification and submission/cancellation/execution lifecycle, with executable response consistency checks and ambiguity/race examples. Its original Kubernetes environment checklist is deferred by owner-approved scope amendment; run endpoints and dispatch remain later work.
+
 - [Internal product brief](docs/product-brief.md)
 - [Product and design decisions](docs/decision-log.md)
 - [Architecture and integration boundaries](docs/architecture.md)
@@ -34,6 +36,8 @@ The accepted first release is the **API and durable research workflow only**: on
 - [F10 cancellation validation and profiling results](docs/f10-validation.md)
 - [Reproducible registration profiling procedure](docs/profile-procedure.md)
 - [Accepted Balanced local performance targets](docs/performance-targets.md)
+- [Research specification and lifecycle](docs/workload-lifecycle.md)
+- [F11 verification](docs/f11-validation.md)
 
 The owner must review product and design choices before they become accepted decisions. F02 records the accepted Go HTTP/OpenAPI, PostgreSQL and Temporal foundation, OpenRouter backend and local Kubernetes target. Keycloak OIDC is included from the first release. The testing model is `google/gemma-4-26b-a4b-it:free`. The owner's F07 instruction to use **no containers** supersedes the earlier Compose-first deployment choice: this stack runs natively in WSL. F03's HTTP defaults and lifecycle conventions are accepted; new API/identity/workflow decisions still require consultation.
 
