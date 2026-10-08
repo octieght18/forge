@@ -16,6 +16,8 @@ The accepted first release is the **API and durable research workflow only**: on
 
 **F12** supplies PostgreSQL-backed command reconciliation with lease fencing, persisted bounded retries, start-before-cancel and a separate dispatcher role. Native startup prepares its storage/credentials; the Temporal adapter and dispatcher service remain F22 work. Original Kubernetes CRD/controller work is deferred.
 
+The owner has now approved [containerized Kubernetes deployment in WSL](docs/kubernetes-local.md): API, PostgreSQL and Keycloak in kind, with copied existing databases and retained native originals. Public loopback URLs and owner identities stay the same. Research workers and the provisioning controller remain future work.
+
 - [Internal product brief](docs/product-brief.md)
 - [Product and design decisions](docs/decision-log.md)
 - [Architecture and integration boundaries](docs/architecture.md)
@@ -42,8 +44,10 @@ The accepted first release is the **API and durable research workflow only**: on
 - [F11 verification](docs/f11-validation.md)
 - [Durable command reconciliation and upgrade](docs/command-reconciliation.md)
 - [F12 verification](docs/f12-validation.md)
+- [Kubernetes migration and local commands](docs/kubernetes-local.md)
+- [Kubernetes verification](docs/kubernetes-validation.md)
 
-The owner must review product and design choices before they become accepted decisions. F02 records the accepted Go HTTP/OpenAPI, PostgreSQL and Temporal foundation, OpenRouter backend and local Kubernetes target. Keycloak OIDC is included from the first release. The testing model is `google/gemma-4-26b-a4b-it:free`. The owner's F07 instruction to use **no containers** supersedes the earlier Compose-first deployment choice: this stack runs natively in WSL. F03's HTTP defaults and lifecycle conventions are accepted; new API/identity/workflow decisions still require consultation.
+The owner must review product and design choices before they become accepted decisions. F02 records the accepted Go HTTP/OpenAPI, PostgreSQL and Temporal foundation, OpenRouter backend and local Kubernetes target. Keycloak OIDC is included from the first release. The testing model is `google/gemma-4-26b-a4b-it:free`. D26 supersedes F07's no-container deployment choice: the current stack can now run in kind inside WSL. F03's HTTP defaults and lifecycle conventions are accepted; new API/identity/workflow decisions still require consultation.
 
 ## Run the foundation
 

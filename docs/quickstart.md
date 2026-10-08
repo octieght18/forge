@@ -1,6 +1,6 @@
 # First local quickstart
 
-This guide takes a clean checkout to an authenticated workload and immutable version. The current product is a Go API with PostgreSQL and Keycloak, running **natively** in Ubuntu WSL. No containers, Kubernetes, Temporal worker or model calls are required. Use [API examples](api-examples.md) to call all seven implemented operations; run/history/report/evidence paths in OpenAPI describe later work.
+This guide takes a clean checkout through the **native** Ubuntu WSL installation, which also supplies the source data and login helper for the accepted Kubernetes migration. For this PC's current copied kind stack, use the [Kubernetes guide](kubernetes-local.md) and `scripts/kubernetes-stack.ps1`; stop Kubernetes before starting this native alternative because both use the same loopback ports. Use [API examples](api-examples.md) to call all seven implemented operations; run/history/report/evidence paths in OpenAPI describe later work. Temporal workers/model execution are not implemented yet.
 
 ## 1. Check prerequisites
 

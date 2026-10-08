@@ -16,6 +16,9 @@ Start with the [quickstart](quickstart.md), [seven current API operations/exampl
 | [internal/config](../internal/config), [internal/service](../internal/service) | Validated configuration, HTTP deadlines, readiness and graceful drain. |
 | [internal/testsupport](../internal/testsupport) | Real PostgreSQL integration fixtures. |
 | [deploy/native](../deploy/native) | Native PostgreSQL/Keycloak/API lifecycle, private launchers, realm and real-login smoke. |
+| [Dockerfile](../Dockerfile), [.dockerignore](../.dockerignore) | Static non-root API/migration image and source-only build context. |
+| [deploy/kubernetes](../deploy/kubernetes) | kind resources, fixed proxy, digest lock, retained migration/lifecycle and verified tools. |
+| [scripts/kubernetes-stack.ps1](../scripts/kubernetes-stack.ps1) | Windows entry point for copied Kubernetes stack in WSL. |
 | [scripts/local-stack.ps1](../scripts/local-stack.ps1) | Windows `up`, `status`, `stop`, `login` entry point. |
 | [scripts/api-examples.ps1](../scripts/api-examples.ps1) | Runnable seven-operation example with a private access-token file. |
 | [scripts/measure-baseline.ps1](../scripts/measure-baseline.ps1) | F08 retained-data startup/registration/recovery measurements. |

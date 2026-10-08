@@ -1,5 +1,7 @@
 # F07 — Native local stack
 
+The copied kind deployment now has a [Kubernetes guide](kubernetes-local.md). This page describes the retained source installation and clean-checkout bootstrap. Both stacks share public loopback ports; stop the running stack before starting the other. Post-migration data is independent, with no automatic synchronization. D26 supersedes the historical no-container decision recorded below.
+
 For the developer path from checkout through authenticated API requests, use the [first quickstart](quickstart.md) and [runnable API examples](api-examples.md). This page covers native operator setup and retained data.
 
 F12 startup also prepares the separate dispatcher database role and applies command lease/retry migration 0002. Existing secrets/cursor are retained while a new private dispatcher secret is added; no dispatcher process is launched. See [the upgrade and permission boundary](command-reconciliation.md).
