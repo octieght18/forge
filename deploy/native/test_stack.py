@@ -70,6 +70,47 @@ class LifecycleGuards(unittest.TestCase):
             app.stop()
         command.assert_not_called()
 
+    def test_dispatcher_secret_upgrade_retains_existing_values(self):
+        app = self.instance()
+        app.root.mkdir(parents=True)
+        names = ("postgres", "migrator", "runtime", "identity", "admin", "ahmad", "second-owner", "operator")
+        before = {name: "a" * 48 for name in names}
+        private = app.root / "secrets.json"
+        private.write_text(json.dumps(before))
+        cursor = app.root / "cursor.key"
+        cursor.write_text("retained synthetic cursor")
+        with patch.object(stack.os, "fchown"):
+            app.prepare_secrets()
+        after = json.loads(private.read_text())
+        self.assertEqual({name: after[name] for name in names}, before)
+        self.assertRegex(after["dispatcher"], r"^[0-9a-f]{48}$")
+        self.assertEqual(private.stat().st_mode & 0o777, 0o600)
+        self.assertEqual(cursor.read_text(), "retained synthetic cursor")
+        with patch.object(app, "write_secrets") as write:
+            app.prepare_secrets()
+        write.assert_not_called()
+
+    def test_malformed_old_secrets_are_not_upgraded(self):
+        app = self.instance()
+        app.root.mkdir(parents=True)
+        private = app.root / "secrets.json"
+        private.write_text('{"runtime":"malformed"}')
+        with patch.object(app, "write_secrets") as write, self.assertRaises(ValueError):
+            app.prepare_secrets()
+        write.assert_not_called()
+
+    def test_failed_secret_replacement_preserves_old_configuration(self):
+        app = self.instance()
+        app.root.mkdir(parents=True)
+        names = ("postgres", "migrator", "runtime", "identity", "admin", "ahmad", "second-owner", "operator")
+        private = app.root / "secrets.json"
+        original = json.dumps({name: "a" * 48 for name in names})
+        private.write_text(original)
+        with patch.object(stack.os, "fchown"), patch.object(stack.os, "replace", side_effect=OSError("injected replacement failure")), self.assertRaises(OSError):
+            app.prepare_secrets()
+        self.assertEqual(private.read_text(), original)
+        self.assertEqual(list(app.root.glob(".secrets-*")), [])
+
 
 if __name__ == "__main__":
     unittest.main()

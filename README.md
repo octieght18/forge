@@ -14,6 +14,8 @@ The accepted first release is the **API and durable research workflow only**: on
 
 **F11** defines the fixed research specification and submission/cancellation/execution lifecycle, with executable response consistency checks and ambiguity/race examples. Its original Kubernetes environment checklist is deferred by owner-approved scope amendment; run endpoints and dispatch remain later work.
 
+**F12** supplies PostgreSQL-backed command reconciliation with lease fencing, persisted bounded retries, start-before-cancel and a separate dispatcher role. Native startup prepares its storage/credentials; the Temporal adapter and dispatcher service remain F22 work. Original Kubernetes CRD/controller work is deferred.
+
 - [Internal product brief](docs/product-brief.md)
 - [Product and design decisions](docs/decision-log.md)
 - [Architecture and integration boundaries](docs/architecture.md)
@@ -38,6 +40,8 @@ The accepted first release is the **API and durable research workflow only**: on
 - [Accepted Balanced local performance targets](docs/performance-targets.md)
 - [Research specification and lifecycle](docs/workload-lifecycle.md)
 - [F11 verification](docs/f11-validation.md)
+- [Durable command reconciliation and upgrade](docs/command-reconciliation.md)
+- [F12 verification](docs/f12-validation.md)
 
 The owner must review product and design choices before they become accepted decisions. F02 records the accepted Go HTTP/OpenAPI, PostgreSQL and Temporal foundation, OpenRouter backend and local Kubernetes target. Keycloak OIDC is included from the first release. The testing model is `google/gemma-4-26b-a4b-it:free`. The owner's F07 instruction to use **no containers** supersedes the earlier Compose-first deployment choice: this stack runs natively in WSL. F03's HTTP defaults and lifecycle conventions are accepted; new API/identity/workflow decisions still require consultation.
 

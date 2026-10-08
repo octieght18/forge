@@ -12,6 +12,7 @@ Start with the [quickstart](quickstart.md), [seven current API operations/exampl
 | [internal/login](../internal/login) | State/cookie-bound authorization code exchange and private token file. |
 | [internal/contract](../internal/contract) | Shared OpenAPI, examples, schema validation, input fingerprints and run lifecycle consistency tests. |
 | [internal/store](../internal/store) | PostgreSQL queries, explicit checked migrations and durable run/start/cancel records. These run records are not HTTP execution endpoints. |
+| [internal/reconcile](../internal/reconcile) | F12 command reconciliation and verified backend boundary; no deployed Temporal adapter yet. |
 | [internal/config](../internal/config), [internal/service](../internal/service) | Validated configuration, HTTP deadlines, readiness and graceful drain. |
 | [internal/testsupport](../internal/testsupport) | Real PostgreSQL integration fixtures. |
 | [deploy/native](../deploy/native) | Native PostgreSQL/Keycloak/API lifecycle, private launchers, realm and real-login smoke. |

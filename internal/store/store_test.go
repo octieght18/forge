@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"strings"
 	"sync"
@@ -30,6 +31,10 @@ var operator = Principal{"https://identity.example/realms/forge", "operator", "o
 
 // Each test owns a new database and two roles. It never drops a supplied database.
 func testDatabase(t *testing.T) *database {
+	return testDatabaseFiles(t, migrations)
+}
+
+func testDatabaseFiles(t *testing.T, files fs.FS) *database {
 	t.Helper()
 	dsn := os.Getenv("FORGE_TEST_ADMIN_DATABASE_URL")
 	if dsn == "" {
@@ -83,13 +88,14 @@ func testDatabase(t *testing.T) *database {
 		t.Fatal("migration connection failed")
 	}
 	t.Cleanup(func() { migrationConn.Close(ctx) })
-	if err := Migrate(ctx, migrationConn); err != nil {
+	if err := migrateFS(ctx, migrationConn, files); err != nil {
 		t.Fatal(err)
 	}
 	// These match the documented operator grants; no migration ownership for runtime.
-	_, err = migrationConn.Exec(ctx, fmt.Sprintf(`GRANT USAGE ON SCHEMA forge TO %s;
-        GRANT SELECT,INSERT ON forge.principals,forge.workloads,forge.versions,forge.runs,forge.commands TO %s;
-        GRANT UPDATE(name,description,revision,updated_at) ON forge.workloads TO %s;`, quote(runtime), quote(runtime), quote(runtime)))
+	_, err = migrationConn.Exec(ctx, fmt.Sprintf(`GRANT USAGE ON SCHEMA forge TO %[1]s;
+        GRANT SELECT,INSERT ON forge.principals,forge.workloads,forge.versions,forge.runs TO %[1]s;
+        GRANT SELECT ON forge.commands TO %[1]s; GRANT INSERT(id,run_id,kind) ON forge.commands TO %[1]s;
+        GRANT UPDATE(name,description,revision,updated_at) ON forge.workloads TO %[1]s;`, quote(runtime)))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -597,7 +603,7 @@ func TestPostgreSQLMigrationsAndPrivileges(t *testing.T) {
 				t.Fatal(err)
 			}
 		}
-		if count(t, db.migrator, "schema_migrations") != 1 {
+		if count(t, db.migrator, "schema_migrations") != 2 {
 			t.Fatal("migration duplicated")
 		}
 	})
@@ -608,8 +614,12 @@ func TestPostgreSQLMigrationsAndPrivileges(t *testing.T) {
 		}
 	})
 	t.Run("failed forward migration rolls back DDL and ledger", func(t *testing.T) {
-		original, _ := migrations.ReadFile("migrations/0001_product_state.sql")
-		files := fstest.MapFS{"migrations/0001_product_state.sql": {Data: original}, "migrations/0002_failure.sql": {Data: []byte("CREATE TABLE forge.rollback_probe(id integer); SELECT no_such_function();")}}
+		files := fstest.MapFS{}
+		for _, name := range []string{"migrations/0001_product_state.sql", "migrations/0002_command_reconciliation.sql"} {
+			body, _ := migrations.ReadFile(name)
+			files[name] = &fstest.MapFile{Data: body}
+		}
+		files["migrations/0003_failure.sql"] = &fstest.MapFile{Data: []byte("CREATE TABLE forge.rollback_probe(id integer); SELECT no_such_function();")}
 		if err := migrateFS(ctx, db.migrator, files); err == nil {
 			t.Fatal("failed migration committed")
 		}
@@ -618,7 +628,7 @@ func TestPostgreSQLMigrationsAndPrivileges(t *testing.T) {
 		if err != nil || exists {
 			t.Fatal("DDL rollback failed", err)
 		}
-		if count(t, db.migrator, "schema_migrations") != 1 {
+		if count(t, db.migrator, "schema_migrations") != 2 {
 			t.Fatal("failed migration ledger persisted")
 		}
 	})
@@ -638,6 +648,40 @@ func TestPostgreSQLMigrationsAndPrivileges(t *testing.T) {
 			}
 		}
 	})
+}
+
+func TestPostgreSQLCommandMigrationRetainsAcceptedRuns(t *testing.T) {
+	first, _ := migrations.ReadFile("migrations/0001_product_state.sql")
+	db := testDatabaseFiles(t, fstest.MapFS{"migrations/0001_product_state.sql": {Data: first}})
+	ctx := context.Background()
+	w := createWorkload(t, db.repo, devA, "upgrade")
+	v := createVersion(t, db.repo, devA, w)
+	run, err := db.repo.SubmitRun(ctx, devA, "old-accepted", runPayload(w, v))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := db.repo.Cancel(ctx, devA, run.ID); err != nil {
+		t.Fatal(err)
+	}
+	if err := Migrate(ctx, db.migrator); err != nil {
+		t.Fatal(err)
+	}
+	again, err := db.repo.SubmitRun(ctx, devA, "old-accepted", runPayload(w, v))
+	if err != nil || again.ID != run.ID || again.WorkflowID != run.WorkflowID {
+		t.Fatal("upgrade lost accepted identity", err)
+	}
+	commands, err := db.repo.Commands(ctx, devA, run.ID)
+	if err != nil || len(commands) != 2 {
+		t.Fatal("upgrade lost intents", err)
+	}
+	var eligible int
+	if err := db.migrator.QueryRow(ctx, `SELECT count(*) FROM forge.commands WHERE state='pending' AND attempts=0 AND NOT blocked AND lease_token IS NULL AND lease_until IS NULL`).Scan(&eligible); err != nil || eligible != 2 {
+		t.Fatal("old pending commands not preserved", err)
+	}
+	stored, err := db.repo.GetVersion(ctx, devA, w.ID, v.ID)
+	if err != nil || stored.Fingerprint != v.Fingerprint {
+		t.Fatal("upgrade changed immutable spec", err)
+	}
 }
 
 func TestStoreGuards(t *testing.T) {

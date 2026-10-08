@@ -15,6 +15,7 @@ import socket
 import subprocess
 import sys
 import tarfile
+import tempfile
 import time
 import urllib.request
 
@@ -69,14 +70,7 @@ class Stack:
             directory = self.root / name
             directory.mkdir(exist_ok=True, mode=0o700)
             os.chown(directory, self.user.pw_uid, self.user.pw_gid)
-        secret_file = self.root / "secrets.json"
-        if not secret_file.exists():
-            values = {name: secrets.token_hex(24) for name in ("postgres", "migrator", "runtime", "identity", "admin", "ahmad", "second-owner", "operator")}
-            self.write(secret_file, json.dumps(values, indent=2))
-        self.values = json.loads(secret_file.read_text())
-        names = {"postgres", "migrator", "runtime", "identity", "admin", "ahmad", "second-owner", "operator"}
-        if set(self.values) != names or any(not isinstance(value, str) or not re.fullmatch(r"[0-9a-f]{48}", value) for value in self.values.values()):
-            raise ValueError("Generated secret configuration is malformed; values withheld")
+        self.prepare_secrets()
         if not (self.root / "cursor.key").exists():
             self.write(self.root / "cursor.key", base64.b64encode(secrets.token_bytes(32)).decode())
         if not (self.root / "corpus-policy.json").exists():
@@ -85,6 +79,36 @@ class Stack:
             self.write(self.root / "postgres-password", self.values["postgres"])
             self.command([PG / "initdb", "-D", self.root / "postgres", "-U", "postgres", "--auth-local=trust", "--auth-host=scram-sha-256", "--pwfile", self.root / "postgres-password", "--encoding=UTF8", "--locale=C.UTF-8"], user=True, stdout=subprocess.DEVNULL)
         self.write(self.root / "runtime.py", (REPO / "deploy/native/runtime.py").read_text())
+
+    def prepare_secrets(self):
+        secret_file = self.root / "secrets.json"
+        legacy = {"postgres", "migrator", "runtime", "identity", "admin", "ahmad", "second-owner", "operator"}
+        names = legacy | {"dispatcher"}
+        if not secret_file.exists():
+            values = {name: secrets.token_hex(24) for name in sorted(names)}
+            self.write_secrets(secret_file, values)
+        self.values = json.loads(secret_file.read_text())
+        if not isinstance(self.values, dict) or set(self.values) not in (legacy, names) or any(not isinstance(value, str) or not re.fullmatch(r"[0-9a-f]{48}", value) for value in self.values.values()):
+            raise ValueError("Generated secret configuration is malformed; values withheld")
+        if "dispatcher" not in self.values:
+            self.values["dispatcher"] = secrets.token_hex(24)
+            self.write_secrets(secret_file, self.values)
+
+    def write_secrets(self, path, values):
+        # An interrupted retained-state upgrade must not truncate existing passwords.
+        temporary = None
+        try:
+            with tempfile.NamedTemporaryFile(mode="w", dir=path.parent, prefix=".secrets-", delete=False) as output:
+                temporary = Path(output.name)
+                os.fchmod(output.fileno(), 0o600)
+                os.fchown(output.fileno(), self.user.pw_uid, self.user.pw_gid)
+                output.write(json.dumps(values, indent=2))
+                output.flush()
+                os.fsync(output.fileno())
+            os.replace(temporary, path)
+        finally:
+            if temporary is not None:
+                temporary.unlink(missing_ok=True)
 
     def active(self, component):
         return subprocess.run(["systemctl", "is-active", "--quiet", self.prefix + "-" + component], check=False).returncode == 0
@@ -176,9 +200,14 @@ class Stack:
             sql += "GRANT CONNECT ON DATABASE forge TO forge_migrator, forge_runtime;\nGRANT CONNECT ON DATABASE keycloak TO forge_identity;\n"
             self.sql(sql)
             self.write(self.root / "database-bootstrap.done", "1")
+        # Add the dispatcher role even on retained installations whose original
+        # bootstrap marker predates F12. No dispatcher process is launched.
+        self.sql("SELECT 'CREATE ROLE forge_dispatcher LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS' WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname='forge_dispatcher')\\gexec\n"
+                 f"ALTER ROLE forge_dispatcher PASSWORD '{self.values['dispatcher']}';\nGRANT CONNECT ON DATABASE forge TO forge_dispatcher;\n")
         migration_env = dict(self.env, FORGE_MIGRATION_DATABASE_URL=f"postgres://forge_migrator:{self.values['migrator']}@127.0.0.1:55436/forge?sslmode=disable")
         subprocess.run(["runuser", "-u", self.user.pw_name, "--", str(self.root / "bin/forge-migrate")], check=True, env=migration_env)
         self.sql((REPO / "deploy/postgres/runtime-grants.sql").read_text(), "forge", migrator=True)
+        self.sql((REPO / "deploy/postgres/dispatcher-grants.sql").read_text(), "forge", migrator=True)
         self.start("keycloak", ["/usr/bin/python3", self.root / "runtime.py", "keycloak", self.root], "1536M")
         self.wait("Keycloak", lambda: urllib.request.urlopen("http://127.0.0.1:9002/health/ready", timeout=2).status == 200, 180)
         self.wait("Keycloak realm", lambda: urllib.request.urlopen("http://127.0.0.1:8082/realms/forge/.well-known/openid-configuration", timeout=2).status == 200)

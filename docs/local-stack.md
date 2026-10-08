@@ -2,6 +2,8 @@
 
 For the developer path from checkout through authenticated API requests, use the [first quickstart](quickstart.md) and [runnable API examples](api-examples.md). This page covers native operator setup and retained data.
 
+F12 startup also prepares the separate dispatcher database role and applies command lease/retry migration 0002. Existing secrets/cursor are retained while a new private dispatcher secret is added; no dispatcher process is launched. See [the upgrade and permission boundary](command-reconciliation.md).
+
 The owner instructed **“don't containerize anything”** on 6 October 2026 and accepted native PostgreSQL, Keycloak and Go API services inside Ubuntu WSL, managed by systemd with a PowerShell entry point. This supersedes the original F07 Kubernetes title and the earlier Compose-first deployment decision for this stack. No Docker, container image or Kubernetes cluster is installed by F07. Temporal and its worker follow the workflow ticket.
 
 The owner also accepted generated private secrets, separate identity/product databases and roles, two developer demo identities plus an operator, authorization-code/S256 PKCE login, and retained data during ordinary stop/teardown. All services bind loopback; this is an operator's local development installation with no high availability or production identity claim.
@@ -77,7 +79,7 @@ Default location inside Ubuntu: **`/home/owner/.local/share/forge-native`** (or 
 | Retained item | Purpose |
 | --- | --- |
 | `postgres/` | Dedicated cluster with `forge` product data and `keycloak` persistent identity data |
-| `secrets.json`, `postgres-password` | Distinct administrator, migrator, runtime, identity and synthetic-user secrets |
+| `secrets.json`, `postgres-password` | Distinct administrator, migrator, runtime, dispatcher, identity and synthetic-user secrets |
 | `cursor.key`, `corpus-policy.json` | Stable cursor signing key and operator-managed corpus ID approval |
 | `keycloak-26.8.0/` | Verified native distribution and private initial realm import |
 | `bin/`, `runtime.py`, `go-toolchain.json` | Built native binaries, launcher and selected Go executable |

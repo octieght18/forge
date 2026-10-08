@@ -1,5 +1,7 @@
 # F05 — PostgreSQL product persistence
 
+F12 adds a second forward migration for lease/retry metadata and a separate dispatcher role. Runtime command inserts are restricted to ID/run ID/kind. See [the current reconciliation/upgrade guide](command-reconciliation.md); the F05 text below retains its original ticket-stage context.
+
 The owner accepted pgx v5 with explicit SQL, validated JSONB specs/inputs, explicit transactional forward migrations, separate migration/runtime roles, application owner checks without RLS, and real PostgreSQL tests on 6 October 2026. F05 implements workloads, immutable versions, runs and durable start/cancel intents. HTTP product routes, OIDC enforcement, Temporal dispatch and evidence/report storage follow their implementation tickets.
 
 ## Storage and access
