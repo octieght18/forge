@@ -14,9 +14,12 @@ import socket
 import subprocess
 import sys
 import time
+import secrets
+import tempfile
 import urllib.request
 
 from resources import NAMESPACE, apps, database, foundation, migration, obj
+from environments import crd, infrastructure
 
 REPO = Path(__file__).resolve().parents[2]
 HERE = Path(__file__).resolve().parent
@@ -231,8 +234,30 @@ class Stack:
     def values(self):
         values = json.loads((self.root / "secrets.json").read_text())
         expected = {"postgres", "migrator", "runtime", "dispatcher", "identity", "admin", "ahmad", "second-owner", "operator"}
-        if set(values) != expected or any(not re.fullmatch("[0-9a-f]{48}", v) for v in values.values()):
+        if set(values) not in (expected, expected | {"environment"}) or any(not isinstance(v,str) or not re.fullmatch("[0-9a-f]{48}", v) for v in values.values()):
             raise ValueError("Malformed private credentials; values withheld")
+        return values
+
+    def environment_credentials(self):
+        values = self.values()
+        if "environment" not in values:
+            values["environment"] = secrets.token_hex(24)
+            path = self.root / "secrets.json"
+            if path.is_symlink():
+                raise ValueError("Credential file must not be a symlink")
+            temporary = None
+            try:
+                with tempfile.NamedTemporaryFile(mode="w", dir=self.root, prefix=".credentials-", delete=False) as output:
+                    temporary = Path(output.name)
+                    os.fchmod(output.fileno(),0o600)
+                    os.fchown(output.fileno(),self.user.pw_uid,self.user.pw_gid)
+                    json.dump(values,output)
+                    output.flush()
+                    os.fsync(output.fileno())
+                os.replace(temporary,path)
+            finally:
+                if temporary is not None:
+                    temporary.unlink(missing_ok=True)
         return values
 
     def build(self):
@@ -260,7 +285,7 @@ class Stack:
             raise ValueError("Complete one-time import-native before startup")
         self.check_ports()
         self.cluster()
-        values = self.values()
+        values = self.environment_credentials()
         self.apply([self.secret("postgres-admin", dict(password=values["postgres"]))] + database(LOCK))
         self.kube("rollout", "status", "deployment/postgres", "--timeout=180s")
         url = lambda role, key: f"postgres://{role}:{values[key]}@postgres:5432/forge?sslmode=disable"
@@ -276,6 +301,13 @@ class Stack:
         self.kube("wait", "--for=condition=complete", "job/forge-migrate", "--timeout=120s")
         for name in ("runtime-grants.sql", "dispatcher-grants.sql"):
             self.sql((REPO / "deploy/postgres" / name).read_text(), "forge")
+        self.sql("SELECT 'CREATE ROLE forge_environment LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS' WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname='forge_environment')\\gexec\n"
+                 f"ALTER ROLE forge_environment PASSWORD '{values['environment']}';\n")
+        self.sql((REPO / "deploy/postgres/environment-grants.sql").read_text(), "forge")
+        self.apply([self.secret("environment-db",dict(url=url("forge_environment","environment"))), crd()])
+        self.kube("wait","--for=condition=Established","crd/forgeenvironments.platform.forge.local","--timeout=60s")
+        self.apply(infrastructure(image))
+        self.kube("rollout","status","deployment/environment-controller","--timeout=180s")
         resources = apps(LOCK, image)
         self.apply([item for item in resources if item["metadata"]["name"] != "api"])
         self.kube("rollout", "status", "deployment/keycloak", "--timeout=300s")
@@ -319,9 +351,14 @@ class Stack:
             subprocess.run(["systemctl", "stop", "forge-kubernetes-forward-" + name], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         running = self.command(["docker", "inspect", "--format={{.State.Running}}", "forge-control-plane"], capture_output=True, text=True).stdout.strip()
         if running == "true":
-            self.kube("scale", "deployment/api", "deployment/keycloak", "--replicas=0")
+            targets=["api","keycloak"]
+            if self.kube("get","deployment/environment-controller","--ignore-not-found","-o","name",capture_output=True).stdout.strip():
+                targets.append("environment-controller")
+            self.kube("scale", *["deployment/"+name for name in targets], "--replicas=0")
             self.kube("wait", "--for=delete", "pod", "-l", "app=api", "--timeout=60s")
             self.kube("wait", "--for=delete", "pod", "-l", "app=keycloak", "--timeout=60s")
+            if "environment-controller" in targets:
+                self.kube("wait", "--for=delete", "pod", "-l", "app=environment-controller", "--timeout=60s")
             self.kube("scale", "deployment/postgres", "--replicas=0")
             self.kube("wait", "--for=delete", "pod", "-l", "app=postgres", "--timeout=60s")
             self.command(["docker", "stop", "forge-control-plane"], stdout=subprocess.DEVNULL)

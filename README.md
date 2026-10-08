@@ -14,9 +14,9 @@ The accepted first release is the **API and durable research workflow only**: on
 
 **F11** defines the fixed research specification and submission/cancellation/execution lifecycle, with executable response consistency checks and ambiguity/race examples. Its original Kubernetes environment checklist is deferred by owner-approved scope amendment; run endpoints and dispatch remain later work.
 
-**F12** supplies PostgreSQL-backed command reconciliation with lease fencing, persisted bounded retries, start-before-cancel and a separate dispatcher role. Native startup prepares its storage/credentials; the Temporal adapter and dispatcher service remain F22 work. Original Kubernetes CRD/controller work is deferred.
+**F12** supplies PostgreSQL-backed command reconciliation with lease fencing, persisted bounded retries, start-before-cancel and a separate dispatcher role. Native startup prepares its storage/credentials; the Temporal adapter and dispatcher service remain F22 work.
 
-The owner has now approved [containerized Kubernetes deployment in WSL](docs/kubernetes-local.md): API, PostgreSQL and Keycloak in kind, with copied existing databases and retained native originals. Public loopback URLs and owner identities stay the same. Research workers and the provisioning controller remain future work.
+The owner approved [containerized Kubernetes deployment in WSL](docs/kubernetes-local.md): API, PostgreSQL and Keycloak in kind, with copied existing databases and retained native originals. Public loopback URLs and owner identities stay the same. **F12a/F13** restore the environment CRD/controller and provision [one resource/runtime boundary per workload](docs/execution-environments.md), with replay, drift repair and protected cleanup. Research workers and enforced network isolation remain future work.
 
 - [Internal product brief](docs/product-brief.md)
 - [Product and design decisions](docs/decision-log.md)
@@ -46,6 +46,8 @@ The owner has now approved [containerized Kubernetes deployment in WSL](docs/kub
 - [F12 verification](docs/f12-validation.md)
 - [Kubernetes migration and local commands](docs/kubernetes-local.md)
 - [Kubernetes verification](docs/kubernetes-validation.md)
+- [Operator environment provisioning](docs/execution-environments.md)
+- [F12a/F13 verification](docs/f13-validation.md)
 
 The owner must review product and design choices before they become accepted decisions. F02 records the accepted Go HTTP/OpenAPI, PostgreSQL and Temporal foundation, OpenRouter backend and local Kubernetes target. Keycloak OIDC is included from the first release. The testing model is `google/gemma-4-26b-a4b-it:free`. D26 supersedes F07's no-container deployment choice: the current stack can now run in kind inside WSL. F03's HTTP defaults and lifecycle conventions are accepted; new API/identity/workflow decisions still require consultation.
 

@@ -7,7 +7,8 @@ RUN go mod download && go mod verify
 COPY cmd ./cmd
 COPY internal ./internal
 RUN CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o /out/forge-api ./cmd/api && \
-    CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o /out/forge-migrate ./cmd/forge-migrate
+    CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o /out/forge-migrate ./cmd/forge-migrate && \
+    CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o /out/forge-environment-controller ./cmd/forge-environment-controller
 
 FROM scratch
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt

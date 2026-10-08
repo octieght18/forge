@@ -180,6 +180,9 @@ jobs:
       - name: Kubernetes quickstart examples with real token
         shell: pwsh
         run: ./scripts/api-examples.ps1 -TokenFile "$HOME/.local/share/forge-kubernetes/tokens/ahmad.json"
+      - name: Environment schema, owner isolation, replay and admission
+        shell: bash
+        run: python3 deploy/kubernetes/environment_smoke.py seed
       - name: Stop and restart Kubernetes with retained database and issuer
         shell: bash
         run: |
@@ -188,6 +191,7 @@ jobs:
           if curl --fail --silent http://127.0.0.1:8081/readyz; then exit 1; fi
           sudo python3 deploy/kubernetes/stack.py up --user "$USER"
           python3 deploy/native/smoke.py verify --state-dir "$HOME/.local/share/forge-kubernetes"
+          python3 deploy/kubernetes/environment_smoke.py verify
       - name: Kubernetes teardown retains copied data
         if: always()
         shell: bash

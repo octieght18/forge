@@ -1,8 +1,8 @@
 # Local Kubernetes in WSL
 
-The owner accepted containerizing the current API, PostgreSQL and Keycloak in a single-node **kind** cluster inside Ubuntu WSL, copying both existing databases, preserving the public loopback URLs and retaining native originals (D26). This supersedes D20's no-container deployment choice. It adds deployment packaging; it does not implement the original F12 provisioning controller or convert workload records into arbitrary executable images.
+The owner accepted containerizing the current API, PostgreSQL and Keycloak in a single-node **kind** cluster inside Ubuntu WSL, copying both existing databases, preserving the public loopback URLs and retaining native originals (D26). This supersedes D20's no-container deployment choice. D27 subsequently adds the separate [environment CRD/controller](execution-environments.md) and per-workload resource/runtime boundaries; executable research workers remain later work.
 
-The API image contains static Go API and migration binaries, runs as UID 65532, and has a scratch runtime with CA certificates. Its build context allows only cmd/, internal/, module files and Dockerfile. Git history, raw F10 profiles, private configuration and database backups cannot enter the context. Dependencies are locked by digest in [images.json](../deploy/kubernetes/images.json); no image is published to a registry.
+The API image contains static Go API, migration and environment-controller binaries, runs as UID 65532, and has a scratch runtime with CA certificates. Its build context allows only cmd/, internal/, module files and Dockerfile. Git history, raw F10 profiles, private configuration and database backups cannot enter the context. Dependencies are locked by digest in [images.json](../deploy/kubernetes/images.json); no image is published to a registry.
 
 ## Prerequisites and startup
 

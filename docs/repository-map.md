@@ -13,12 +13,14 @@ Start with the [quickstart](quickstart.md), [seven current API operations/exampl
 | [internal/contract](../internal/contract) | Shared OpenAPI, examples, schema validation, input fingerprints and run lifecycle consistency tests. |
 | [internal/store](../internal/store) | PostgreSQL queries, explicit checked migrations and durable run/start/cancel records. These run records are not HTTP execution endpoints. |
 | [internal/reconcile](../internal/reconcile) | F12 command reconciliation and verified backend boundary; no deployed Temporal adapter yet. |
+| [internal/environment](../internal/environment), [cmd/forge-environment-controller](../cmd/forge-environment-controller) | Separate operator environment controller with read-only identity lookup, boundary reconciliation and guarded finalization. |
 | [internal/config](../internal/config), [internal/service](../internal/service) | Validated configuration, HTTP deadlines, readiness and graceful drain. |
 | [internal/testsupport](../internal/testsupport) | Real PostgreSQL integration fixtures. |
 | [deploy/native](../deploy/native) | Native PostgreSQL/Keycloak/API lifecycle, private launchers, realm and real-login smoke. |
 | [Dockerfile](../Dockerfile), [.dockerignore](../.dockerignore) | Static non-root API/migration image and source-only build context. |
 | [deploy/kubernetes](../deploy/kubernetes) | kind resources, fixed proxy, digest lock, retained migration/lifecycle and verified tools. |
 | [scripts/kubernetes-stack.ps1](../scripts/kubernetes-stack.ps1) | Windows entry point for copied Kubernetes stack in WSL. |
+| [scripts/environment.ps1](../scripts/environment.ps1) | Operator apply/status/delete intent for per-workload Kubernetes boundaries. |
 | [scripts/local-stack.ps1](../scripts/local-stack.ps1) | Windows `up`, `status`, `stop`, `login` entry point. |
 | [scripts/api-examples.ps1](../scripts/api-examples.ps1) | Runnable seven-operation example with a private access-token file. |
 | [scripts/measure-baseline.ps1](../scripts/measure-baseline.ps1) | F08 retained-data startup/registration/recovery measurements. |

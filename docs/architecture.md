@@ -8,6 +8,8 @@ This document records accepted boundaries, alternatives and verification obligat
 
 ## 1. First-release composition
 
+**D27 extends the implemented infrastructure scope:** a separate operator-only ForgeEnvironment CRD/controller now prepares one namespace/resource/runtime boundary per workload. It uses a read-only identity lookup role and does not change research-version payloads or run status. See [environment boundaries](execution-environments.md). Worker execution, network isolation and public environment endpoints remain deferred; the original F02 release comparison below retains its historical context.
+
 Go exposes an authenticated HTTP/JSON API described by OpenAPI. PostgreSQL stores workload ownership, immutable versions, accepted run requests, intermediate artifacts and evidence. Temporal owns durable orchestration, task delivery, execution history and authoritative execution status. A Go worker executes bounded activities: read permitted corpus passages through MCP, call the selected model, validate references, and persist a report. **D26 supersedes the earlier Compose-first and F07/D20 native-only choices:** the owner now accepts the current API, PostgreSQL and Keycloak in kind inside WSL, with copied databases, retained native originals and unchanged loopback issuer. See the [Kubernetes guide](kubernetes-local.md) and [native alternative](local-stack.md); Temporal/worker deployment follows its implementation ticket. Earlier Compose/Kubernetes comparisons below remain the original F02 decision context, not the current local startup procedure.
 
 ```mermaid
