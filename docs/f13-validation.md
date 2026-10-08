@@ -37,6 +37,8 @@ Full Linux real-PostgreSQL race testing passed **181 test/subtest events across 
 
 Hosted CI runs the same real environment seed/restart/verify phases on the published commit, along with Windows/Linux and PostgreSQL jobs. Card completion requires all four jobs to pass for that exact commit. The CI link is recorded on the completed F12a/F13 cards.
 
+A final Windows-session check exposed background-launch lifetime: the earlier hidden launch did not retain an attached Windows WSL session after its parent command returned, allowing WSL to stop and transient forwarding units to disappear. The Kubernetes wrapper now supplies a hidden console parent for the same unprivileged, stop-bound helper and starts it through Windows process management independently of its calling terminal/tool. Arguments reject shell metacharacters and quote whitespace-bearing values; a captured probe corrected WSL option flags that must remain unquoted. This adds no scheduled task or automatic startup. Revalidated startup, separate-command retention, identity access and cleanup before completion.
+
 Private proof contains the synthetic identities and retained UIDs in `~/.local/share/forge-kubernetes/f13-proof.json`; generated credentials, tokens, kubeconfig and raw diagnostics stay local. The two synthetic product workload records remain after environment cleanup because product deletion is unsupported. Native original databases are retained.
 
 ## Material limits

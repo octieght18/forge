@@ -14,7 +14,20 @@ if ($Action -eq 'login') {
 }
 if ($LASTEXITCODE -ne 0) { throw 'Kubernetes Forge operation failed' }
 if ($Action -in @('up', 'import-native')) {
-    Start-Process -FilePath wsl.exe -ArgumentList @('-d', $Distro, '-u', $ServiceUser, '--', 'python3', "$linuxRepo/deploy/kubernetes/stack.py", 'hold', '--user', $ServiceUser) -WindowStyle Hidden | Out-Null
+    # Keep a hidden console parent so the WSL client retains an attached session.
+    # Windows process management separates it from the caller's lifetime.
+    # The existing unprivileged helper exits when normal stop ends forwarding.
+    $holdArguments = @((Join-Path $env:WINDIR 'System32/wsl.exe'), '-d', $Distro, '-u', $ServiceUser, '--', 'python3', "$linuxRepo/deploy/kubernetes/stack.py", 'hold', '--user', $ServiceUser)
+    foreach ($argument in $holdArguments) {
+        if ($argument -match '["\r\n\x00%!&|<>^]' -or $argument.EndsWith('\')) { throw 'Unsupported keep-alive process argument' }
+    }
+    # WSL parses option flags from the raw command line; quoted flags become a
+    # Linux command. Quote only values containing whitespace, not every token.
+    $holdCommand = ($holdArguments | ForEach-Object { if ($_ -match '\s') { '"' + $_ + '"' } else { $_ } }) -join ' '
+    $consoleCommand = '"' + (Join-Path $env:WINDIR 'System32/cmd.exe') + '" /d /v:off /s /c "' + $holdCommand + '"'
+    $startup = New-CimInstance -ClassName Win32_ProcessStartup -ClientOnly -Property @{ ShowWindow = [uint16]0 }
+    $launched = Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{ CommandLine = $consoleCommand; ProcessStartupInformation = $startup }
+    if ($launched.ReturnValue -ne 0) { throw 'Cannot start detached WSL keep-alive' }
     $ready = Invoke-RestMethod 'http://127.0.0.1:8081/readyz' -TimeoutSec 5
     $discovery = Invoke-RestMethod 'http://127.0.0.1:8082/realms/forge/.well-known/openid-configuration' -TimeoutSec 5
     if ($ready.status -ne 'ok' -or $discovery.issuer -ne 'http://127.0.0.1:8082/realms/forge') { throw 'Windows loopback validation failed' }
