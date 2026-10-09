@@ -93,7 +93,7 @@ In the authenticated PowerShell terminal, from the repository root:
 
 This calls all seven current API operations with the same payload files the contract validates: create/read/list workload, PATCH metadata with a fresh ETag, and create/read/list immutable version. Every invocation creates **one new synthetic workload and version** and retains them; it prints response statuses and IDs, without the token. The example uses the already-approved synthetic corpus IDs, not an installed document corpus. Registering a spec does not run research or call OpenRouter. Record the printed IDs for later requests. [API examples](api-examples.md) explain each request, pagination, errors and retries.
 
-The [developer CLI](developer-cli.md) is the same registration journey as four JSON commands. It also creates one retained workload and version. `delete` exits 1 because the API rejects deletion. `forge template` writes a local service or agent starting point without calling the API; see [workload templates](workload-templates.md).
+The [developer CLI](developer-cli.md) is the same registration journey as four JSON commands. It also creates one retained workload and version. `delete` exits 1 because the API rejects deletion. `forge template` writes a local service or agent starting point without calling the API; see [workload templates](workload-templates.md). `forge provision` records an accepted environment operation and a status URL; applying the namespace remains the operator environment command.
 
 ```powershell
 .\scripts\cli-examples.ps1 -TokenFile $tokenFile

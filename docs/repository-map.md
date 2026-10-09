@@ -5,11 +5,12 @@ Start with the [quickstart](quickstart.md), [seven current API operations/exampl
 | Path | Purpose |
 |---|---|
 | [cmd/api](../cmd/api) | API composition, configuration and process lifecycle. |
-| [cmd/forge](../cmd/forge) | Developer CLI for register, deploy, status, and delete against the registration API. |
+| [cmd/forge](../cmd/forge) | Developer CLI for registration, templates, and asynchronous provisioning operations. |
 | [cmd/forge-migrate](../cmd/forge-migrate) | Explicit migration command; migrations do not run inside API startup. |
 | [cmd/forge-login](../cmd/forge-login) | Five-minute browser/PKCE token helper on loopback 8083. |
 | [internal/cli](../internal/cli) | Developer CLI client, local schema checks, JSON results, and API error operation IDs. |
 | [internal/template](../internal/template) | Service and MCP agent template files validated against the registration contract. |
+| [internal/provision](../internal/provision) | Accepted environment operations, version conflicts, cancellation, timeouts, and controller phase comparison. |
 | [internal/httpapi](../internal/httpapi) | Health/registration handlers, owner-filtered pages, ETags, corpus approvals, errors and middleware. |
 | [internal/auth](../internal/auth) | Real OIDC discovery/JWKS and API token verification/roles. |
 | [internal/login](../internal/login) | State/cookie-bound authorization code exchange and private token file. |

@@ -196,6 +196,51 @@ func TestTemplateRenderDoesNotCallAPI(t *testing.T) {
 	}
 }
 
+func TestProvisionOperationCommands(t *testing.T) {
+	workloadID := "11111111-1111-4111-8111-111111111111"
+	versionID := "22222222-2222-4222-8222-222222222222"
+	operationID := "33333333-3333-4333-8333-333333333333"
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Authorization") != "Bearer "+secret {
+			t.Errorf("missing bearer token")
+		}
+		w.Header().Set("X-Request-ID", "0123456789abcdef0123456789abcdef")
+		switch {
+		case r.Method == http.MethodPost && r.URL.Path == "/api/v1/workloads/"+workloadID+"/operations":
+			var got map[string]any
+			if json.NewDecoder(r.Body).Decode(&got) != nil || got["action"] != "provision" || got["version_id"] != versionID || got["timeout_seconds"] != float64(30) {
+				t.Errorf("body %#v", got)
+			}
+			w.Header().Set("Location", "/api/v1/operations/"+operationID)
+			w.WriteHeader(http.StatusAccepted)
+			_, _ = w.Write([]byte(`{"operation_id":"` + operationID + `","status":"accepted","status_url":"/api/v1/operations/` + operationID + `"}`))
+		case r.Method == http.MethodGet && r.URL.Path == "/api/v1/operations/"+operationID:
+			_, _ = w.Write([]byte(`{"operation_id":"` + operationID + `","status":"ready","status_url":"/api/v1/operations/` + operationID + `"}`))
+		case r.Method == http.MethodPost && r.URL.Path == "/api/v1/operations/"+operationID+"/cancel":
+			w.Header().Set("Location", "/api/v1/operations/"+operationID)
+			w.WriteHeader(http.StatusAccepted)
+			_, _ = w.Write([]byte(`{"operation_id":"` + operationID + `","status":"cancel_requested","status_url":"/api/v1/operations/` + operationID + `"}`))
+		default:
+			t.Errorf("unexpected %s %s", r.Method, r.URL.Path)
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	defer server.Close()
+	token := writeToken(t, secret, time.Now().Add(time.Minute))
+	accepted := runJSON(t, 0, "provision", "--token-file", token, "--api", server.URL, "--workload", workloadID, "--version", versionID)
+	if accepted["location"] != "/api/v1/operations/"+operationID || accepted["status"] != float64(202) {
+		t.Fatalf("%#v", accepted)
+	}
+	read := runJSON(t, 0, "operation", "status", "--token-file", token, "--api", server.URL, "--operation", operationID)
+	if read["action"] != "status" || read["status"] != float64(200) {
+		t.Fatalf("%#v", read)
+	}
+	canceled := runJSON(t, 0, "operation", "cancel", "--token-file", token, "--api", server.URL, "--operation", operationID)
+	if canceled["action"] != "cancel" || canceled["location"] != "/api/v1/operations/"+operationID {
+		t.Fatalf("%#v", canceled)
+	}
+}
+
 func TestHelpAndUnknownCommand(t *testing.T) {
 	var out, err strings.Builder
 	if code := Run([]string{"help"}, &out, &err, nil); code != 0 || !strings.Contains(out.String(), "forge deploy") {

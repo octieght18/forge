@@ -90,6 +90,9 @@ func (h *registration) serve(w http.ResponseWriter, r *http.Request) {
 		}{"ok"})
 		return
 	}
+	if h.serveOperation(w, r) {
+		return
+	}
 	parts := strings.Split(strings.TrimPrefix(r.URL.Path, "/"), "/")
 	if r.URL.Path != r.URL.EscapedPath() || len(parts) < 3 || parts[0] != "api" || parts[1] != "v1" || parts[2] != "workloads" || len(parts) > 6 || len(parts) > 4 && parts[4] != "versions" || len(parts) == 4 && parts[3] == "" || len(parts) == 6 && parts[5] == "" {
 		WriteError(w, r, 404, "not_found", "Resource not found")

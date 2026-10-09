@@ -320,3 +320,31 @@ func TestConcurrentOwnershipChangeFencesRepair(t *testing.T) {
 		t.Fatal(reason(t, r, e))
 	}
 }
+
+type phaseRecorder struct{ reports []PhaseReport }
+
+func (p *phaseRecorder) Report(_ context.Context, report PhaseReport) error {
+	p.reports = append(p.reports, report)
+	return nil
+}
+
+func TestControllerReportsPhasesUsedByOperations(t *testing.T) {
+	r, e, i := fixture(t)
+	rec := &phaseRecorder{}
+	r.Reporter = rec
+	ready(t, r, e, i)
+	last := rec.reports[len(rec.reports)-1]
+	if last.WorkloadID != i.WorkloadID || last.Phase != "Ready" || last.Reason != "BoundaryReady" || last.Generation < 1 {
+		t.Fatalf("%#v", last)
+	}
+	failed, env, _ := fixture(t)
+	failedRec := &phaseRecorder{}
+	failed.Reporter = failedRec
+	failed.Lookup.(*lookup).match = false
+	pass(t, failed, env)
+	pass(t, failed, env)
+	got := failedRec.reports[len(failedRec.reports)-1]
+	if got.Phase != "Failed" || got.Reason != "OwnerMismatch" || got.WorkloadID == "" {
+		t.Fatalf("%#v", failedRec.reports)
+	}
+}

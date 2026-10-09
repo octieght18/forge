@@ -1,7 +1,7 @@
 // Package cli is the developer command line for the versioned registration API.
 // register creates a workload, deploy records an immutable version, and status
-// reads those records. delete calls the API and reports its result. This package
-// does not provision environments, start runs, or remove product records itself.
+// reads those records. delete calls the API and reports its result. provision
+// accepts an asynchronous environment operation and does not create a namespace.
 package cli
 
 import (
@@ -26,8 +26,9 @@ import (
 const defaultAPI = "http://127.0.0.1:8081"
 
 var (
-	locationPattern = regexp.MustCompile(`^/api/v1/workloads/[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}(/versions/[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})?$`)
-	etagPattern     = regexp.MustCompile(`^"[0-9a-f-]{36}:[1-9][0-9]*"$`)
+	locationPattern   = regexp.MustCompile(`^/api/v1/workloads/[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}(/versions/[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})?$`)
+	operationLocation = regexp.MustCompile(`^/api/v1/operations/[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$`)
+	etagPattern       = regexp.MustCompile(`^"[0-9a-f-]{36}:[1-9][0-9]*"$`)
 )
 
 // Run executes one developer command. Successful JSON goes to stdout and
@@ -40,9 +41,9 @@ func Run(args []string, stdout, stderr io.Writer, client *http.Client) int {
 	}
 	command := args[0]
 	switch command {
-	case "register", "deploy", "status", "delete", "template":
+	case "register", "deploy", "status", "delete", "template", "provision", "operation":
 	default:
-		return fail(stderr, 2, command, 0, "", "invalid_input", "Unknown command. Use register, deploy, status, delete, or template.", "")
+		return fail(stderr, 2, command, 0, "", "invalid_input", "Unknown command. Use register, deploy, status, delete, template, provision, or operation.", "")
 	}
 	validator, err := contract.New()
 	if err != nil {
@@ -53,6 +54,9 @@ func Run(args []string, stdout, stderr io.Writer, client *http.Client) int {
 	}
 	if command == "template" {
 		return app.templates(args[1:])
+	}
+	if command == "provision" || command == "operation" {
+		return app.provisioning(command, args[1:])
 	}
 	return app.run(command, args[1:])
 }
@@ -65,8 +69,12 @@ const usageText = `Forge developer CLI for the versioned registration API.
   forge delete --token-file PATH --workload ID [--api URL]
   forge template list
   forge template render --kind service|agent --name NAME --out DIRECTORY
+  forge provision --token-file PATH --workload ID --version ID [--timeout-seconds N] [--api URL]
+  forge operation status --token-file PATH --operation ID [--api URL]
+  forge operation cancel --token-file PATH --operation ID [--api URL]
+  forge operation delete --token-file PATH --workload ID --version ID [--timeout-seconds N] [--api URL]
 
-register creates a workload. deploy records an immutable research version and does not start execution or provision an environment. status reads workloads and versions. delete calls the API; current servers reject workload and version deletion, and the JSON error includes that result. template writes a local service or MCP agent starting point and does not call the API. Success is one JSON document on stdout. Failures are one JSON document on stderr. request_id is the API operation ID when the API was reached.
+register creates a workload. deploy records an immutable research version and does not start execution or provision an environment. status reads workloads and versions. delete calls the API; current servers reject workload and version deletion, and the JSON error includes that result. template writes a local service or MCP agent starting point and does not call the API. provision and operation delete accept an asynchronous environment operation. operation status reads it and operation cancel requests deletion. None of these commands creates a namespace or starts a run. Success is one JSON document on stdout. Failures are one JSON document on stderr. request_id is the API operation ID when the API was reached.
 `
 
 type app struct {
@@ -405,7 +413,7 @@ func (a *app) call(method, path string, body []byte) (exchange, error) {
 		return exchange{}, errors.New("response too large")
 	}
 	out := exchange{Status: resp.StatusCode, method: method, path: path, RequestID: safeToken(oneHeader(resp.Header, "X-Request-ID"), 128)}
-	if loc := oneHeader(resp.Header, "Location"); locationPattern.MatchString(loc) {
+	if loc := oneHeader(resp.Header, "Location"); locationPattern.MatchString(loc) || operationLocation.MatchString(loc) {
 		out.location = loc
 	}
 	if tag := oneHeader(resp.Header, "ETag"); etagPattern.MatchString(tag) {
@@ -464,6 +472,10 @@ func (a *app) transport(operation string, err error) int {
 
 func hint(operation string, status int) string {
 	switch {
+	case (operation == "provision" || operation == "operation") && status == http.StatusConflict:
+		return "Another operation for this workload is open, the version is not current, or the operation is already finished."
+	case (operation == "provision" || operation == "operation") && status == http.StatusUnprocessableEntity:
+		return "Use action provision or delete, and a timeout from 1 to 120 seconds."
 	case operation == "delete" && status == http.StatusMethodNotAllowed:
 		return "The versioned API does not delete workloads or versions. Nothing was removed."
 	case status == http.StatusUnauthorized:
@@ -641,6 +653,138 @@ func clip(value string) string {
 		return "Invalid command arguments."
 	}
 	return value
+}
+
+type provisioningResult struct {
+	Operation    string          `json:"operation"`
+	Action       string          `json:"action,omitempty"`
+	RequestID    string          `json:"request_id,omitempty"`
+	Status       int             `json:"status"`
+	Location     string          `json:"location,omitempty"`
+	Requests     []requestRecord `json:"requests"`
+	Provisioning json.RawMessage `json:"provisioning,omitempty"`
+}
+
+func (a *app) provisioning(command string, args []string) int {
+	action := command
+	if command == "operation" {
+		if len(args) == 0 {
+			return fail(a.stderr, 2, "operation", 0, "", "invalid_input", "Use status, cancel, or delete.", "")
+		}
+		switch args[0] {
+		case "status", "cancel", "delete":
+			action = args[0]
+			args = args[1:]
+		default:
+			return fail(a.stderr, 2, "operation", 0, "", "invalid_input", "Unknown operation command. Use status, cancel, or delete.", "")
+		}
+	}
+	fs := flag.NewFlagSet(command, flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
+	tokenFile := fs.String("token-file", "", "private login JSON")
+	api := fs.String("api", defaultAPI, "registration API base URL")
+	workload := fs.String("workload", "", "workload ID")
+	version := fs.String("version", "", "version ID")
+	operationID := fs.String("operation", "", "operation ID")
+	timeout := fs.Int("timeout-seconds", 30, "deadline in seconds")
+	if err := fs.Parse(args); err != nil {
+		return fail(a.stderr, 2, command, 0, "", "invalid_input", clip(err.Error()), "")
+	}
+	if fs.NArg() != 0 {
+		return fail(a.stderr, 2, command, 0, "", "invalid_input", "Unexpected command arguments.", "")
+	}
+	base, err := parseAPI(*api)
+	if err != nil {
+		return fail(a.stderr, 2, command, 0, "", "invalid_input", err.Error(), "")
+	}
+	token, err := readToken(*tokenFile)
+	if err != nil {
+		code := "invalid_input"
+		if errors.Is(err, errExpired) {
+			code = "unauthenticated"
+		}
+		return fail(a.stderr, 2, command, 0, "", code, err.Error(), "")
+	}
+	a.api = base
+	a.token = token
+	if *timeout < 1 || *timeout > 120 {
+		return fail(a.stderr, 2, command, 0, "", "invalid_input", "Timeout must be an integer from 1 to 120 seconds.", "")
+	}
+	switch action {
+	case "provision":
+		return a.acceptOperation("provision", *workload, *version, *timeout)
+	case "delete":
+		return a.acceptOperation("delete", *workload, *version, *timeout)
+	case "status":
+		return a.readOperation(*operationID)
+	default:
+		return a.cancelOperation(*operationID)
+	}
+}
+
+func (a *app) acceptOperation(action, workload, version string, timeout int) int {
+	command := "provision"
+	if action == "delete" {
+		command = "operation"
+	}
+	if a.validator.Validate("ID", []byte(strconv.Quote(workload))) != nil || a.validator.Validate("ID", []byte(strconv.Quote(version))) != nil {
+		return fail(a.stderr, 2, command, 0, "", "invalid_input", "Workload and version IDs must be lowercase UUID v4 values.", "")
+	}
+	body, err := json.Marshal(struct {
+		Action         string `json:"action"`
+		VersionID      string `json:"version_id"`
+		TimeoutSeconds int    `json:"timeout_seconds"`
+	}{action, version, timeout})
+	if err != nil {
+		return fail(a.stderr, 2, command, 0, "", "invalid_input", "The operation could not be encoded.", "")
+	}
+	call, err := a.call(http.MethodPost, "/api/v1/workloads/"+workload+"/operations", body)
+	if err != nil {
+		return a.transport(command, err)
+	}
+	if call.Status != http.StatusAccepted {
+		return a.apiError(command, call)
+	}
+	return a.provisionResult(command, action, call)
+}
+
+func (a *app) readOperation(id string) int {
+	if a.validator.Validate("ID", []byte(strconv.Quote(id))) != nil {
+		return fail(a.stderr, 2, "operation", 0, "", "invalid_input", "Operation ID must be a lowercase UUID v4.", "")
+	}
+	call, err := a.call(http.MethodGet, "/api/v1/operations/"+id, nil)
+	if err != nil {
+		return a.transport("operation", err)
+	}
+	if call.Status != http.StatusOK {
+		return a.apiError("operation", call)
+	}
+	return a.provisionResult("operation", "status", call)
+}
+
+func (a *app) cancelOperation(id string) int {
+	if a.validator.Validate("ID", []byte(strconv.Quote(id))) != nil {
+		return fail(a.stderr, 2, "operation", 0, "", "invalid_input", "Operation ID must be a lowercase UUID v4.", "")
+	}
+	call, err := a.call(http.MethodPost, "/api/v1/operations/"+id+"/cancel", []byte(`{}`))
+	if err != nil {
+		return a.transport("operation", err)
+	}
+	if call.Status != http.StatusAccepted {
+		return a.apiError("operation", call)
+	}
+	return a.provisionResult("operation", "cancel", call)
+}
+
+func (a *app) provisionResult(command, action string, call exchange) int {
+	value := provisioningResult{
+		Operation: command, Action: action, RequestID: call.RequestID, Status: call.Status,
+		Location: call.location, Requests: []requestRecord{call.record()}, Provisioning: call.body,
+	}
+	if err := writeJSON(a.stdout, value); err != nil {
+		return fail(a.stderr, 1, command, 0, "", "unavailable", "Could not write the command result.", "")
+	}
+	return 0
 }
 
 func safeClient(client *http.Client) *http.Client {

@@ -12,7 +12,7 @@ Base URL: **`http://127.0.0.1:8081`**. [Start the native stack and log in](quick
 | List versions | `GET /api/v1/workloads/{workload_id}/versions` | 200; `items`, `next_cursor` |
 | Read immutable version | `GET /api/v1/workloads/{workload_id}/versions/{version_id}` | 200; version |
 
-Server-issued identifiers are fields **`workload_id`** and **`version_id`**, not `id`. Names must be 1–63 lowercase slug characters, unique within the owner. Versions are immutable; no delete, owner transfer, version update or run endpoint is currently available. The [developer CLI](developer-cli.md) calls these same seven operations: `deploy` records a version, and `delete` reports the API's 405 rather than adding a deletion API.
+Server-issued identifiers are fields **`workload_id`** and **`version_id`**, not `id`. Names must be 1–63 lowercase slug characters, unique within the owner. Versions are immutable; no delete, owner transfer, version update or run endpoint is currently available. The [developer CLI](developer-cli.md) calls these same seven operations: `deploy` records a version, and `delete` reports the API's 405 rather than adding a deletion API. Asynchronous environment operations are a separate accepted-work API; see [provisioning operations](provisioning-operations.md).
 
 ## Complete example
 

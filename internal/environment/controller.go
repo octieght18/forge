@@ -99,9 +99,23 @@ func Desired(e *unstructured.Unstructured, i Identity) []client.Object {
 	return []client.Object{ns, q, l, sa}
 }
 
+// PhaseReport is the controller phase an operation record can observe.
+type PhaseReport struct {
+	WorkloadID string
+	Generation int64
+	Phase      string
+	Reason     string
+}
+
+// Reporter receives the phase just recorded. A nil reporter leaves reconciliation unchanged.
+type Reporter interface {
+	Report(context.Context, PhaseReport) error
+}
+
 type Reconciler struct {
-	Client client.Client
-	Lookup Lookup
+	Client   client.Client
+	Lookup   Lookup
+	Reporter Reporter
 }
 
 func (r *Reconciler) Setup(m ctrl.Manager) error {
@@ -235,7 +249,11 @@ func (r *Reconciler) remove(ctx context.Context, e *unstructured.Unstructured, i
 			}
 		}
 		e.SetFinalizers(finals)
-		return ctrl.Result{}, r.Client.Patch(ctx, e, client.MergeFromWithOptions(before, client.MergeFromWithOptimisticLock{}))
+		if err = r.Client.Patch(ctx, e, client.MergeFromWithOptions(before, client.MergeFromWithOptimisticLock{})); err != nil {
+			return ctrl.Result{}, err
+		}
+		r.report(ctx, e, "Absent", "CleanupComplete")
+		return ctrl.Result{}, nil
 	}
 	if err != nil {
 		return ctrl.Result{}, err
@@ -305,10 +323,19 @@ func (r *Reconciler) setState(ctx context.Context, e *unstructured.Unstructured,
 		state["namespace"] = map[string]interface{}{"name": Namespace(Identity{WorkloadID: specID(e)}), "uid": uid}
 	}
 	e.Object["status"] = state
-	if reflect.DeepEqual(before.Object["status"], state) {
-		return nil
+	if !reflect.DeepEqual(before.Object["status"], state) {
+		if err := r.Client.Status().Patch(ctx, e, client.MergeFromWithOptions(before, client.MergeFromWithOptimisticLock{})); err != nil {
+			return err
+		}
 	}
-	return r.Client.Status().Patch(ctx, e, client.MergeFromWithOptions(before, client.MergeFromWithOptimisticLock{}))
+	r.report(ctx, e, phase, reason)
+	return nil
+}
+func (r *Reconciler) report(ctx context.Context, e *unstructured.Unstructured, phase, reason string) {
+	if r.Reporter == nil {
+		return
+	}
+	_ = r.Reporter.Report(ctx, PhaseReport{WorkloadID: specID(e), Generation: e.GetGeneration(), Phase: phase, Reason: reason})
 }
 func specID(e *unstructured.Unstructured) string {
 	s, _, _ := unstructured.NestedString(e.Object, "spec", "workloadID")

@@ -122,7 +122,9 @@ func NewDatabase(t *testing.T) *Database {
 	_, err = migration.Exec(ctx, fmt.Sprintf(`GRANT USAGE ON SCHEMA forge TO %[1]s;
  GRANT SELECT,INSERT ON forge.principals,forge.workloads,forge.versions,forge.runs TO %[1]s;
  GRANT SELECT ON forge.commands TO %[1]s; GRANT INSERT(id,run_id,kind) ON forge.commands TO %[1]s;
- GRANT UPDATE(name,description,revision,updated_at) ON forge.workloads TO %[1]s`, quote(runtime)))
+ GRANT UPDATE(name,description,revision,updated_at) ON forge.workloads TO %[1]s;
+ GRANT SELECT,INSERT ON forge.provisioning_operations TO %[1]s;
+ GRANT UPDATE(action,desired_generation,observed_generation,status,observed_phase,error_code,error_message,deadline,updated_at) ON forge.provisioning_operations TO %[1]s`, quote(runtime)))
 	if err != nil {
 		t.Fatal(err)
 	}

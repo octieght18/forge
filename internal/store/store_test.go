@@ -95,7 +95,13 @@ func testDatabaseFiles(t *testing.T, files fs.FS) *database {
 	_, err = migrationConn.Exec(ctx, fmt.Sprintf(`GRANT USAGE ON SCHEMA forge TO %[1]s;
         GRANT SELECT,INSERT ON forge.principals,forge.workloads,forge.versions,forge.runs TO %[1]s;
         GRANT SELECT ON forge.commands TO %[1]s; GRANT INSERT(id,run_id,kind) ON forge.commands TO %[1]s;
-        GRANT UPDATE(name,description,revision,updated_at) ON forge.workloads TO %[1]s;`, quote(runtime)))
+        GRANT UPDATE(name,description,revision,updated_at) ON forge.workloads TO %[1]s;
+        DO $grant$ BEGIN
+            IF to_regclass('forge.provisioning_operations') IS NOT NULL THEN
+                EXECUTE 'GRANT SELECT, INSERT ON forge.provisioning_operations TO %[1]s';
+                EXECUTE 'GRANT UPDATE(action,desired_generation,observed_generation,status,observed_phase,error_code,error_message,deadline,updated_at) ON forge.provisioning_operations TO %[1]s';
+            END IF;
+        END $grant$;`, quote(runtime)))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -603,7 +609,7 @@ func TestPostgreSQLMigrationsAndPrivileges(t *testing.T) {
 				t.Fatal(err)
 			}
 		}
-		if count(t, db.migrator, "schema_migrations") != 2 {
+		if count(t, db.migrator, "schema_migrations") != 3 {
 			t.Fatal("migration duplicated")
 		}
 	})
@@ -615,11 +621,11 @@ func TestPostgreSQLMigrationsAndPrivileges(t *testing.T) {
 	})
 	t.Run("failed forward migration rolls back DDL and ledger", func(t *testing.T) {
 		files := fstest.MapFS{}
-		for _, name := range []string{"migrations/0001_product_state.sql", "migrations/0002_command_reconciliation.sql"} {
+		for _, name := range []string{"migrations/0001_product_state.sql", "migrations/0002_command_reconciliation.sql", "migrations/0003_provisioning_operations.sql"} {
 			body, _ := migrations.ReadFile(name)
 			files[name] = &fstest.MapFile{Data: body}
 		}
-		files["migrations/0003_failure.sql"] = &fstest.MapFile{Data: []byte("CREATE TABLE forge.rollback_probe(id integer); SELECT no_such_function();")}
+		files["migrations/0004_failure.sql"] = &fstest.MapFile{Data: []byte("CREATE TABLE forge.rollback_probe(id integer); SELECT no_such_function();")}
 		if err := migrateFS(ctx, db.migrator, files); err == nil {
 			t.Fatal("failed migration committed")
 		}
@@ -628,7 +634,7 @@ func TestPostgreSQLMigrationsAndPrivileges(t *testing.T) {
 		if err != nil || exists {
 			t.Fatal("DDL rollback failed", err)
 		}
-		if count(t, db.migrator, "schema_migrations") != 2 {
+		if count(t, db.migrator, "schema_migrations") != 3 {
 			t.Fatal("failed migration ledger persisted")
 		}
 	})
@@ -642,7 +648,7 @@ func TestPostgreSQLMigrationsAndPrivileges(t *testing.T) {
 		if err == nil {
 			t.Fatal("runtime migrated")
 		}
-		for _, sql := range []string{`CREATE TABLE forge.forbidden(id integer)`, `SELECT * FROM forge.schema_migrations`, `DELETE FROM forge.workloads`, `UPDATE forge.principals SET subject='changed'`, `UPDATE forge.versions SET spec='{}'`, `UPDATE forge.runs SET workflow_id='replacement'`, `UPDATE forge.commands SET state='delivered'`} {
+		for _, sql := range []string{`CREATE TABLE forge.forbidden(id integer)`, `SELECT * FROM forge.schema_migrations`, `DELETE FROM forge.workloads`, `UPDATE forge.principals SET subject='changed'`, `UPDATE forge.versions SET spec='{}'`, `UPDATE forge.runs SET workflow_id='replacement'`, `UPDATE forge.commands SET state='delivered'`, `DELETE FROM forge.provisioning_operations`} {
 			if _, err := db.pool.Exec(ctx, sql); err == nil {
 				t.Fatalf("runtime permitted %s", sql)
 			}
