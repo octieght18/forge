@@ -215,3 +215,9 @@ Accepted on 8 October 2026: restore the deferred CRD/controller prerequisite, tr
 In three subsequent replies the owner accepted pinned Kubernetes-1.37-compatible Go controller-runtime, a separate restricted controller Pod with watches/conditions/bounded requeues; an operator-only cluster-scoped ForgeEnvironment with immutable registered workload/owner and fixed small profile, verified using a new read-only PostgreSQL role; and two-Pod quotas of 1 CPU/1 GiB requests and 2 CPUs/2 GiB limits, defaults of 100m/64 MiB requests and 500m/512 MiB limits, Restricted admission and token-free worker accounts without RBAC grants. Cleanup waits, rejects conflicting ownership or persistent storage, and preserves foreign finalizers. Ready describes the boundary, not worker execution.
 
 This revives the distinct environment design deferred in D24/D25 beyond D26's packaging scope, without widening research versions or adding a public environment API. Operator provisioning, direct client-go and immediate API integration were offered alternatives. No agent image or Temporal adapter is implemented here. See [environment guide](execution-environments.md) and [validation](f13-validation.md).
+
+## D28 — F14 developer CLI over the registration API
+
+On 9 October 2026 the owner asked to implement the next backlog ticket, F14. The versioned API still has no delete, rollout, run, or public environment operation. The CLI therefore maps `register` to workload creation, `deploy` to immutable version registration, `status` to workload and version reads, and `delete` to the API's existing rejection. No product deletion, Kubernetes credential, or execution endpoint is added.
+
+`deploy` reports `execution: not_started` and `environment: not_requested`. Operator boundary apply/delete stays the separate environment command. See the [developer CLI guide](developer-cli.md) and [verification](f14-validation.md).

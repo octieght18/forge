@@ -5,8 +5,10 @@ Start with the [quickstart](quickstart.md), [seven current API operations/exampl
 | Path | Purpose |
 |---|---|
 | [cmd/api](../cmd/api) | API composition, configuration and process lifecycle. |
+| [cmd/forge](../cmd/forge) | Developer CLI for register, deploy, status, and delete against the registration API. |
 | [cmd/forge-migrate](../cmd/forge-migrate) | Explicit migration command; migrations do not run inside API startup. |
 | [cmd/forge-login](../cmd/forge-login) | Five-minute browser/PKCE token helper on loopback 8083. |
+| [internal/cli](../internal/cli) | Developer CLI client, local schema checks, JSON results, and API error operation IDs. |
 | [internal/httpapi](../internal/httpapi) | Health/registration handlers, owner-filtered pages, ETags, corpus approvals, errors and middleware. |
 | [internal/auth](../internal/auth) | Real OIDC discovery/JWKS and API token verification/roles. |
 | [internal/login](../internal/login) | State/cookie-bound authorization code exchange and private token file. |
@@ -23,6 +25,7 @@ Start with the [quickstart](quickstart.md), [seven current API operations/exampl
 | [scripts/environment.ps1](../scripts/environment.ps1) | Operator apply/status/delete intent for per-workload Kubernetes boundaries. |
 | [scripts/local-stack.ps1](../scripts/local-stack.ps1) | Windows `up`, `status`, `stop`, `login` entry point. |
 | [scripts/api-examples.ps1](../scripts/api-examples.ps1) | Runnable seven-operation example with a private access-token file. |
+| [scripts/cli-examples.ps1](../scripts/cli-examples.ps1) | Runnable developer CLI register, deploy, status, and rejected-delete example. |
 | [scripts/measure-baseline.ps1](../scripts/measure-baseline.ps1) | F08 retained-data startup/registration/recovery measurements. |
 | [scripts/profile-summary.py](../scripts/profile-summary.py) | F10 raw request/journey latency and error summary. The opt-in profiling harness lives in `internal/service/profile_test.go`. |
 | [.github/workflows/ci.yml](../.github/workflows/ci.yml) | Windows/Linux checks, real PostgreSQL/race/restart and isolated native clean-start/quickstart checks. |

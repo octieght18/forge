@@ -157,6 +157,9 @@ jobs:
       - name: Quickstart examples from clean checkout with real token
         shell: pwsh
         run: ./scripts/api-examples.ps1 -TokenFile "$HOME/.local/share/forge-native/tokens/ahmad.json"
+      - name: Developer CLI register, deploy, status, and rejected delete
+        shell: pwsh
+        run: ./scripts/cli-examples.ps1 -TokenFile "$HOME/.local/share/forge-native/tokens/ahmad.json"
       - name: Stop retains data
         shell: bash
         run: |
@@ -180,6 +183,9 @@ jobs:
       - name: Kubernetes quickstart examples with real token
         shell: pwsh
         run: ./scripts/api-examples.ps1 -TokenFile "$HOME/.local/share/forge-kubernetes/tokens/ahmad.json"
+      - name: Developer CLI against the Kubernetes API
+        shell: pwsh
+        run: ./scripts/cli-examples.ps1 -TokenFile "$HOME/.local/share/forge-kubernetes/tokens/ahmad.json"
       - name: Environment schema, owner isolation, replay and admission
         shell: bash
         run: python3 deploy/kubernetes/environment_smoke.py seed

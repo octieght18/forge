@@ -18,6 +18,8 @@ The accepted first release is the **API and durable research workflow only**: on
 
 The owner approved [containerized Kubernetes deployment in WSL](docs/kubernetes-local.md): API, PostgreSQL and Keycloak in kind, with copied existing databases and retained native originals. Public loopback URLs and owner identities stay the same. **F12a/F13** restore the environment CRD/controller and provision [one resource/runtime boundary per workload](docs/execution-environments.md), with replay, drift repair and protected cleanup. Research workers and enforced network isolation remain future work.
 
+**F14** adds a [developer CLI](docs/developer-cli.md) over the existing registration API. `register` creates a workload, `deploy` records an immutable version, `status` reads those records, and `delete` reports the API's rejection of deletion. It does not provision an environment or start a run.
+
 - [Internal product brief](docs/product-brief.md)
 - [Product and design decisions](docs/decision-log.md)
 - [Architecture and integration boundaries](docs/architecture.md)
@@ -48,6 +50,8 @@ The owner approved [containerized Kubernetes deployment in WSL](docs/kubernetes-
 - [Kubernetes verification](docs/kubernetes-validation.md)
 - [Operator environment provisioning](docs/execution-environments.md)
 - [F12a/F13 verification](docs/f13-validation.md)
+- [Developer CLI](docs/developer-cli.md)
+- [F14 verification](docs/f14-validation.md)
 
 The owner must review product and design choices before they become accepted decisions. F02 records the accepted Go HTTP/OpenAPI, PostgreSQL and Temporal foundation, OpenRouter backend and local Kubernetes target. Keycloak OIDC is included from the first release. The testing model is `google/gemma-4-26b-a4b-it:free`. D26 supersedes F07's no-container deployment choice: the current stack can now run in kind inside WSL. F03's HTTP defaults and lifecycle conventions are accepted; new API/identity/workflow decisions still require consultation.
 
