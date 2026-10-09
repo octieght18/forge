@@ -170,6 +170,32 @@ func TestRedirectIsNotFollowed(t *testing.T) {
 	}
 }
 
+func TestTemplateRenderDoesNotCallAPI(t *testing.T) {
+	called := false
+	server := httptest.NewServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {
+		called = true
+	}))
+	defer server.Close()
+	out := filepath.Join(t.TempDir(), "agent")
+	rendered := runJSON(t, 0, "template", "render", "--kind", "agent", "--name", "research-agent", "--out", out)
+	if rendered["action"] != "render" || rendered["kind"] != "agent" {
+		t.Fatalf("%#v", rendered)
+	}
+	if _, err := os.Stat(filepath.Join(out, "run.json")); err != nil {
+		t.Fatal(err)
+	}
+	again := runJSON(t, 2, "template", "render", "--kind", "agent", "--name", "research-agent", "--out", out)
+	errObj, _ := again["error"].(map[string]any)
+	if errObj["code"] != "invalid_input" {
+		t.Fatalf("%#v", again)
+	}
+	listed := runJSON(t, 0, "template", "list")
+	templates, _ := listed["templates"].([]any)
+	if listed["action"] != "list" || len(templates) != 2 || called {
+		t.Fatalf("%#v called=%v", listed, called)
+	}
+}
+
 func TestHelpAndUnknownCommand(t *testing.T) {
 	var out, err strings.Builder
 	if code := Run([]string{"help"}, &out, &err, nil); code != 0 || !strings.Contains(out.String(), "forge deploy") {

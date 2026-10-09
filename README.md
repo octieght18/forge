@@ -20,6 +20,8 @@ The owner approved [containerized Kubernetes deployment in WSL](docs/kubernetes-
 
 **F14** adds a [developer CLI](docs/developer-cli.md) over the existing registration API. `register` creates a workload, `deploy` records an immutable version, `status` reads those records, and `delete` reports the API's rejection of deletion. It does not provision an environment or start a run.
 
+**F15** adds [service and MCP agent templates](docs/workload-templates.md) through `forge template`. Both use the fixed research contract. Rendering writes local files only.
+
 - [Internal product brief](docs/product-brief.md)
 - [Product and design decisions](docs/decision-log.md)
 - [Architecture and integration boundaries](docs/architecture.md)
@@ -52,6 +54,8 @@ The owner approved [containerized Kubernetes deployment in WSL](docs/kubernetes-
 - [F12a/F13 verification](docs/f13-validation.md)
 - [Developer CLI](docs/developer-cli.md)
 - [F14 verification](docs/f14-validation.md)
+- [Workload templates](docs/workload-templates.md)
+- [F15 verification](docs/f15-validation.md)
 
 The owner must review product and design choices before they become accepted decisions. F02 records the accepted Go HTTP/OpenAPI, PostgreSQL and Temporal foundation, OpenRouter backend and local Kubernetes target. Keycloak OIDC is included from the first release. The testing model is `google/gemma-4-26b-a4b-it:free`. D26 supersedes F07's no-container deployment choice: the current stack can now run in kind inside WSL. F03's HTTP defaults and lifecycle conventions are accepted; new API/identity/workflow decisions still require consultation.
 

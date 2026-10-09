@@ -221,3 +221,9 @@ This revives the distinct environment design deferred in D24/D25 beyond D26's pa
 On 9 October 2026 the owner asked to implement the next backlog ticket, F14. The versioned API still has no delete, rollout, run, or public environment operation. The CLI therefore maps `register` to workload creation, `deploy` to immutable version registration, `status` to workload and version reads, and `delete` to the API's existing rejection. No product deletion, Kubernetes credential, or execution endpoint is added.
 
 `deploy` reports `execution: not_started` and `environment: not_requested`. Operator boundary apply/delete stays the separate environment command. See the [developer CLI guide](developer-cli.md) and [verification](f14-validation.md).
+
+## D29 — F15 research service and agent templates
+
+On 9 October 2026 the owner asked to implement the next backlog ticket, F15. The registration API still accepts only the fixed research workflow, so both templates use that contract. `service` is the registrable workload and version. `agent` adds the MCP tool names in its description and a sample run body. Health, telemetry, and the existing environment manifest shape are included as local files. No credential, collector, public environment endpoint, run route, or second orchestrator is added.
+
+See the [template guide](workload-templates.md) and [verification](f15-validation.md).

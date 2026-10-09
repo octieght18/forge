@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/octieght18/forge/internal/contract"
+	"github.com/octieght18/forge/internal/template"
 )
 
 const defaultAPI = "http://127.0.0.1:8081"
@@ -39,9 +40,9 @@ func Run(args []string, stdout, stderr io.Writer, client *http.Client) int {
 	}
 	command := args[0]
 	switch command {
-	case "register", "deploy", "status", "delete":
+	case "register", "deploy", "status", "delete", "template":
 	default:
-		return fail(stderr, 2, command, 0, "", "invalid_input", "Unknown command. Use register, deploy, status, or delete.", "")
+		return fail(stderr, 2, command, 0, "", "invalid_input", "Unknown command. Use register, deploy, status, delete, or template.", "")
 	}
 	validator, err := contract.New()
 	if err != nil {
@@ -49,6 +50,9 @@ func Run(args []string, stdout, stderr io.Writer, client *http.Client) int {
 	}
 	app := &app{
 		stdout: stdout, stderr: stderr, client: safeClient(client), validator: validator,
+	}
+	if command == "template" {
+		return app.templates(args[1:])
 	}
 	return app.run(command, args[1:])
 }
@@ -59,8 +63,10 @@ const usageText = `Forge developer CLI for the versioned registration API.
   forge deploy --token-file PATH --workload ID --spec FILE [--api URL]
   forge status --token-file PATH [--workload ID] [--version ID] [--limit N] [--cursor TOKEN] [--api URL]
   forge delete --token-file PATH --workload ID [--api URL]
+  forge template list
+  forge template render --kind service|agent --name NAME --out DIRECTORY
 
-register creates a workload. deploy records an immutable research version and does not start execution or provision an environment. status reads workloads and versions. delete calls the API; current servers reject workload and version deletion, and the JSON error includes that result. Success is one JSON document on stdout. Failures are one JSON document on stderr. request_id is the API operation ID when the API was reached.
+register creates a workload. deploy records an immutable research version and does not start execution or provision an environment. status reads workloads and versions. delete calls the API; current servers reject workload and version deletion, and the JSON error includes that result. template writes a local service or MCP agent starting point and does not call the API. Success is one JSON document on stdout. Failures are one JSON document on stderr. request_id is the API operation ID when the API was reached.
 `
 
 type app struct {
@@ -136,6 +142,95 @@ func (a *app) run(command string, args []string) int {
 	default:
 		return a.status(*workload, *version, *cursor, *limit, flagSet(fs, "limit"))
 	}
+}
+
+func (a *app) templates(args []string) int {
+	if len(args) == 0 || args[0] == "help" || args[0] == "-h" || args[0] == "--help" {
+		fmt.Fprint(a.stdout, usageText)
+		return 0
+	}
+	switch args[0] {
+	case "list":
+		if len(args) != 1 {
+			return fail(a.stderr, 2, "template", 0, "", "invalid_input", "template list takes no arguments.", "")
+		}
+		return writeTemplate(a.stdout, a.stderr, templateDocument{Action: "list", Templates: []templateInfo{
+			{Kind: template.Service, Files: mustFiles(template.Service)},
+			{Kind: template.Agent, Files: mustFiles(template.Agent)},
+		}})
+	case "render":
+		return a.renderTemplate(args[1:])
+	default:
+		return fail(a.stderr, 2, "template", 0, "", "invalid_input", "Unknown template command. Use list or render.", "")
+	}
+}
+
+func (a *app) renderTemplate(args []string) int {
+	fs := flag.NewFlagSet("render", flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
+	kind := fs.String("kind", "", "service or agent")
+	name := fs.String("name", "", "workload name")
+	out := fs.String("out", "", "output directory")
+	if err := fs.Parse(args); err != nil {
+		return fail(a.stderr, 2, "template", 0, "", "invalid_input", clip(err.Error()), "")
+	}
+	if fs.NArg() != 0 || *out == "" {
+		return fail(a.stderr, 2, "template", 0, "", "invalid_input", "Render requires --kind, --name, and --out.", "")
+	}
+	files, err := template.Render(a.validator, *kind, *name)
+	if err != nil {
+		message := "Template could not be rendered."
+		switch {
+		case errors.Is(err, template.ErrUnknownKind):
+			message = "Kind must be service or agent."
+		case errors.Is(err, template.ErrInvalidName):
+			message = "Name must be a lowercase slug of 1–63 characters."
+		}
+		return fail(a.stderr, 2, "template", 0, "", "invalid_input", message, "")
+	}
+	if err = template.Write(*out, files); err != nil {
+		message := "Template directory could not be written."
+		if errors.Is(err, template.ErrExists) {
+			message = "A template file already exists in the output directory. Nothing was replaced."
+		}
+		return fail(a.stderr, 2, "template", 0, "", "invalid_input", message, "")
+	}
+	names := make([]string, 0, len(files))
+	for _, file := range files {
+		names = append(names, file.Name)
+	}
+	return writeTemplate(a.stdout, a.stderr, templateDocument{Action: "render", Kind: *kind, Name: *name, Directory: *out, Files: names})
+}
+
+type templateInfo struct {
+	Kind  string   `json:"kind"`
+	Files []string `json:"files"`
+}
+
+type templateDocument struct {
+	Operation string         `json:"operation"`
+	Action    string         `json:"action"`
+	Kind      string         `json:"kind,omitempty"`
+	Name      string         `json:"name,omitempty"`
+	Directory string         `json:"directory,omitempty"`
+	Files     []string       `json:"files,omitempty"`
+	Templates []templateInfo `json:"templates,omitempty"`
+}
+
+func writeTemplate(stdout, stderr io.Writer, doc templateDocument) int {
+	doc.Operation = "template"
+	if err := writeJSON(stdout, doc); err != nil {
+		return fail(stderr, 1, "template", 0, "", "unavailable", "Could not write the command result.", "")
+	}
+	return 0
+}
+
+func mustFiles(kind string) []string {
+	names, err := template.Files(kind)
+	if err != nil {
+		panic(err)
+	}
+	return names
 }
 
 func (a *app) register(name, description string) int {
