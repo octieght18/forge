@@ -273,3 +273,13 @@ On 11 October 2026 the owner asked to implement the next backlog ticket, F20. Th
 The contract documents the path that already exists. A developer accepts a provisioning operation. An operator applies `ForgeEnvironment`. The controller converges one namespace per workload and repairs that boundary idempotently when it owns the objects. The installed controller still cannot write the operation row, so a live `Ready` namespace and an `accepted` operation can both be true until an observation is recorded. Namespace isolation with `small-v1` is the current boundary. A separate cluster, a sandbox runtime, and NetworkPolicy enforcement remain later decisions. Cleanup holds the environment finalizer until the namespace is gone, and it refuses persistent storage and foreign finalizers.
 
 No new API route, controller permission, or isolation mechanism is added. See the [self-service contract](self-service-contract.md) and [verification](f20-validation.md).
+
+## D35 — F21 execution, tool, and evidence contracts
+
+On 11 October 2026 the owner asked to implement the next backlog ticket, F21. The ticket asks for tool permissions, an MCP invocation contract, typed failure classes, a split between deterministic workflow decisions and nondeterministic activities, and a model of request, execution, steps, evidence provenance, and uncertain results.
+
+The card lists G2 as a prerequisite. G2, the measured self-service provisioning gate, is still on the Backlog. This design does not mark that gate complete. It uses the research contract already accepted for the API: `research.v1`, the two read-only corpus tools, and the run request and report outcomes from F04 and F11.
+
+The new payloads are `MCPInvocation`, `MCPResult`, `ActivityFailure`, `WorkflowDecision`, and `ActivityResult`. An empty tool result and an `insufficient_evidence` report are successful uncertain outcomes. A `tool_denied` result is an activity failure. Workflow decisions carry no corpus text. Public run routes, Temporal workers, and the MCP process remain later tickets.
+
+See the [execution contract](execution-contract.md) and [verification](f21-validation.md).

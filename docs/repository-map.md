@@ -15,7 +15,7 @@ Start with the [quickstart](quickstart.md), [seven current API operations/exampl
 | [internal/httpapi](../internal/httpapi) | Health/registration handlers, owner-filtered pages, ETags, corpus approvals, errors and middleware. |
 | [internal/auth](../internal/auth) | Real OIDC discovery/JWKS and API token verification/roles. |
 | [internal/login](../internal/login) | State/cookie-bound authorization code exchange and private token file. |
-| [internal/contract](../internal/contract) | Shared OpenAPI, examples, schema validation, input fingerprints and run lifecycle consistency tests. |
+| [internal/contract](../internal/contract) | Shared OpenAPI, examples, schema validation, input fingerprints, run lifecycle checks, and the F21 tool/activity/evidence payloads. |
 | [internal/store](../internal/store) | PostgreSQL queries, explicit checked migrations and durable run/start/cancel records. These run records are not HTTP execution endpoints. |
 | [internal/reconcile](../internal/reconcile) | F12 command reconciliation and verified backend boundary; no deployed Temporal adapter yet. |
 | [internal/environment](../internal/environment), [cmd/forge-environment-controller](../cmd/forge-environment-controller) | Separate operator environment controller with read-only identity lookup, boundary reconciliation and guarded finalization. |

@@ -1,0 +1,10 @@
+{
+  "tool": "corpus.search",
+  "corpus_snapshot_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "document_ids": [
+    "platform-brief",
+    "architecture-notes"
+  ],
+  "query": "Which components own product state and durable execution?",
+  "limit": 8
+}

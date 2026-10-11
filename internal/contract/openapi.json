@@ -2331,6 +2331,293 @@
           }
         ]
       },
+      "MCPInvocation": {
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "tool": {
+                "const": "corpus.search"
+              },
+              "corpus_snapshot_id": {
+                "$ref": "#/components/schemas/SHA256"
+              },
+              "document_ids": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/DocumentID"
+                },
+                "minItems": 1,
+                "maxItems": 64,
+                "uniqueItems": true
+              },
+              "query": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4000,
+                "pattern": "[^ \t\n\r\f\u000b   -     　]"
+              },
+              "limit": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 16
+              }
+            },
+            "required": [
+              "tool",
+              "corpus_snapshot_id",
+              "document_ids",
+              "query",
+              "limit"
+            ],
+            "description": "Worker-owned search call. The query is the frozen run question. The caller cannot supply a path, URL, command, or extra tool."
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "tool": {
+                "const": "corpus.read"
+              },
+              "corpus_snapshot_id": {
+                "$ref": "#/components/schemas/SHA256"
+              },
+              "document_id": {
+                "$ref": "#/components/schemas/DocumentID"
+              },
+              "passage_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128,
+                "pattern": "^[a-z0-9][a-z0-9._-]*$"
+              }
+            },
+            "required": [
+              "tool",
+              "corpus_snapshot_id",
+              "document_id",
+              "passage_id"
+            ],
+            "description": "Worker-owned read of one passage already returned for this run and snapshot."
+          }
+        ]
+      },
+      "MCPResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "tool": {
+            "type": "string",
+            "enum": [
+              "corpus.search",
+              "corpus.read"
+            ]
+          },
+          "passages": {
+            "type": "array",
+            "minItems": 0,
+            "maxItems": 16,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "document_id": {
+                  "$ref": "#/components/schemas/DocumentID"
+                },
+                "passage_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[a-z0-9][a-z0-9._-]*$"
+                },
+                "text_sha256": {
+                  "$ref": "#/components/schemas/SHA256"
+                },
+                "excerpt": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 16000
+                }
+              },
+              "required": [
+                "document_id",
+                "passage_id",
+                "text_sha256",
+                "excerpt"
+              ]
+            }
+          }
+        },
+        "required": [
+          "tool",
+          "passages"
+        ],
+        "description": "An empty passage list is a successful uncertain search, not a tool failure."
+      },
+      "ActivityFailure": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "class": {
+            "type": "string",
+            "enum": [
+              "tool_denied",
+              "tool_unavailable",
+              "tool_invalid",
+              "model_unavailable",
+              "model_invalid",
+              "citation_invalid",
+              "persistence_conflict",
+              "cancelled",
+              "timed_out"
+            ]
+          },
+          "message": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          }
+        },
+        "required": [
+          "class",
+          "message"
+        ],
+        "description": "Typed activity failure. The message carries no corpus text, token, or filesystem path."
+      },
+      "WorkflowDecision": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "run_id": {
+            "$ref": "#/components/schemas/ID"
+          },
+          "sequence": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "decision": {
+            "type": "string",
+            "enum": [
+              "start_retrieval",
+              "start_generation",
+              "validate_citations",
+              "persist",
+              "complete",
+              "fail_closed"
+            ]
+          },
+          "deterministic": {
+            "const": true
+          }
+        },
+        "required": [
+          "run_id",
+          "sequence",
+          "decision",
+          "deterministic"
+        ],
+        "description": "Replayable workflow choice. It contains no model text, tool output, or clock reading."
+      },
+      "ActivityResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "run_id": {
+            "$ref": "#/components/schemas/ID"
+          },
+          "step": {
+            "type": "string",
+            "enum": [
+              "retrieval",
+              "generation",
+              "citation_validation",
+              "persistence"
+            ]
+          },
+          "attempt": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "input_sha256": {
+            "$ref": "#/components/schemas/SHA256"
+          },
+          "deterministic": {
+            "const": false
+          },
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "succeeded",
+              "failed",
+              "reused"
+            ]
+          },
+          "failure": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ActivityFailure"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "run_id",
+          "step",
+          "attempt",
+          "input_sha256",
+          "deterministic",
+          "outcome",
+          "failure"
+        ],
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "outcome": {
+                  "const": "failed"
+                }
+              },
+              "required": [
+                "outcome"
+              ]
+            },
+            "then": {
+              "properties": {
+                "failure": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "outcome": {
+                  "enum": [
+                    "succeeded",
+                    "reused"
+                  ]
+                }
+              },
+              "required": [
+                "outcome"
+              ]
+            },
+            "then": {
+              "properties": {
+                "failure": {
+                  "type": "null"
+                }
+              }
+            }
+          }
+        ],
+        "description": "One nondeterministic model or tool attempt. reused means the committed output for this input fingerprint was returned without another external call."
+      },
       "WorkloadPage": {
         "type": "object",
         "additionalProperties": false,

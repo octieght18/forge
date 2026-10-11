@@ -32,6 +32,8 @@ The owner approved [containerized Kubernetes deployment in WSL](docs/kubernetes-
 
 **F20** publishes the [self-service contract](docs/self-service-contract.md): the path from a provision request to the controller, the namespace isolation choice, and the cleanup and recovery limits.
 
+**F21** defines the [execution, tool, and evidence contract](docs/execution-contract.md). Workflow decisions stay replayable. Model and corpus calls stay in activities with typed failures. Run routes stay unimplemented.
+
 - [Internal product brief](docs/product-brief.md)
 - [Product and design decisions](docs/decision-log.md)
 - [Architecture and integration boundaries](docs/architecture.md)
@@ -74,6 +76,8 @@ The owner approved [containerized Kubernetes deployment in WSL](docs/kubernetes-
 - [F19 onboarding measurement](docs/f19-validation.md)
 - [Self-service contract](docs/self-service-contract.md)
 - [F20 verification](docs/f20-validation.md)
+- [Execution, tool, and evidence contract](docs/execution-contract.md)
+- [F21 verification](docs/f21-validation.md)
 
 The owner must review product and design choices before they become accepted decisions. F02 records the accepted Go HTTP/OpenAPI, PostgreSQL and Temporal foundation, OpenRouter backend and local Kubernetes target. Keycloak OIDC is included from the first release. The testing model is `google/gemma-4-26b-a4b-it:free`. D26 supersedes F07's no-container deployment choice: the current stack can now run in kind inside WSL. F03's HTTP defaults and lifecycle conventions are accepted; new API/identity/workflow decisions still require consultation.
 

@@ -1,0 +1,12 @@
+{
+  "run_id": "33333333-3333-4333-8333-333333333333",
+  "step": "retrieval",
+  "attempt": 1,
+  "input_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "deterministic": false,
+  "outcome": "failed",
+  "failure": {
+    "class": "tool_denied",
+    "message": "The document is outside the frozen run scope."
+  }
+}

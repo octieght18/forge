@@ -9,5 +9,12 @@
   "empty-workloads.json": "WorkloadPage",
   "error.json": "ErrorResponse",
   "ambiguous-start-run.json": "Run",
-  "cancel-completion-race-run.json": "Run"
+  "cancel-completion-race-run.json": "Run",
+  "mcp-search.json": "MCPInvocation",
+  "mcp-read.json": "MCPInvocation",
+  "mcp-result-empty.json": "MCPResult",
+  "activity-retrieval.json": "ActivityResult",
+  "activity-tool-denied.json": "ActivityResult",
+  "workflow-decision.json": "WorkflowDecision",
+  "report-uncertain.json": "Report"
 }

@@ -184,6 +184,15 @@ func TestRejectUnsupportedRequests(t *testing.T) {
 		}},
 		{"paid-model", "CreateVersionRequest", "create-version", func(m map[string]any) { m["spec"].(map[string]any)["model_id"] = "some/paid-model" }},
 		{"unknown-workflow", "CreateVersionRequest", "create-version", func(m map[string]any) { m["spec"].(map[string]any)["workflow_type"] = "arbitrary.v1" }},
+		{"mcp-path", "MCPInvocation", "mcp-search", func(m map[string]any) { m["path"] = "/corpus/secrets" }},
+		{"mcp-shell", "MCPInvocation", "mcp-search", func(m map[string]any) { m["tool"] = "shell.exec" }},
+		{"workflow-side-effect", "WorkflowDecision", "workflow-decision", func(m map[string]any) { m["deterministic"] = false }},
+		{"workflow-excerpt", "WorkflowDecision", "workflow-decision", func(m map[string]any) { m["excerpt"] = "corpus text" }},
+		{"activity-failed-without-class", "ActivityResult", "activity-tool-denied", func(m map[string]any) { m["failure"] = nil }},
+		{"activity-success-with-failure", "ActivityResult", "activity-retrieval", func(m map[string]any) {
+			m["failure"] = map[string]any{"class": "tool_denied", "message": "scope"}
+		}},
+		{"activity-workflow-step", "ActivityResult", "activity-retrieval", func(m map[string]any) { m["step"] = "workflow" }},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

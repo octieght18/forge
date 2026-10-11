@@ -1,0 +1,14 @@
+{
+  "run_id": "33333333-3333-4333-8333-333333333333",
+  "generated_at": "2026-10-11T18:40:00Z",
+  "model": {
+    "requested_id": "google/gemma-4-26b-a4b-it:free",
+    "actual_id": "google/gemma-4-26b-a4b-it",
+    "provider_id": "google-ai-studio"
+  },
+  "outcome": "insufficient_evidence",
+  "claims": [],
+  "limitations": [
+    "The frozen document scope contained no supporting passage."
+  ]
+}
