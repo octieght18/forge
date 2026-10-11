@@ -5,6 +5,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/octieght18/forge/internal/telemetry"
 	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -346,5 +347,28 @@ func TestControllerReportsPhasesUsedByOperations(t *testing.T) {
 	got := failedRec.reports[len(failedRec.reports)-1]
 	if got.Phase != "Failed" || got.Reason != "OwnerMismatch" || got.WorkloadID == "" {
 		t.Fatalf("%#v", failedRec.reports)
+	}
+}
+
+func TestReconciliationTelemetry(t *testing.T) {
+	telemetry.Reset()
+	r, e, i := fixture(t)
+	ready(t, r, e, i)
+	snap := telemetry.Snapshot()
+	pending := snap.Reconciliation.RetryReasons["NamespacePending"] + snap.Reconciliation.RetryReasons["DefaultAccountPending"]
+	if snap.Reconciliation.Outcomes["success"] < 1 || snap.Reconciliation.Outcomes["retry"] < 1 || pending < 1 {
+		t.Fatalf("%#v %#v", snap.Reconciliation.Outcomes, snap.Reconciliation.RetryReasons)
+	}
+	if snap.Reconciliation.Duration["success"].Count < 1 || snap.Reconciliation.Duration["retry"].SumSeconds <= 0 {
+		t.Fatalf("%#v", snap.Reconciliation.Duration)
+	}
+	telemetry.Reset()
+	failed, env, _ := fixture(t)
+	failed.Lookup.(*lookup).match = false
+	pass(t, failed, env)
+	pass(t, failed, env)
+	failedSnap := telemetry.Snapshot()
+	if failedSnap.Reconciliation.FailureReasons["OwnerMismatch"] < 1 {
+		t.Fatalf("%#v", failedSnap.Reconciliation.FailureReasons)
 	}
 }

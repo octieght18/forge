@@ -8,6 +8,8 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/octieght18/forge/internal/telemetry"
 )
 
 func TestHealthAndErrorContracts(t *testing.T) {
@@ -58,6 +60,29 @@ func TestHealthAndErrorContracts(t *testing.T) {
 	if strings.Contains(logs.String(), "secret-") || strings.Contains(logs.String(), "untrusted-id") {
 		t.Fatal("sensitive request data logged")
 	}
+}
+
+func TestTraceparentCarriesRequestAndOperationIdentity(t *testing.T) {
+	telemetry.Reset()
+	traceID := "4bf92f3577b34da6a3ce929d0e0e4736"
+	h := Middleware(slog.New(slog.NewJSONHandler(&bytes.Buffer{}, nil)), http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		telemetry.SetOperation(r.Context(), "33333333-3333-4333-8333-333333333333")
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/operations/33333333-3333-4333-8333-333333333333", nil)
+	req.Header.Set("traceparent", "00-"+traceID+"-00f067aa0ba902b7-01")
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, req)
+	if !strings.HasPrefix(rec.Header().Get("traceparent"), "00-"+traceID+"-") {
+		t.Fatal(rec.Header().Get("traceparent"))
+	}
+	requestID := rec.Header().Get("X-Request-ID")
+	for _, span := range telemetry.Snapshot().Spans {
+		if span.Name == "forge.http" && span.TraceID == traceID && span.RequestID == requestID && span.OperationID == "33333333-3333-4333-8333-333333333333" {
+			return
+		}
+	}
+	t.Fatalf("request %s spans %#v", requestID, telemetry.Snapshot().Spans)
 }
 
 func TestPanicBeforeWriteReturnsSafeError(t *testing.T) {

@@ -90,7 +90,7 @@ func (h *registration) serve(w http.ResponseWriter, r *http.Request) {
 		}{"ok"})
 		return
 	}
-	if h.serveOperation(w, r) {
+	if h.serveOperation(w, r) || h.serveTelemetry(w, r) {
 		return
 	}
 	parts := strings.Split(strings.TrimPrefix(r.URL.Path, "/"), "/")

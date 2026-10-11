@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/octieght18/forge/internal/telemetry"
 	core "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -122,10 +123,27 @@ func (r *Reconciler) Setup(m ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(m).For(Object()).Owns(&core.Namespace{}).Owns(&core.ResourceQuota{}).Owns(&core.LimitRange{}).Owns(&core.ServiceAccount{}).Complete(r)
 }
 
+type reconcileOutcome struct{ phase, reason string }
+
+type reconcileKey struct{}
+
+func note(ctx context.Context, phase, reason string) {
+	if outcome, _ := ctx.Value(reconcileKey{}).(*reconcileOutcome); outcome != nil {
+		outcome.phase = phase
+		outcome.reason = reason
+	}
+}
+
 // Every pass is bounded; writes use live resourceVersions and deletion uses UID.
-func (r *Reconciler) Reconcile(parent context.Context, key ctrl.Request) (ctrl.Result, error) {
+func (r *Reconciler) Reconcile(parent context.Context, key ctrl.Request) (result ctrl.Result, err error) {
 	ctx, cancel := context.WithTimeout(parent, 10*time.Second)
 	defer cancel()
+	started := time.Now()
+	marked := &reconcileOutcome{}
+	ctx = context.WithValue(ctx, reconcileKey{}, marked)
+	defer func() {
+		telemetry.RecordReconciliation(ctx, time.Since(started), marked.phase, marked.reason, err)
+	}()
 	e := Object()
 	if err := r.Client.Get(ctx, key.NamespacedName, e); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
@@ -253,6 +271,7 @@ func (r *Reconciler) remove(ctx context.Context, e *unstructured.Unstructured, i
 			return ctrl.Result{}, err
 		}
 		r.report(ctx, e, "Absent", "CleanupComplete")
+		note(ctx, "Absent", "CleanupComplete")
 		return ctrl.Result{}, nil
 	}
 	if err != nil {
@@ -291,6 +310,7 @@ func (r *Reconciler) state(ctx context.Context, e *unstructured.Unstructured, ph
 	return ctrl.Result{RequeueAfter: 15 * time.Second}, r.setState(ctx, e, phase, reason, uid)
 }
 func (r *Reconciler) setState(ctx context.Context, e *unstructured.Unstructured, phase, reason, uid string) error {
+	note(ctx, phase, reason)
 	before := e.DeepCopy()
 	conditions := []metav1.Condition{}
 	if raw, found, _ := unstructured.NestedSlice(e.Object, "status", "conditions"); found {

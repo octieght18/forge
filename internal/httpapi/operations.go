@@ -12,6 +12,7 @@ import (
 	"github.com/octieght18/forge/internal/contract"
 	"github.com/octieght18/forge/internal/provision"
 	"github.com/octieght18/forge/internal/store"
+	"github.com/octieght18/forge/internal/telemetry"
 )
 
 type operationBody struct {
@@ -92,6 +93,7 @@ func (h *registration) serveOperation(w http.ResponseWriter, r *http.Request) bo
 		return true
 	}
 	view := operationView(op)
+	telemetry.SetOperation(r.Context(), op.ID)
 	if kind != "get" {
 		w.Header().Set("Location", view.StatusURL)
 		writeJSON(w, http.StatusAccepted, view)
@@ -170,4 +172,29 @@ func (h *registration) operationError(w http.ResponseWriter, r *http.Request, er
 	default:
 		h.fail(w, r, err)
 	}
+}
+
+func (h *registration) serveTelemetry(w http.ResponseWriter, r *http.Request) bool {
+	if r.URL.Path != "/api/v1/telemetry" || r.URL.RawQuery != "" || r.URL.Path != r.URL.EscapedPath() {
+		return false
+	}
+	if r.Method != http.MethodGet {
+		w.Header().Set("Allow", "GET")
+		WriteError(w, r, 405, "method_not_allowed", "Method not allowed")
+		return true
+	}
+	if _, err := h.readBody(w, r); err != nil {
+		return true
+	}
+	principal, err := h.Auth.Authenticate(r.Context(), r)
+	if err != nil {
+		h.fail(w, r, err)
+		return true
+	}
+	if principal.Role != "operator" {
+		h.fail(w, r, store.ErrForbidden)
+		return true
+	}
+	writeJSON(w, http.StatusOK, telemetry.Snapshot())
+	return true
 }

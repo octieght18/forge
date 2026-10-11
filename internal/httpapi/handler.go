@@ -10,6 +10,8 @@ import (
 	"log/slog"
 	"net/http"
 	"sync/atomic"
+
+	"github.com/octieght18/forge/internal/telemetry"
 )
 
 type requestIDKey struct{}
@@ -81,7 +83,11 @@ func Middleware(logger *slog.Logger, next http.Handler) http.Handler {
 		w.Header().Set("X-Request-ID", id)
 		w.Header().Set("Cache-Control", "no-store")
 		w.Header().Set("X-Content-Type-Options", "nosniff")
-		r = r.WithContext(context.WithValue(r.Context(), requestIDKey{}, id))
+		ctx := telemetry.Extract(context.WithValue(r.Context(), requestIDKey{}, id), r.Header)
+		ctx, end := telemetry.BeginRequest(ctx, id)
+		defer end()
+		telemetry.Inject(ctx, w.Header())
+		r = r.WithContext(ctx)
 		observed := &responseWriter{ResponseWriter: w}
 		defer func() {
 			if recovered := recover(); recovered != nil {

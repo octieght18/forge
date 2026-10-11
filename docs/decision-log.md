@@ -235,3 +235,11 @@ On 9 October 2026 the owner asked to implement the next backlog ticket, F16. The
 F16 therefore adds a durable operation record on the authenticated API. `provision` and `operation delete` return `202` with a status path. A second open operation, or a version that is not the workload's current version, conflicts and changes nothing. Cancel requests deletion and is rejected once the operation is finished. A deadline moves an unfinished operation to `timed_out` with a terminal error. Controller phases `Ready`, `Failed`, `Deleting`, and `Absent` update the same record through one comparison function. The installed controller reports those phases only when a reporter is configured; the read-only database role does not gain a write grant, so a running kind controller still publishes status on the environment object rather than in this table.
 
 No run route, worker image, or second orchestrator is added. See the [operation guide](provisioning-operations.md) and [verification](f16-validation.md).
+
+## D31 — F17 in-process OpenTelemetry views
+
+On 11 October 2026 the owner asked to implement the next backlog ticket, F17. The ticket asks for OpenTelemetry measurements of provisioning duration, success and failure counts, retry reasons, a minimal metrics view, and request and operation identity on traces. The architecture already places a collector and dashboard later. This change does not add either one, and it does not enable the controller-runtime metrics server.
+
+The API and the environment controller each keep a process-local view: outcome counts, durations, and a bounded reason vocabulary. `GET /api/v1/telemetry` returns the API process view to an operator. Reconciliation reasons stay in the controller process because that process has no scrape Service. API spans continue an incoming W3C trace and attach the server request ID and the operation ID. Controller passes do not inherit the caller's request context. Tokens and corpus text are not attributes.
+
+See the [telemetry guide](telemetry.md) and [verification](f17-validation.md).

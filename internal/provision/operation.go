@@ -48,6 +48,7 @@ type Operation struct {
 	ErrorCode          string
 	ErrorMessage       string
 	Deadline           time.Time
+	CreatedAt          time.Time
 }
 
 // Observation is one controller phase. Generation is the controller object

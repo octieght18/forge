@@ -35,4 +35,4 @@ The operation stores the requested action and desired generation. Controller pha
 
 The controller emits `Provisioning`, `Ready`, `Failed`, `Deleting`, and `Absent` through its reporter. The installed controller role can only read workload identity, so it does not write this table. Tests record those phases through the same comparison the API uses on read. Live cluster status remains the environment object's status until that write path exists.
 
-See [F16 verification](f16-validation.md).
+See [F16 verification](f16-validation.md). Terminal results also add duration and outcome samples to the operator [telemetry view](telemetry.md).

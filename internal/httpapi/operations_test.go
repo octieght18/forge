@@ -15,10 +15,12 @@ import (
 	"github.com/octieght18/forge/internal/auth"
 	"github.com/octieght18/forge/internal/contract"
 	"github.com/octieght18/forge/internal/provision"
+	"github.com/octieght18/forge/internal/telemetry"
 	"github.com/octieght18/forge/internal/testsupport"
 )
 
 func TestProvisioningOperations(t *testing.T) {
+	telemetry.Reset()
 	db := testsupport.NewDatabase(t)
 	issuer := testsupport.NewIdentity(t)
 	identity, err := auth.New(context.Background(), issuer.Server.URL, "forge-api")
@@ -175,5 +177,26 @@ func TestProvisioningOperations(t *testing.T) {
 	status, bad, _ := call("POST", "/api/v1/workloads/"+workloadID+"/operations", "a", `{"action":"provision","version_id":"`+versionID+`","timeout_seconds":0}`)
 	if status != 422 || bad["error"].(map[string]any)["code"] != "invalid_input" {
 		t.Fatal(status, bad)
+	}
+	status, view, _ := call("GET", "/api/v1/telemetry", "operator", "")
+	if status != 200 {
+		t.Fatal(status, view)
+	}
+	outcomes, _ := view["provisioning"].(map[string]any)["outcomes"].(map[string]any)
+	if outcomes["failed"] == nil || outcomes["canceled"] == nil || outcomes["timed_out"] == nil {
+		t.Fatalf("%#v", view["provisioning"])
+	}
+	status, denied, _ := call("GET", "/api/v1/telemetry", "a", "")
+	if status != 403 || denied["error"].(map[string]any)["code"] != "forbidden" {
+		t.Fatal(status, denied)
+	}
+	found := false
+	for _, span := range telemetry.Snapshot().Spans {
+		if span.RequestID != "" && span.OperationID == operationID {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatal("request and operation identity were not on a span")
 	}
 }

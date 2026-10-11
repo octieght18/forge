@@ -11,6 +11,7 @@ Start with the [quickstart](quickstart.md), [seven current API operations/exampl
 | [internal/cli](../internal/cli) | Developer CLI client, local schema checks, JSON results, and API error operation IDs. |
 | [internal/template](../internal/template) | Service and MCP agent template files validated against the registration contract. |
 | [internal/provision](../internal/provision) | Accepted environment operations, version conflicts, cancellation, timeouts, and controller phase comparison. |
+| [internal/telemetry](../internal/telemetry) | In-process OpenTelemetry counts, durations, retry reasons, and request/operation trace identity. |
 | [internal/httpapi](../internal/httpapi) | Health/registration handlers, owner-filtered pages, ETags, corpus approvals, errors and middleware. |
 | [internal/auth](../internal/auth) | Real OIDC discovery/JWKS and API token verification/roles. |
 | [internal/login](../internal/login) | State/cookie-bound authorization code exchange and private token file. |

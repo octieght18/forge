@@ -24,6 +24,8 @@ The owner approved [containerized Kubernetes deployment in WSL](docs/kubernetes-
 
 **F16** accepts [asynchronous provisioning operations](docs/provisioning-operations.md). A request returns promptly with a status URL. The environment controller still applies namespaces only through the operator command.
 
+**F17** records [in-process OpenTelemetry measurements](docs/telemetry.md) for provisioning duration, reconciliation retries, and request and operation identity. Operators can read the API view. There is no collector or dashboard.
+
 - [Internal product brief](docs/product-brief.md)
 - [Product and design decisions](docs/decision-log.md)
 - [Architecture and integration boundaries](docs/architecture.md)
@@ -60,6 +62,8 @@ The owner approved [containerized Kubernetes deployment in WSL](docs/kubernetes-
 - [F15 verification](docs/f15-validation.md)
 - [Provisioning operations](docs/provisioning-operations.md)
 - [F16 verification](docs/f16-validation.md)
+- [Telemetry](docs/telemetry.md)
+- [F17 verification](docs/f17-validation.md)
 
 The owner must review product and design choices before they become accepted decisions. F02 records the accepted Go HTTP/OpenAPI, PostgreSQL and Temporal foundation, OpenRouter backend and local Kubernetes target. Keycloak OIDC is included from the first release. The testing model is `google/gemma-4-26b-a4b-it:free`. D26 supersedes F07's no-container deployment choice: the current stack can now run in kind inside WSL. F03's HTTP defaults and lifecycle conventions are accepted; new API/identity/workflow decisions still require consultation.
 

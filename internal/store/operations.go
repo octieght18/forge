@@ -6,14 +6,15 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/octieght18/forge/internal/provision"
+	"github.com/octieght18/forge/internal/telemetry"
 )
 
-const operationColumns = `o.id::text,o.workload_id::text,o.version_id::text,o.action,o.desired_generation,o.observed_generation,o.status,o.observed_phase,COALESCE(o.error_code,''),COALESCE(o.error_message,''),o.deadline`
+const operationColumns = `o.id::text,o.workload_id::text,o.version_id::text,o.action,o.desired_generation,o.observed_generation,o.status,o.observed_phase,COALESCE(o.error_code,''),COALESCE(o.error_message,''),o.deadline,o.created_at`
 
 func scanOperation(row pgx.Row) (provision.Operation, error) {
 	var op provision.Operation
 	var status string
-	err := row.Scan(&op.ID, &op.WorkloadID, &op.VersionID, &op.Action, &op.DesiredGeneration, &op.ObservedGeneration, &status, &op.ObservedPhase, &op.ErrorCode, &op.ErrorMessage, &op.Deadline)
+	err := row.Scan(&op.ID, &op.WorkloadID, &op.VersionID, &op.Action, &op.DesiredGeneration, &op.ObservedGeneration, &status, &op.ObservedPhase, &op.ErrorCode, &op.ErrorMessage, &op.Deadline, &op.CreatedAt)
 	op.Status = provision.Status(status)
 	return op, storageError(err)
 }
@@ -186,5 +187,11 @@ func saveOperation(ctx context.Context, tx pgx.Tx, before, next provision.Operat
 	_, err := tx.Exec(ctx, `UPDATE forge.provisioning_operations SET action=$2, desired_generation=$3, observed_generation=$4,
 		status=$5, observed_phase=$6, error_code=$7, error_message=$8, deadline=$9, updated_at=clock_timestamp() WHERE id=$1`,
 		next.ID, next.Action, next.DesiredGeneration, next.ObservedGeneration, string(next.Status), next.ObservedPhase, code, message, next.Deadline)
-	return storageError(err)
+	if err != nil {
+		return storageError(err)
+	}
+	if !before.Terminal() && next.Terminal() {
+		telemetry.RecordProvisioning(ctx, string(next.Status), time.Since(before.CreatedAt), next.ID)
+	}
+	return nil
 }
