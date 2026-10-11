@@ -17,7 +17,7 @@ func TestServiceAndAgentTemplates(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, kind := range []string{Service, Agent} {
+	for _, kind := range []string{Service, Agent, Job} {
 		t.Run(kind, func(t *testing.T) {
 			files, err := Render(validator, kind, kind+"-example")
 			if err != nil {
@@ -76,8 +76,25 @@ func TestServiceAndAgentTemplates(t *testing.T) {
 			if kind == Agent && (!agentRun || validator.ValidateRequest("CreateRunRequest", bodies["run.json"]) != nil) {
 				t.Fatal("agent run template is missing or invalid")
 			}
-			if kind == Service && agentRun {
-				t.Fatal("service template included a run")
+			if kind != Agent && agentRun {
+				t.Fatal("non-agent template included a run")
+			}
+			resources, jobResources := bodies["resources.json"]
+			if kind == Job {
+				if !jobResources {
+					t.Fatal("job resources missing")
+				}
+				var recorded struct {
+					Profile string            `json:"profile"`
+					Applied string            `json:"applied_by"`
+					Quota   map[string]string `json:"quota"`
+				}
+				if json.Unmarshal(resources, &recorded) != nil || recorded.Profile != "small-v1" || recorded.Applied != "operator" || recorded.Quota["pods"] != "2" || recorded.Quota["persistentvolumeclaims"] != "0" {
+					t.Fatalf("resources %#v", recorded)
+				}
+			}
+			if kind != Job && jobResources {
+				t.Fatal("resources included on a non-job template")
 			}
 		})
 	}

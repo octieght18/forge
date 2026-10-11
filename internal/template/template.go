@@ -1,6 +1,7 @@
-// Package template writes the minimal service and MCP agent starting points.
-// Both use the fixed research contract. Rendering does not register a workload,
-// call the API, embed credentials, or install another orchestrator.
+// Package template writes the minimal service, MCP agent, and resource-constrained
+// job starting points. All three use the fixed research contract. Rendering does
+// not register a workload, call the API, embed credentials, or install another
+// orchestrator.
 package template
 
 import (
@@ -17,6 +18,7 @@ import (
 const (
 	Service = "service"
 	Agent   = "agent"
+	Job     = "job"
 )
 
 var ErrUnknownKind = errors.New("unknown template kind")
@@ -30,6 +32,8 @@ func Files(kind string) ([]string, error) {
 		return []string{"workload.json", "version.json", "health.json", "telemetry.json", "environment.json", "availability.json"}, nil
 	case Agent:
 		return []string{"workload.json", "version.json", "run.json", "health.json", "telemetry.json", "environment.json", "availability.json"}, nil
+	case Job:
+		return []string{"workload.json", "version.json", "resources.json", "health.json", "telemetry.json", "environment.json", "availability.json"}, nil
 	default:
 		return nil, ErrUnknownKind
 	}
@@ -42,8 +46,11 @@ func Render(validator *contract.Validator, kind, name string) ([]File, error) {
 		return nil, err
 	}
 	description := "Registered research service using the fixed read-only contract."
-	if kind == Agent {
+	switch kind {
+	case Agent:
 		description = "Read-only MCP research agent using corpus.search and corpus.read."
+	case Job:
+		description = "Resource-constrained research job. Profile small-v1 is recorded and is not applied by this template."
 	}
 	workload, err := encode(map[string]string{"name": name, "description": description})
 	if err != nil {
@@ -66,6 +73,7 @@ func Render(validator *contract.Validator, kind, name string) ([]File, error) {
 		"telemetry.json":    mustEncode(telemetryDocument),
 		"environment.json":  mustEncode(environmentDocument),
 		"availability.json": mustEncode(availabilityDocument),
+		"resources.json":    mustEncode(resourcesDocument),
 	}
 	if kind == Agent {
 		run, err := example("examples/create-run.json")
@@ -177,4 +185,22 @@ var availabilityDocument = map[string]string{
 	"deploy":            "available",
 	"run":               "not_available",
 	"environment_apply": "operator_only",
+}
+
+// resourcesDocument records the controller's small-v1 boundary. Rendering it
+// does not create a quota, a namespace, or a Kubernetes Job.
+var resourcesDocument = map[string]any{
+	"profile":    "small-v1",
+	"applied_by": "operator",
+	"quota": map[string]string{
+		"pods":                   "2",
+		"requests.cpu":           "1",
+		"requests.memory":        "1Gi",
+		"limits.cpu":             "2",
+		"limits.memory":          "2Gi",
+		"persistentvolumeclaims": "0",
+		"services.loadbalancers": "0",
+		"services.nodeports":     "0",
+	},
+	"container_max": map[string]string{"cpu": "1", "memory": "1Gi"},
 }

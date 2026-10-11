@@ -191,7 +191,7 @@ func TestTemplateRenderDoesNotCallAPI(t *testing.T) {
 	}
 	listed := runJSON(t, 0, "template", "list")
 	templates, _ := listed["templates"].([]any)
-	if listed["action"] != "list" || len(templates) != 2 || called {
+	if listed["action"] != "list" || len(templates) != 3 || called {
 		t.Fatalf("%#v called=%v", listed, called)
 	}
 }

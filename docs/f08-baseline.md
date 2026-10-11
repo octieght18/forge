@@ -41,6 +41,6 @@ Port 8081 is occupied only by the harness's isolated socket fixture. Native star
 
 ## Pending human and provisioning evidence
 
-The [human worksheet](baseline-human-worksheet.json) deliberately contains null timings. No person has completed measured onboarding/typing, and no developer-effort saving is claimed. The original ten-manual/ten-self-service provisioning comparison remains deferred until provisioning exists; the procedure records how to match prerequisites/readiness and retain steps, failures and recovery. Registration is not provisioning.
+The [human worksheet](baseline-human-worksheet.json) deliberately contains null timings. No person has completed measured onboarding/typing, and no developer-effort saving is claimed. [F19](f19-validation.md) later measured three template provision requests. The original ten-manual/ten-self-service provisioning comparison remains unclaimed. Registration is not provisioning.
 
 Five startup and ten sequential journeys do not establish concurrent capacity, throughput, percentiles, production reliability or an SLO. D23 accepts the [Balanced local repeat-test limits](performance-targets.md); broader capacity and production recovery targets remain unselected. The accepted first-release API/durable-workflow scope is unchanged.

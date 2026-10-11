@@ -9,7 +9,7 @@ Start with the [quickstart](quickstart.md), [seven current API operations/exampl
 | [cmd/forge-migrate](../cmd/forge-migrate) | Explicit migration command; migrations do not run inside API startup. |
 | [cmd/forge-login](../cmd/forge-login) | Five-minute browser/PKCE token helper on loopback 8083. |
 | [internal/cli](../internal/cli) | Developer CLI client, local schema checks, JSON results, and API error operation IDs. |
-| [internal/template](../internal/template) | Service and MCP agent template files validated against the registration contract. |
+| [internal/template](../internal/template) | Service, MCP agent, and resource-constrained job templates validated against the registration contract. |
 | [internal/provision](../internal/provision) | Accepted environment operations, version conflicts, cancellation, timeouts, and controller phase comparison. |
 | [internal/telemetry](../internal/telemetry) | In-process OpenTelemetry counts, durations, retry reasons, and request/operation trace identity. |
 | [internal/httpapi](../internal/httpapi) | Health/registration handlers, owner-filtered pages, ETags, corpus approvals, errors and middleware. |

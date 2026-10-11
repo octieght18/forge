@@ -68,13 +68,13 @@ const usageText = `Forge developer CLI for the versioned registration API.
   forge status --token-file PATH [--workload ID] [--version ID] [--limit N] [--cursor TOKEN] [--api URL]
   forge delete --token-file PATH --workload ID [--api URL]
   forge template list
-  forge template render --kind service|agent --name NAME --out DIRECTORY
+  forge template render --kind service|agent|job --name NAME --out DIRECTORY
   forge provision --token-file PATH --workload ID --version ID [--timeout-seconds N] [--api URL]
   forge operation status --token-file PATH --operation ID [--api URL]
   forge operation cancel --token-file PATH --operation ID [--api URL]
   forge operation delete --token-file PATH --workload ID --version ID [--timeout-seconds N] [--api URL]
 
-register creates a workload. deploy records an immutable research version and does not start execution or provision an environment. status reads workloads and versions. delete calls the API; current servers reject workload and version deletion, and the JSON error includes that result. template writes a local service or MCP agent starting point and does not call the API. provision and operation delete accept an asynchronous environment operation. operation status reads it and operation cancel requests deletion. None of these commands creates a namespace or starts a run. Success is one JSON document on stdout. Failures are one JSON document on stderr. request_id is the API operation ID when the API was reached.
+register creates a workload. deploy records an immutable research version and does not start execution or provision an environment. status reads workloads and versions. delete calls the API; current servers reject workload and version deletion, and the JSON error includes that result. template writes a local service, MCP agent, or resource-constrained job starting point and does not call the API. provision and operation delete accept an asynchronous environment operation. operation status reads it and operation cancel requests deletion. None of these commands creates a namespace or starts a run. Success is one JSON document on stdout. Failures are one JSON document on stderr. request_id is the API operation ID when the API was reached.
 `
 
 type app struct {
@@ -165,6 +165,7 @@ func (a *app) templates(args []string) int {
 		return writeTemplate(a.stdout, a.stderr, templateDocument{Action: "list", Templates: []templateInfo{
 			{Kind: template.Service, Files: mustFiles(template.Service)},
 			{Kind: template.Agent, Files: mustFiles(template.Agent)},
+			{Kind: template.Job, Files: mustFiles(template.Job)},
 		}})
 	case "render":
 		return a.renderTemplate(args[1:])
@@ -176,7 +177,7 @@ func (a *app) templates(args []string) int {
 func (a *app) renderTemplate(args []string) int {
 	fs := flag.NewFlagSet("render", flag.ContinueOnError)
 	fs.SetOutput(io.Discard)
-	kind := fs.String("kind", "", "service or agent")
+	kind := fs.String("kind", "", "service, agent, or job")
 	name := fs.String("name", "", "workload name")
 	out := fs.String("out", "", "output directory")
 	if err := fs.Parse(args); err != nil {

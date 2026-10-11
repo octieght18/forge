@@ -28,6 +28,8 @@ The owner approved [containerized Kubernetes deployment in WSL](docs/kubernetes-
 
 **F18** tests [controller failure recovery](docs/f18-validation.md). An identity-lookup outage, a replacement controller, and a partial boundary converge to one owned namespace. A failed operation stays closed.
 
+**F19** measures [three template onboardings](docs/f19-validation.md): a research service, a tool-calling agent, and a resource-constrained job. Each can be registered, deployed, and requested for provisioning. Namespace apply stays with the operator.
+
 - [Internal product brief](docs/product-brief.md)
 - [Product and design decisions](docs/decision-log.md)
 - [Architecture and integration boundaries](docs/architecture.md)
@@ -67,6 +69,7 @@ The owner approved [containerized Kubernetes deployment in WSL](docs/kubernetes-
 - [Telemetry](docs/telemetry.md)
 - [F17 verification](docs/f17-validation.md)
 - [F18 controller recovery verification](docs/f18-validation.md)
+- [F19 onboarding measurement](docs/f19-validation.md)
 
 The owner must review product and design choices before they become accepted decisions. F02 records the accepted Go HTTP/OpenAPI, PostgreSQL and Temporal foundation, OpenRouter backend and local Kubernetes target. Keycloak OIDC is included from the first release. The testing model is `google/gemma-4-26b-a4b-it:free`. D26 supersedes F07's no-container deployment choice: the current stack can now run in kind inside WSL. F03's HTTP defaults and lifecycle conventions are accepted; new API/identity/workflow decisions still require consultation.
 

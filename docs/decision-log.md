@@ -255,3 +255,13 @@ Recovery in that process was 7.1103ms, with one reconciliation failure (`Identit
 An operation that already observed `Failed` stays `failed` after the boundary becomes ready. A later operation can record `ready`. The installed controller still does not write operation rows. Whole-node restart remains the F13 kind smoke. No run route, collector, or second orchestrator is added.
 
 See the [recovery verification](f18-validation.md).
+
+## D33 — F19 three-template onboarding measurement
+
+On 11 October 2026 the owner asked to implement the next backlog ticket, F19. The ticket asks to onboard a service, a tool-calling agent, and a resource-constrained job, measure provisioning time and manual steps against the F08 baseline, and record the supported workload count and failure recovery.
+
+The versioned API still accepts only `research.v1` with `corpus.search` and `corpus.read`. The job template uses that contract and records the controller profile `small-v1`. Rendering does not apply a quota or start a Kubernetes Job. A developer can register, deploy, and request provisioning for each kind. The request returns `202` before a namespace exists. Applying the environment remains the operator command from [D27](#d27--restored-environment-controller-and-workload-boundaries).
+
+Three requests on a disposable PostgreSQL measured provision medians below. They are a different path from the F08 native loopback samples, so they are not a speedup claim. The ten paired manual trials in [D08](#d08--acceptance-measures-and-target-setting) stay unclaimed. The human worksheet stays unmeasured. The controller recovery check from [D32](#d32--f18-controller-failure-recovery) was run again with this ticket.
+
+See the [onboarding measurement](f19-validation.md).
