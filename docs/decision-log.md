@@ -243,3 +243,15 @@ On 11 October 2026 the owner asked to implement the next backlog ticket, F17. Th
 The API and the environment controller each keep a process-local view: outcome counts, durations, and a bounded reason vocabulary. `GET /api/v1/telemetry` returns the API process view to an operator. Reconciliation reasons stay in the controller process because that process has no scrape Service. API spans continue an incoming W3C trace and attach the server request ID and the operation ID. Controller passes do not inherit the caller's request context. Tokens and corpus text are not attributes.
 
 See the [telemetry guide](telemetry.md) and [verification](f17-validation.md).
+
+## D32 — F18 controller failure recovery
+
+On 11 October 2026 the owner asked to implement the next backlog ticket, F18. The ticket asks for convergence after an API, controller, or Kubernetes failure: one owned boundary, a stable final state, a measured recovery time, and reconciliation failure and success counts.
+
+The controller already repairs missing children and an identity-lookup outage. F18 adds one sequence that uses those paths together. The API failure is the controller's identity lookup, which is how this controller reaches the product records. The registration HTTP server is not stopped. The controller failure is a new reconciler using the same client after the first one stops. The Kubernetes failure deletes the quota and limit range after the namespace exists. The test then requires one namespace, one quota, one limit range, and one worker account, each owned by the environment, and an unchanged environment resource version and namespace UID on the next pass.
+
+Recovery in that process was 7.1103ms, with one reconciliation failure (`IdentityUnavailable`) and two successes. The test identity lookup waits one millisecond so a Ready pass that this machine's clock would report as zero still produces a duration sample. Production lookup does not wait. A zero reading stays omitted from the histogram.
+
+An operation that already observed `Failed` stays `failed` after the boundary becomes ready. A later operation can record `ready`. The installed controller still does not write operation rows. Whole-node restart remains the F13 kind smoke. No run route, collector, or second orchestrator is added.
+
+See the [recovery verification](f18-validation.md).

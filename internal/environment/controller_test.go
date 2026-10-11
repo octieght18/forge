@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/octieght18/forge/internal/telemetry"
 	core "k8s.io/api/core/v1"
@@ -22,10 +23,14 @@ type lookup struct {
 	match bool
 	err   error
 	calls int
+	delay time.Duration
 }
 
 func (l *lookup) Verify(_ context.Context, _ Identity) (bool, error) {
 	l.calls++
+	if l.delay > 0 {
+		time.Sleep(l.delay)
+	}
 	return l.match, l.err
 }
 func fixture(t *testing.T) (*Reconciler, *unstructured.Unstructured, Identity) {
@@ -353,6 +358,7 @@ func TestControllerReportsPhasesUsedByOperations(t *testing.T) {
 func TestReconciliationTelemetry(t *testing.T) {
 	telemetry.Reset()
 	r, e, i := fixture(t)
+	r.Lookup.(*lookup).delay = time.Millisecond
 	ready(t, r, e, i)
 	snap := telemetry.Snapshot()
 	pending := snap.Reconciliation.RetryReasons["NamespacePending"] + snap.Reconciliation.RetryReasons["DefaultAccountPending"]

@@ -33,6 +33,6 @@ Owners create, cancel, and read their operations. Another owner receives `404`. 
 
 The operation stores the requested action and desired generation. Controller phases move the observed phase. `Ready` completes only a provision. `Absent` completes a delete only after `Deleting` was observed. A finished operation does not reopen when a later phase or a passed deadline arrives. A matching `Ready` observation at the deadline completes the provision instead of timing out.
 
-The controller emits `Provisioning`, `Ready`, `Failed`, `Deleting`, and `Absent` through its reporter. The installed controller role can only read workload identity, so it does not write this table. Tests record those phases through the same comparison the API uses on read. Live cluster status remains the environment object's status until that write path exists.
+The controller emits `Provisioning`, `Ready`, `Failed`, `Deleting`, and `Absent` through its reporter. The installed controller role can only read workload identity, so it does not write this table. Tests record those phases through the same comparison the API uses on read. Live cluster status remains the environment object's status until that write path exists. A `failed` operation stays failed after the boundary later becomes ready; a new operation can record that recovery. [F18](f18-validation.md) checks that sequence.
 
 See [F16 verification](f16-validation.md). Terminal results also add duration and outcome samples to the operator [telemetry view](telemetry.md).

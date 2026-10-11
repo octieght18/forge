@@ -23,7 +23,7 @@ $view.spans
 | Controller pass ends `Provisioning` or `Deleting` | `retry` | The pass | A fixed reason such as `NamespacePending`, `CleanupPending`, or `OwnershipConflict`. Any other text is `unspecified`. |
 | Controller pass ends `Failed` or returns an error | `failure` | The pass | The same fixed vocabulary. An error without a reason is `reconcile_error`. The error string is not stored. |
 
-A pass that does not reach one of those phases is `idle`.
+A pass that does not reach one of those phases is `idle`. A duration the process clock reports as zero is omitted.
 
 ## Traces
 
