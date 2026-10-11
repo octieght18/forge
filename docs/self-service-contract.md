@@ -9,8 +9,8 @@ Declarative state is the requested action and the `ForgeEnvironment` spec. Idemp
 1. `forge template render` writes a local service, agent, or job. The files use `research.v1`. The job records profile `small-v1`.
 2. `register` creates the workload. `deploy` stores an immutable version. The version reports `execution: not_started` and `environment: not_requested`.
 3. `provision` accepts an operation and returns `202` with `status_url`. The body selects the current `version_id`. One open operation is allowed for that workload.
-4. An operator runs `environment.ps1 apply`. That command reads the workload through the product API and submits immutable intent: workload ID, owner issuer, owner subject, and `profile: small-v1`.
-5. The controller reads that intent, checks the same owner in PostgreSQL, and creates namespace `forge-w-<workload UUID>`, the `boundary` quota, the `containers` limit range, and the `worker` account.
+4. An operator can still run `environment.ps1 apply`. A developer provision is also enough: the controller leader reads each open operation and submits the same `ForgeEnvironment`. A repeated read leaves that object in place. Delete and cancel remove it. The poll is 15 seconds and runs only on the leader.
+5. The controller checks the owner in PostgreSQL and creates namespace `forge-w-<workload UUID>`, the `boundary` quota, the `containers` limit range, and the `worker` account.
 6. Status on the environment object moves through the phases below. Operators read it with `environment.ps1 status`.
 
 The operation row and the environment status use the same phase comparison. The installed controller's database role can read identity and cannot write the operation row. A live namespace can be `Ready` while the operation remains `accepted` until a deadline or a recorded observation. Tests record observations through that comparison. [Provisioning operations](provisioning-operations.md) and [execution boundaries](execution-environments.md) are the command references.
@@ -89,7 +89,7 @@ These are in-process observations of the current controller. They are samples, n
 ## Known limits
 
 - Developers receive no kubeconfig and no namespace RBAC grant.
-- The live controller does not write operation rows. Operator status is the environment object.
+- The controller can read an open operation and submit its environment. It cannot update that operation row, so the status URL can stay `accepted` after the namespace is `Ready`. Operator `environment.ps1 status` reads the environment object.
 - A `failed` or otherwise finished operation does not reopen.
 - `small-v1` is the only profile. It is a local ceiling, not reserved node capacity or a per-owner quota.
 - Run submission, worker images, and Temporal execution are outside this contract.

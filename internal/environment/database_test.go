@@ -82,7 +82,10 @@ func TestReadOnlyIdentityRole(t *testing.T) {
 	if ok, err := d.Verify(ctx, id); err != nil || ok {
 		t.Fatal("wrong issuer accepted", err)
 	}
-	for _, sql := range []string{"SELECT name FROM forge.workloads", "SELECT * FROM forge.versions", "SELECT * FROM forge.runs", "SELECT * FROM forge.commands", "SELECT * FROM forge.schema_migrations", "UPDATE forge.workloads SET name='changed'", "DELETE FROM forge.workloads", "CREATE TABLE forge.forbidden(id integer)"} {
+	if requests, err := d.OpenRequests(ctx); err != nil || len(requests) != 0 {
+		t.Fatal(requests, err)
+	}
+	for _, sql := range []string{"SELECT name FROM forge.workloads", "SELECT * FROM forge.versions", "SELECT * FROM forge.runs", "SELECT * FROM forge.commands", "SELECT * FROM forge.schema_migrations", "SELECT * FROM forge.provisioning_operations", "UPDATE forge.provisioning_operations SET status='ready'", "UPDATE forge.workloads SET name='changed'", "DELETE FROM forge.workloads", "CREATE TABLE forge.forbidden(id integer)"} {
 		if _, err := pool.Exec(ctx, sql); err == nil {
 			t.Fatalf("role permitted %s", sql)
 		}

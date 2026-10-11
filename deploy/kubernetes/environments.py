@@ -33,7 +33,7 @@ def crd():
 def infrastructure(image):
     sa = obj("ServiceAccount", "environment-controller", automountServiceAccountToken=True)
     role = dict(apiVersion="rbac.authorization.k8s.io/v1", kind="ClusterRole", metadata=dict(name="forge-environment-controller"), rules=[
-        dict(apiGroups=[GROUP], resources=["forgeenvironments"], verbs=["get", "list", "watch", "patch", "update"]),
+        dict(apiGroups=[GROUP], resources=["forgeenvironments"], verbs=["get", "list", "watch", "create", "patch", "update", "delete"]),
         dict(apiGroups=[GROUP], resources=["forgeenvironments/status", "forgeenvironments/finalizers"], verbs=["get", "patch", "update"]),
         dict(apiGroups=[""], resources=["namespaces"], verbs=["get", "list", "watch", "create", "patch", "delete"]),
         dict(apiGroups=[""], resources=["resourcequotas", "limitranges", "serviceaccounts"], verbs=["get", "list", "watch", "create", "patch"]),

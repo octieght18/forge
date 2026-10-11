@@ -67,6 +67,9 @@ func run() error {
 	if err := r.Setup(m); err != nil {
 		return err
 	}
+	if err := m.Add(requestLoop{client: c, db: environment.Database{Pool: pool}}); err != nil {
+		return err
+	}
 	if err := m.AddHealthzCheck("process", healthz.Ping); err != nil {
 		return err
 	}
@@ -86,5 +89,33 @@ func run() error {
 		return err
 	}
 	return m.Start(ctx)
+}
+
+type requestLoop struct {
+	client client.Client
+	db     environment.Database
+}
+
+func (l requestLoop) NeedLeaderElection() bool { return true }
+
+func (l requestLoop) Start(ctx context.Context) error {
+	ticker := time.NewTicker(15 * time.Second)
+	defer ticker.Stop()
+	for {
+		pass, cancel := context.WithTimeout(ctx, 10*time.Second)
+		requests, err := l.db.OpenRequests(pass)
+		if err == nil {
+			err = environment.Sync(pass, l.client, requests)
+		}
+		cancel()
+		if err != nil && ctx.Err() == nil {
+			slog.Error("environment request sync failed")
+		}
+		select {
+		case <-ctx.Done():
+			return nil
+		case <-ticker.C:
+		}
+	}
 }
 func duration(d time.Duration) *time.Duration { return &d }

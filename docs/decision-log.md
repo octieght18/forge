@@ -283,3 +283,13 @@ The card lists G2 as a prerequisite. G2, the measured self-service provisioning 
 The new payloads are `MCPInvocation`, `MCPResult`, `ActivityFailure`, `WorkflowDecision`, and `ActivityResult`. An empty tool result and an `insufficient_evidence` report are successful uncertain outcomes. A `tool_denied` result is an activity failure. Workflow decisions carry no corpus text. Public run routes, Temporal workers, and the MCP process remain later tickets.
 
 See the [execution contract](execution-contract.md) and [verification](f21-validation.md).
+
+## D36 — G2 measured self-service provisioning
+
+On 11 October 2026 the owner asked to implement G2. The gate requires idempotent reconciliation with a measured recovery, a published workload count and setup reduction, and a developer environment request that does not add a manual infrastructure step beyond the documented prerequisites.
+
+F19 and F20, the cards blocking the gate, are already done. F18 measured recovery at 7.1103 ms and a later run measured 9.4041 ms, each with 1 reconciliation failure and 2 successes. A repeated ready pass keeps the environment resource version. F19 onboarded 3 workloads. The provision median on that disposable database was 4.041 ms. Login and the token file remain prerequisites. `environment.ps1 apply` remains available to operators and is no longer required for the developer request.
+
+The controller leader reads open operations and submits one `ForgeEnvironment` for `provision`, or removes it for `delete`. A second submit with the same owner leaves the object in place. A different owner is refused. The environment role gains SELECT on the operation columns it needs and stays read-only, so it still cannot mark the operation `ready`. The API process still has no Kubernetes credential. The developer receives no kubeconfig. The running cluster uses this behavior after its controller image, grant, and role are updated to this commit.
+
+See the [gate record](g2-validation.md).

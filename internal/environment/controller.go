@@ -49,6 +49,29 @@ func (d Database) Verify(ctx context.Context, i Identity) (bool, error) {
 	return match, err
 }
 
+// OpenRequests lists operations the controller should turn into environment intent.
+// It reads only the columns granted to the read-only environment role.
+func (d Database) OpenRequests(ctx context.Context) ([]Request, error) {
+	rows, err := d.Pool.Query(ctx, `SELECT o.workload_id, o.action, p.issuer, p.subject
+		FROM forge.provisioning_operations o
+		JOIN forge.workloads w ON w.id = o.workload_id
+		JOIN forge.principals p ON p.id = w.owner_id
+		WHERE o.status IN ('accepted', 'provisioning', 'cancel_requested')`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []Request
+	for rows.Next() {
+		var request Request
+		if err = rows.Scan(&request.WorkloadID, &request.Action, &request.Issuer, &request.Subject); err != nil {
+			return nil, err
+		}
+		out = append(out, request)
+	}
+	return out, rows.Err()
+}
+
 func Object() *unstructured.Unstructured {
 	u := &unstructured.Unstructured{}
 	u.SetGroupVersionKind(GVK)
