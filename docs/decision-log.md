@@ -265,3 +265,11 @@ The versioned API still accepts only `research.v1` with `corpus.search` and `cor
 Three requests on a disposable PostgreSQL measured provision medians below. They are a different path from the F08 native loopback samples, so they are not a speedup claim. The ten paired manual trials in [D08](#d08--acceptance-measures-and-target-setting) stay unclaimed. The human worksheet stays unmeasured. The controller recovery check from [D32](#d32--f18-controller-failure-recovery) was run again with this ticket.
 
 See the [onboarding measurement](f19-validation.md).
+
+## D34 — F20 self-service contract
+
+On 11 October 2026 the owner asked to implement the next backlog ticket, F20. The ticket asks for the API-to-controller flow, lifecycle transitions, the tradeoff between namespace isolation and stronger isolation, and the known cleanup and recovery limits.
+
+The contract documents the path that already exists. A developer accepts a provisioning operation. An operator applies `ForgeEnvironment`. The controller converges one namespace per workload and repairs that boundary idempotently when it owns the objects. The installed controller still cannot write the operation row, so a live `Ready` namespace and an `accepted` operation can both be true until an observation is recorded. Namespace isolation with `small-v1` is the current boundary. A separate cluster, a sandbox runtime, and NetworkPolicy enforcement remain later decisions. Cleanup holds the environment finalizer until the namespace is gone, and it refuses persistent storage and foreign finalizers.
+
+No new API route, controller permission, or isolation mechanism is added. See the [self-service contract](self-service-contract.md) and [verification](f20-validation.md).
