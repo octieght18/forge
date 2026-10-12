@@ -28,17 +28,17 @@ type Usage struct {
 
 // Report is the persisted research result.
 type Report struct {
-	RunID        string    `json:"run_id"`
-	WorkflowID   string    `json:"workflow_id"`
-	Outcome      string    `json:"outcome"`
-	RequestedID  string    `json:"requested_id"`
-	ActualID     string    `json:"actual_id"`
-	ProviderID   string    `json:"provider_id"`
-	EvidenceIDs  []string  `json:"evidence_ids"`
-	Usage        Usage     `json:"usage"`
-	Limitations  []string  `json:"limitations"`
-	GeneratedAt  time.Time `json:"generated_at"`
-	ClaimText    string    `json:"claim_text,omitempty"`
+	RunID       string    `json:"run_id"`
+	WorkflowID  string    `json:"workflow_id"`
+	Outcome     string    `json:"outcome"`
+	RequestedID string    `json:"requested_id"`
+	ActualID    string    `json:"actual_id"`
+	ProviderID  string    `json:"provider_id"`
+	EvidenceIDs []string  `json:"evidence_ids"`
+	Usage       Usage     `json:"usage"`
+	Limitations []string  `json:"limitations"`
+	GeneratedAt time.Time `json:"generated_at"`
+	ClaimText   string    `json:"claim_text,omitempty"`
 }
 
 // Generator produces one report from already authorized passages.
@@ -65,6 +65,19 @@ func Reports() []Report {
 	out := make([]Report, len(reports))
 	copy(out, reports)
 	return out
+}
+
+// Compensate drops a report that was stored before the run stopped.
+func Compensate(runID string) {
+	mu.Lock()
+	defer mu.Unlock()
+	kept := reports[:0]
+	for _, report := range reports {
+		if report.RunID != runID {
+			kept = append(kept, report)
+		}
+	}
+	reports = kept
 }
 
 func remember(report Report) {
@@ -118,7 +131,7 @@ func (c OpenRouter) Generate(ctx context.Context, runID, question string, passag
 		excerpts = append(excerpts, passage.DocumentID+": "+passage.Excerpt)
 	}
 	payload := map[string]any{
-		"model": RequestedModel,
+		"model":    RequestedModel,
 		"messages": []map[string]string{{"role": "user", "content": question + "\n" + strings.Join(excerpts, "\n")}},
 		"provider": map[string]any{"data_collection": "deny", "allow_fallbacks": false},
 	}
@@ -235,7 +248,7 @@ func Validate(report Report, passages []mcp.Passage) error {
 	}
 	body := map[string]any{
 		"run_id": report.RunID, "generated_at": report.GeneratedAt.UTC().Format(time.RFC3339),
-		"model": map[string]string{"requested_id": report.RequestedID, "actual_id": report.ActualID, "provider_id": report.ProviderID},
+		"model":   map[string]string{"requested_id": report.RequestedID, "actual_id": report.ActualID, "provider_id": report.ProviderID},
 		"outcome": report.Outcome, "claims": []any{}, "limitations": limitations,
 	}
 	if report.Outcome == "answered" {

@@ -42,6 +42,8 @@ The owner approved [containerized Kubernetes deployment in WSL](docs/kubernetes-
 
 **F24** produces an [evidence-based report](docs/model-execution.md) from those passages. Tests use a fixture model. The hosted route is OpenRouter's free Gemma model, and the API key stays in the worker environment.
 
+**F25** classifies [activity retries and compensation](docs/retry-compensation.md). A transient tool failure can run again. A committed retrieval is not repeated. Evidence left without a report is marked compensated.
+
 - [Internal product brief](docs/product-brief.md)
 - [Product and design decisions](docs/decision-log.md)
 - [Architecture and integration boundaries](docs/architecture.md)
@@ -93,6 +95,8 @@ The owner approved [containerized Kubernetes deployment in WSL](docs/kubernetes-
 - [F23 verification](docs/f23-validation.md)
 - [Model execution](docs/model-execution.md)
 - [F24 verification](docs/f24-validation.md)
+- [Retry classification and compensation](docs/retry-compensation.md)
+- [F25 verification](docs/f25-validation.md)
 
 The owner must review product and design choices before they become accepted decisions. F02 records the accepted Go HTTP/OpenAPI, PostgreSQL and Temporal foundation, OpenRouter backend and local Kubernetes target. Keycloak OIDC is included from the first release. The testing model is `google/gemma-4-26b-a4b-it:free`. D26 supersedes F07's no-container deployment choice: the current stack can now run in kind inside WSL. F03's HTTP defaults and lifecycle conventions are accepted; new API/identity/workflow decisions still require consultation.
 

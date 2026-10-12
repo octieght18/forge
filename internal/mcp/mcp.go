@@ -86,6 +86,18 @@ func EvidenceRecords() []Evidence {
 	return out
 }
 
+// Compensate marks evidence for a stopped run so it is not a committed result.
+// A repeated call leaves an already compensated record unchanged.
+func Compensate(runID string) {
+	mu.Lock()
+	defer mu.Unlock()
+	for i := range evidence {
+		if evidence[i].RunID == runID {
+			evidence[i].Retention = "compensated"
+		}
+	}
+}
+
 // Search validates the frozen context, then calls corpus.search.
 func Search(ctx context.Context, in Input, tool Tool) (Outcome, error) {
 	args, err := resolve(in)

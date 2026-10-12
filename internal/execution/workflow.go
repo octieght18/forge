@@ -76,7 +76,7 @@ func Research(ctx workflow.Context, in Correlation) (Result, error) {
 	}
 	ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
 		StartToCloseTimeout: 10 * time.Second,
-		RetryPolicy:         &temporal.RetryPolicy{MaximumAttempts: 1},
+		RetryPolicy:         Policy(),
 	})
 	var retrieved Observation
 	if err := workflow.ExecuteActivity(ctx, Retrieve, in).Get(ctx, &retrieved); err != nil {
@@ -105,29 +105,44 @@ func Research(ctx workflow.Context, in Correlation) (Result, error) {
 	if generated.Outcome != "failed" || generated.Class != "model_unavailable" {
 		return Result{}, temporal.NewNonRetryableApplicationError("unexpected generation result", "permanent", nil)
 	}
+	if err := workflow.ExecuteActivity(ctx, Compensate, in).Get(ctx, nil); err != nil {
+		return Result{}, err
+	}
 	return Result{RunID: in.RunID, WorkflowID: info.WorkflowExecution.ID, CommandID: in.CommandID, Decision: "fail_closed", Reason: "model_unavailable"}, nil
 }
 
 // Retrieve checks correlation. With a configured corpus tool it resolves the
 // frozen context and calls corpus.search. Without one it does not start a tool.
 func Retrieve(ctx context.Context, in Correlation) (Observation, error) {
+	if Corpus != nil {
+		key := IdempotencyKey(in.RunID, "retrieval", material(in))
+		if saved, ok := recall(key); ok {
+			return saved, nil
+		}
+	}
 	if err := activityIdentity(ctx, in); err != nil {
 		return Observation{}, err
 	}
 	if Corpus == nil {
 		return Observation{RunID: in.RunID, WorkflowID: in.WorkflowID, CommandID: in.CommandID, Step: "retrieval", Outcome: "succeeded"}, nil
 	}
+	key := IdempotencyKey(in.RunID, "retrieval", material(in))
 	outcome, err := mcp.Search(ctx, mcp.Input{
 		RunID: in.RunID, WorkflowID: in.WorkflowID, CommandID: in.CommandID, SnapshotID: in.SnapshotID,
 		Question: in.Question, DocumentIDs: in.DocumentIDs, MaxPassages: in.MaxPassages,
 	}, Corpus)
 	if err != nil {
-		return Observation{}, temporal.NewNonRetryableApplicationError(mcp.Redact(err.Error()), "tool_unavailable", nil)
+		return Observation{}, failure("tool_unavailable", err)
 	}
 	if outcome.Failed {
+		if Retryable(outcome.Class) {
+			return Observation{}, failure(outcome.Class, nil)
+		}
 		return Observation{RunID: in.RunID, WorkflowID: in.WorkflowID, CommandID: in.CommandID, Step: "retrieval", Outcome: "failed", Class: outcome.Class}, nil
 	}
-	return Observation{RunID: in.RunID, WorkflowID: in.WorkflowID, CommandID: in.CommandID, Step: "retrieval", Outcome: "succeeded", Passages: outcome.Passages}, nil
+	obs := Observation{RunID: in.RunID, WorkflowID: in.WorkflowID, CommandID: in.CommandID, Step: "retrieval", Outcome: "succeeded", Passages: outcome.Passages}
+	remember(key, obs)
+	return obs, nil
 }
 
 // Generate asks the configured model for a report. Without a model it does not
@@ -139,15 +154,37 @@ func Generate(ctx context.Context, in Correlation, passages []mcp.Passage) (Obse
 	if Model == nil {
 		return Observation{RunID: in.RunID, WorkflowID: in.WorkflowID, CommandID: in.CommandID, Step: "generation", Outcome: "failed", Class: "model_unavailable"}, nil
 	}
+	key := IdempotencyKey(in.RunID, "generation", material(in))
+	if saved, ok := recall(key); ok {
+		return saved, nil
+	}
 	report, err := Model.Generate(ctx, in.RunID, in.Question, passages)
 	if err != nil {
-		return Observation{}, temporal.NewNonRetryableApplicationError(mcp.Redact(err.Error()), "model_unavailable", nil)
+		return Observation{}, failure("model_unavailable", err)
 	}
 	report.WorkflowID = in.WorkflowID
 	if err = model.Validate(report, passages); err != nil {
 		return Observation{RunID: in.RunID, WorkflowID: in.WorkflowID, CommandID: in.CommandID, Step: "generation", Outcome: "failed", Class: "model_invalid"}, nil
 	}
-	return Observation{RunID: in.RunID, WorkflowID: in.WorkflowID, CommandID: in.CommandID, Step: "generation", Outcome: "succeeded", Class: report.Outcome, Passages: passages, Usage: report.Usage}, nil
+	obs := Observation{RunID: in.RunID, WorkflowID: in.WorkflowID, CommandID: in.CommandID, Step: "generation", Outcome: "succeeded", Class: report.Outcome, Passages: passages, Usage: report.Usage}
+	remember(key, obs)
+	return obs, nil
+}
+
+// Compensate withdraws evidence and reports left behind when a run stops after retrieval.
+// A second compensation for the same run does not repeat the withdrawal.
+func Compensate(ctx context.Context, in Correlation) error {
+	key := IdempotencyKey(in.RunID, "compensate", "partial-evidence")
+	if _, ok := recall(key); ok {
+		return nil
+	}
+	if err := activityIdentity(ctx, in); err != nil {
+		return err
+	}
+	mcp.Compensate(in.RunID)
+	model.Compensate(in.RunID)
+	remember(key, Observation{RunID: in.RunID, WorkflowID: in.WorkflowID, CommandID: in.CommandID, Step: "compensate", Outcome: "succeeded"})
+	return nil
 }
 
 func activityIdentity(ctx context.Context, in Correlation) error {

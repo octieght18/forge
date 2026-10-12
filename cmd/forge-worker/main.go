@@ -40,6 +40,7 @@ func main() {
 	process.RegisterWorkflowWithOptions(execution.Research, workflow.RegisterOptions{Name: execution.WorkflowName})
 	process.RegisterActivity(execution.Retrieve)
 	process.RegisterActivity(execution.Generate)
+	process.RegisterActivity(execution.Compensate)
 	if err = process.Run(worker.InterruptCh()); err != nil {
 		logger.Error("temporal worker stopped")
 		os.Exit(1)

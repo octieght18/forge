@@ -323,3 +323,13 @@ The hosted backend remains the OpenRouter route selected in F02: `google/gemma-4
 An answered report cites only evidence IDs returned by the authorized search. No passages produce `insufficient_evidence`. The workflow result in Temporal history is the durable copy. The worker process also keeps the report in memory. No product report table or public run route is added.
 
 See the [model guide](model-execution.md) and [verification](f24-validation.md).
+
+## D40 — F25 retry classification and safe compensation
+
+On 12 October 2026 the owner asked to implement the next backlog ticket, F25. The ticket asks for retryable and nonretryable classes, backoff limits, idempotent activity keys, an injected duplicate delivery, a dependency failure halfway through a run, and compensation for one partial side effect.
+
+`tool_unavailable` and a failed call to a configured model may be attempted again. `tool_denied`, `model_invalid`, and identity mismatches may not. A missing model configuration finishes the activity and the workflow records `fail_closed` without spending the retry budget. Retryable activities have three attempts, starting at one second and doubling to a four-second ceiling. That budget is separate from the command reconciler's eight delivery attempts.
+
+A successful retrieval or generation is stored under a key from the run, the step, and the frozen context. A duplicate delivery returns that observation and does not call the tool or the model again. Evidence written by a search that never becomes a report is the compensated side effect: its retention becomes `compensated`, and a report for that run is dropped. Compensating the same run again does not change the record. This does not reverse a hosted model charge.
+
+See the [retry guide](retry-compensation.md) and [verification](f25-validation.md).
