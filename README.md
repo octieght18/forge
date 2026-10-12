@@ -60,6 +60,8 @@ The owner approved [containerized Kubernetes deployment in WSL](docs/kubernetes-
 
 **F33** keeps Keycloak user-token checks and separates a [service identity and a workload identity](docs/identity.md). A service token cannot call product routes. A workload id comes from the run, not from a bearer token. Key rotation stays the existing JWKS test.
 
+**F34** enforces the [role matrix](docs/authorization.md) at the API, provisioning, and tool start. Operators cannot mutate another owner's workload. A denied tool does not start a process.
+
 - [Internal product brief](docs/product-brief.md)
 - [Product and design decisions](docs/decision-log.md)
 - [Architecture and integration boundaries](docs/architecture.md)
@@ -127,6 +129,8 @@ The owner approved [containerized Kubernetes deployment in WSL](docs/kubernetes-
 - [F32 tenant boundary verification](docs/f32-validation.md)
 - [Identity](docs/identity.md)
 - [F33 verification](docs/f33-validation.md)
+- [Authorization matrix](docs/authorization.md)
+- [F34 verification](docs/f34-validation.md)
 
 The owner must review product and design choices before they become accepted decisions. F02 records the accepted Go HTTP/OpenAPI, PostgreSQL and Temporal foundation, OpenRouter backend and local Kubernetes target. Keycloak OIDC is included from the first release. The testing model is `google/gemma-4-26b-a4b-it:free`. D26 supersedes F07's no-container deployment choice: the current stack can now run in kind inside WSL. F03's HTTP defaults and lifecycle conventions are accepted; new API/identity/workflow decisions still require consultation.
 

@@ -407,3 +407,11 @@ On 12 October 2026 the owner asked to implement the next backlog ticket, F33. Us
 A service token is `identity_kind=service` with role `service` and no developer or operator role. Product routes return 403. A workload identity is built from the stored run and workflow id. A bearer token that claims to be a workload is rejected. This does not add production revocation or close G3.
 
 See the [identity guide](identity.md) and [verification](f33-validation.md).
+
+## D49 — F34 RBAC and tool authorization
+
+On 12 October 2026 the owner asked to implement the next backlog ticket, F34. The tools stay `corpus.search` and `corpus.read`. Operators still cannot mutate another owner's workload. A denied tool does not start a process.
+
+The matrix is developer, operator, and service. Reads and mutations already require the caller's tenant and project. Provision stays a developer action. Telemetry stays an operator read. A service token and a mixed-role token are rejected. `corpus.write` is rejected before `exec`. Cross-tenant run ids stay 404. The activity does not carry a second tenant check; the API is the admission point. G3 stays open.
+
+See the [matrix](authorization.md) and [verification](f34-validation.md).

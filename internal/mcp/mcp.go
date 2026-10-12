@@ -184,8 +184,13 @@ func newEvidenceID() string {
 // Stdio is the worker-owned MCP command. It does not inherit the worker environment.
 type Stdio struct{ Command string }
 
+// AllowedTool is the only pair a run may execute.
+func AllowedTool(name string) bool {
+	return name == "corpus.search" || name == "corpus.read"
+}
+
 func (s Stdio) Call(ctx context.Context, name string, args map[string]any) (json.RawMessage, error) {
-	if s.Command == "" || strings.ContainsAny(s.Command, " \t\r\n|&;<>") {
+	if !AllowedTool(name) || s.Command == "" || strings.ContainsAny(s.Command, " \t\r\n|&;<>") {
 		return nil, ErrDenied
 	}
 	if err := ctx.Err(); err != nil {

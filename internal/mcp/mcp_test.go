@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -28,6 +30,22 @@ func TestDeniedScopeDoesNotCallTheTool(t *testing.T) {
 	}
 	if len(EvidenceRecords()) != 0 {
 		t.Fatal(EvidenceRecords())
+	}
+}
+
+func TestDeniedToolNameDoesNotStartAProcess(t *testing.T) {
+	dir := t.TempDir()
+	mark := filepath.Join(dir, "started")
+	script := filepath.Join(dir, "mark")
+	if err := os.WriteFile(script, []byte("#!/bin/sh\ntouch "+mark+"\n"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	_, err := (Stdio{Command: script}).Call(context.Background(), "corpus.write", map[string]any{})
+	if !errors.Is(err, ErrDenied) {
+		t.Fatal(err)
+	}
+	if _, statErr := os.Stat(mark); !os.IsNotExist(statErr) {
+		t.Fatal("denied tool started a process", statErr)
 	}
 }
 
