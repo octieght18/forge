@@ -343,3 +343,15 @@ The workflow execution deadline is 2 minutes. Each activity must finish within 3
 After cancellation, a disconnected context compensates leftover evidence and records `canceled`. The compensation note is `compensation_completed` or `compensation_incomplete`. The run stays canceled in either case. Incomplete compensation means the evidence may still say `workflow_history`. Temporal history is the record a restarted worker can see. The in-process list is not. No public status route or product execution-status column is added.
 
 See the [timeout guide](execution-timeouts.md) and [verification](f26-validation.md).
+
+## D42 — F27 execution history API
+
+On 12 October 2026 the owner asked to implement the next backlog ticket, F27. The ticket asks for steps, attempts, timestamps, and safe errors, and for start, cancel, history, and result endpoints with an auth abstraction. It also asks to record that full OIDC and RBAC validation is the M4 security gate.
+
+Registration already verifies Keycloak access tokens: issuer, audience, signature, expiry, and the developer and operator roles under `resource_access.forge-api.roles`. F27 uses that verifier. It does not add a second authenticator. Developers read and cancel their own runs. Operators can read and cannot mutate another owner's run. Tenant RBAC remains the M4 gate.
+
+Start and cancel commit the existing PostgreSQL run and command records. History is sanitized Temporal events. The result is the terminal workflow value: decision, a known reason, outcome, and evidence identifiers. Prompts, corpus excerpts, and bearer tokens are not copied from activity payloads or failure messages. `GET /report` and `GET /evidence` stay closed because those schemas require claim text and excerpts, and no product table stores them. Run list and rerun stay closed.
+
+The API dials Temporal only when `TEMPORAL_ADDRESS` is set. The native stack does not set it. Without a client, history and result return 503 and the run read reports an unavailable execution. No execution-status column was added.
+
+See the [history guide](execution-history.md) and [verification](f27-validation.md).

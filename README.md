@@ -46,6 +46,8 @@ The owner approved [containerized Kubernetes deployment in WSL](docs/kubernetes-
 
 **F26** adds [timeouts, heartbeats, and cancellation](docs/execution-timeouts.md). Canceling a workflow stops the tool through the activity context and records `canceled`. If compensation does not finish, the record says so.
 
+**F27** exposes [authenticated run history](docs/execution-history.md). Start and cancel commit the existing command records. History and result read Temporal and omit prompts, corpus text, and tokens. Full tenant RBAC remains the M4 gate.
+
 - [Internal product brief](docs/product-brief.md)
 - [Product and design decisions](docs/decision-log.md)
 - [Architecture and integration boundaries](docs/architecture.md)
@@ -101,6 +103,8 @@ The owner approved [containerized Kubernetes deployment in WSL](docs/kubernetes-
 - [F25 verification](docs/f25-validation.md)
 - [Execution timeouts and cancellation](docs/execution-timeouts.md)
 - [F26 verification](docs/f26-validation.md)
+- [Execution history and result](docs/execution-history.md)
+- [F27 verification](docs/f27-validation.md)
 
 The owner must review product and design choices before they become accepted decisions. F02 records the accepted Go HTTP/OpenAPI, PostgreSQL and Temporal foundation, OpenRouter backend and local Kubernetes target. Keycloak OIDC is included from the first release. The testing model is `google/gemma-4-26b-a4b-it:free`. D26 supersedes F07's no-container deployment choice: the current stack can now run in kind inside WSL. F03's HTTP defaults and lifecycle conventions are accepted; new API/identity/workflow decisions still require consultation.
 

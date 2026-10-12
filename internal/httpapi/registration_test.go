@@ -142,7 +142,7 @@ func TestRegistrationHTTPPostgreSQL(t *testing.T) {
 		status, _, _ = call(t, "DELETE", path, "a", "", nil)
 		expect(t, status, 405)
 		status, _, _ = call(t, "POST", "/api/v1/runs", "a", `{}`, nil)
-		expect(t, status, 404)
+		expect(t, status, 400)
 	})
 	t.Run("validation and preconditions", func(t *testing.T) {
 		cases := []struct {

@@ -17,6 +17,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/octieght18/forge/internal/auth"
 	"github.com/octieght18/forge/internal/contract"
+	"github.com/octieght18/forge/internal/execution"
 	"github.com/octieght18/forge/internal/store"
 )
 
@@ -27,6 +28,9 @@ type Registration struct {
 	Policy     *CorpusPolicy
 	CursorKey  []byte
 	Timeout    time.Duration
+	// Execution reads Temporal. Nil means history and result are unavailable.
+	// Full tenant RBAC beyond this verifier's developer and operator roles is the M4 gate.
+	Execution execution.Reader
 }
 type registration struct {
 	Registration
@@ -90,7 +94,7 @@ func (h *registration) serve(w http.ResponseWriter, r *http.Request) {
 		}{"ok"})
 		return
 	}
-	if h.serveOperation(w, r) || h.serveTelemetry(w, r) {
+	if h.serveOperation(w, r) || h.serveTelemetry(w, r) || h.serveRuns(w, r) {
 		return
 	}
 	parts := strings.Split(strings.TrimPrefix(r.URL.Path, "/"), "/")

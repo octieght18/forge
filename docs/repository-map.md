@@ -1,6 +1,6 @@
 # Repository navigation
 
-Start with the [quickstart](quickstart.md), [seven current API operations/examples](api-examples.md) and [OpenAPI JSON](../internal/contract/openapi.json). The schema includes planned research-run APIs as well as implemented registration; the examples page identifies availability.
+Start with the [quickstart](quickstart.md), [API examples](api-examples.md), the [execution history guide](execution-history.md), and [OpenAPI JSON](../internal/contract/openapi.json). The schema includes planned run list, rerun, report, and evidence routes; the examples page and the history guide identify what is implemented.
 
 | Path | Purpose |
 |---|---|
@@ -16,9 +16,9 @@ Start with the [quickstart](quickstart.md), [seven current API operations/exampl
 | [internal/auth](../internal/auth) | Real OIDC discovery/JWKS and API token verification/roles. |
 | [internal/login](../internal/login) | State/cookie-bound authorization code exchange and private token file. |
 | [internal/contract](../internal/contract) | Shared OpenAPI, examples, schema validation, input fingerprints, run lifecycle checks, and the F21 tool/activity/evidence payloads. |
-| [internal/store](../internal/store) | PostgreSQL queries, explicit checked migrations and durable run/start/cancel records. These run records are not HTTP execution endpoints. |
+| [internal/store](../internal/store) | PostgreSQL queries, explicit checked migrations and durable run/start/cancel records. HTTP start, cancel, history, and result are in `internal/httpapi`. |
 | [internal/reconcile](../internal/reconcile) | F12 command reconciliation and verified backend boundary. |
-| [internal/execution](../internal/execution), [cmd/forge-worker](../cmd/forge-worker), [cmd/forge-dispatch](../cmd/forge-dispatch) | Temporal research workflow, correlation, start/cancel delivery, activity deadlines, heartbeats, and compensation. |
+| [internal/execution](../internal/execution), [cmd/forge-worker](../cmd/forge-worker), [cmd/forge-dispatch](../cmd/forge-dispatch) | Temporal research workflow, correlation, start/cancel delivery, activity deadlines, heartbeats, compensation, and sanitized history. |
 | [internal/mcp](../internal/mcp), [cmd/forge-mcp-fixture](../cmd/forge-mcp-fixture) | Frozen-context tool checks, stdio MCP client, and the deterministic corpus fixture. |
 | [internal/model](../internal/model) | Fixture and OpenRouter report generation, citation checks, and stored model identity and usage. |
 | [internal/environment](../internal/environment), [cmd/forge-environment-controller](../cmd/forge-environment-controller) | Separate operator environment controller with read-only identity lookup, boundary reconciliation and guarded finalization. |

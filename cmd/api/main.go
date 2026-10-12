@@ -15,9 +15,11 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/octieght18/forge/internal/auth"
 	"github.com/octieght18/forge/internal/config"
+	"github.com/octieght18/forge/internal/execution"
 	"github.com/octieght18/forge/internal/httpapi"
 	"github.com/octieght18/forge/internal/service"
 	"github.com/octieght18/forge/internal/store"
+	"go.temporal.io/sdk/client"
 )
 
 func main() { os.Exit(run()) }
@@ -87,7 +89,12 @@ func run() int {
 			logger.Error("invalid corpus policy")
 			return 1
 		}
-		handler, err = httpapi.NewRegistrationHandler(logger, readiness, httpapi.Registration{Repository: repository, Auth: identity, Pool: pool, Policy: policy, CursorKey: key, Timeout: product.Timeout})
+		reader, closeReader := executionReader(logger)
+		defer closeReader()
+		handler, err = httpapi.NewRegistrationHandler(logger, readiness, httpapi.Registration{
+			Repository: repository, Auth: identity, Pool: pool, Policy: policy, CursorKey: key, Timeout: product.Timeout,
+			Execution: reader,
+		})
 		if err != nil {
 			logger.Error("registration initialization failed")
 			return 1
@@ -110,6 +117,27 @@ func run() int {
 		return 1
 	}
 	return 0
+}
+
+// executionReader dials Temporal only when TEMPORAL_ADDRESS is set. The native
+// stack does not set it and does not start the dev server. A missing client
+// makes history and result return unavailable rather than a fabricated trace.
+func executionReader(logger *slog.Logger) (execution.Reader, func()) {
+	noop := func() {}
+	address := os.Getenv("TEMPORAL_ADDRESS")
+	if address == "" {
+		return nil, noop
+	}
+	namespace := os.Getenv("TEMPORAL_NAMESPACE")
+	if namespace == "" {
+		namespace = "default"
+	}
+	service, err := client.Dial(client.Options{HostPort: address, Namespace: namespace})
+	if err != nil {
+		logger.Error("temporal history reader unavailable")
+		return nil, noop
+	}
+	return execution.SDKReader{Client: service}, func() { service.Close() }
 }
 
 func readPrivateFile(path string, limit int64) ([]byte, error) {

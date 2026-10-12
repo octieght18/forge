@@ -21,4 +21,4 @@ The recorded states are `complete`, `fail_closed`, `canceled`, and `timed_out`. 
 
 ## Limits
 
-There is no public run status route. A worker restart observes the same workflow through Temporal, not through a product table. Compensation does not reverse a hosted model charge.
+F27 adds an authenticated history and result read over Temporal. A worker restart still observes the same workflow through Temporal, not through a product table. Compensation does not reverse a hosted model charge.
