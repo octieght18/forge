@@ -3,6 +3,7 @@ package auth_test
 import (
 	"context"
 	"errors"
+	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
@@ -40,6 +41,28 @@ func TestAccessTokensAndKeyRotation(t *testing.T) {
 	if !errors.Is(check(issuer.Token(t, "a", "admin", nil)), store.ErrForbidden) {
 		t.Fatal("unknown role accepted")
 	}
+	serviceToken := issuer.Token(t, "dispatcher", "service", map[string]any{"identity_kind": "service"})
+	if !errors.Is(check(serviceToken), auth.ErrNotUser) {
+		t.Fatal("service token accepted as a user")
+	}
+	classified, err := v.Classify(context.Background(), requestWith(serviceToken))
+	if err != nil || classified.Kind != auth.KindService || classified.Principal.Subject != "dispatcher" || classified.Principal.Role != "" {
+		t.Fatal(err, classified)
+	}
+	user, err := v.Classify(context.Background(), requestWith(good))
+	if err != nil || user.Kind != auth.KindUser || user.Principal.Role != "developer" {
+		t.Fatal(err, user)
+	}
+	if !errors.Is(check(issuer.Token(t, "workload", "developer", map[string]any{"identity_kind": "workload"})), auth.ErrUnauthenticated) {
+		t.Fatal("workload token accepted")
+	}
+	workload, err := auth.WorkloadFromRun("33333333-3333-4333-8333-333333333333", "forge-run/33333333-3333-4333-8333-333333333333", "", "", "https://issuer.example", "owner")
+	if err != nil || workload.Tenant != store.DemoTenant || workload.WorkflowID != "forge-run/33333333-3333-4333-8333-333333333333" {
+		t.Fatal(err, workload)
+	}
+	if _, err = auth.WorkloadFromRun("33333333-3333-4333-8333-333333333333", "other", "", "", "https://issuer.example", "owner"); err == nil {
+		t.Fatal("mismatched workflow accepted")
+	}
 	forged := testsupport.NewIdentity(t).Token(t, "a", "developer", map[string]any{"iss": issuer.Server.URL})
 	if !errors.Is(check(forged), auth.ErrUnauthenticated) {
 		t.Fatal("untrusted signer accepted")
@@ -62,4 +85,10 @@ func TestAccessTokensAndKeyRotation(t *testing.T) {
 	if _, err := auth.New(context.Background(), "http://untrusted.example/realm", "forge-api"); err == nil {
 		t.Fatal("nonlocal plaintext issuer accepted")
 	}
+}
+
+func requestWith(token string) *http.Request {
+	r := httptest.NewRequest("GET", "/", nil)
+	r.Header.Set("Authorization", "Bearer "+token)
+	return r
 }

@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -17,6 +18,28 @@ import (
 )
 
 var ErrUnauthenticated = errors.New("invalid access token")
+
+// Kind separates a person, a service, and a workload. Only a user token is a
+// product principal. A workload is taken from the run record, not from a token.
+type Kind string
+
+const (
+	KindUser     Kind = "user"
+	KindService  Kind = "service"
+	KindWorkload Kind = "workload"
+)
+
+// Identity is the verified caller. Workload is set only for KindWorkload.
+type Identity struct {
+	Kind      Kind
+	Principal store.Principal
+	Workload  Workload
+}
+
+// Workload is the execution identity copied from a product run.
+type Workload struct {
+	RunID, WorkflowID, Tenant, Project, Issuer, Subject string
+}
 
 type Verifier struct {
 	verifier         *oidc.IDTokenVerifier
@@ -91,6 +114,7 @@ func (v *Verifier) Authenticate(ctx context.Context, r *http.Request) (store.Pri
 	}
 	var claims struct {
 		Type         string         `json:"typ"`
+		Kind         string         `json:"identity_kind"`
 		IssuedAt     int64          `json:"iat"`
 		Expires      int64          `json:"exp"`
 		NotBefore    int64          `json:"nbf"`
@@ -106,18 +130,75 @@ func (v *Verifier) Authenticate(ctx context.Context, r *http.Request) (store.Pri
 	if claims.IssuedAt <= 0 || claims.IssuedAt > now || claims.NotBefore > now || claims.Expires <= now || claims.Expires <= claims.IssuedAt || claims.Expires-claims.IssuedAt > 300 {
 		return store.Principal{}, ErrUnauthenticated
 	}
-	role := ""
+	roles := map[string]bool{}
 	for _, candidate := range claims.Access[v.audience].Roles {
-		if candidate == "operator" {
+		roles[candidate] = true
+	}
+	kind := claims.Kind
+	if kind == "" {
+		kind = string(KindUser)
+	}
+	switch Kind(kind) {
+	case KindUser:
+		role := ""
+		if roles["operator"] {
 			role = "operator"
-			break
-		}
-		if candidate == "developer" {
+		} else if roles["developer"] {
 			role = "developer"
 		}
+		if role == "" || roles["service"] {
+			return store.Principal{}, store.ErrForbidden
+		}
+		return store.Principal{Issuer: token.Issuer, Subject: token.Subject, Role: role}, nil
+	case KindService:
+		if !roles["service"] || roles["developer"] || roles["operator"] {
+			return store.Principal{}, store.ErrForbidden
+		}
+		return store.Principal{}, ErrNotUser
+	case KindWorkload:
+		return store.Principal{}, ErrUnauthenticated
+	default:
+		return store.Principal{}, ErrUnauthenticated
 	}
-	if role == "" {
-		return store.Principal{}, store.ErrForbidden
+}
+
+// ErrNotUser means the token verified but it is a service identity, not a person.
+var ErrNotUser = errors.New("service identity is not a user")
+
+// Classify reports the token kind. Product routes use Authenticate, which accepts only users.
+func (v *Verifier) Classify(ctx context.Context, r *http.Request) (Identity, error) {
+	principal, err := v.Authenticate(ctx, r)
+	if err == nil {
+		return Identity{Kind: KindUser, Principal: principal}, nil
 	}
-	return store.Principal{Issuer: token.Issuer, Subject: token.Subject, Role: role}, nil
+	if !errors.Is(err, ErrNotUser) {
+		return Identity{}, err
+	}
+	headers := r.Header.Values("Authorization")
+	parts := strings.Fields(headers[0])
+	token, verifyErr := v.verifier.Verify(ctx, parts[1])
+	if verifyErr != nil || token.Subject == "" {
+		return Identity{}, ErrUnauthenticated
+	}
+	return Identity{Kind: KindService, Principal: store.Principal{Issuer: token.Issuer, Subject: token.Subject}}, nil
+}
+
+// WorkloadFromRun builds the execution identity from the stored run. It does not
+// accept a bearer token.
+var resourceID = regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$`)
+
+func WorkloadFromRun(runID, workflowID, tenant, project, issuer, subject string) (Workload, error) {
+	if !resourceID.MatchString(runID) || workflowID != "forge-run/"+runID || issuer == "" || subject == "" {
+		return Workload{}, ErrUnauthenticated
+	}
+	if tenant == "" {
+		tenant = store.DemoTenant
+	}
+	if project == "" {
+		project = store.DemoProject
+	}
+	if !resourceID.MatchString(tenant) || !resourceID.MatchString(project) {
+		return Workload{}, ErrUnauthenticated
+	}
+	return Workload{RunID: runID, WorkflowID: workflowID, Tenant: tenant, Project: project, Issuer: issuer, Subject: subject}, nil
 }

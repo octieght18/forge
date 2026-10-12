@@ -399,3 +399,11 @@ On 12 October 2026 the owner asked to implement the next backlog ticket, F32. Ex
 There is no product evidence table. Evidence stays reachable only through a scoped run. This is not production tenant isolation, and G3 stays open.
 
 See the [verification](f32-validation.md).
+
+## D48 — F33 OIDC and workload identity
+
+On 12 October 2026 the owner asked to implement the next backlog ticket, F33. User-token verification already exists. It was not replaced. The same Keycloak checks still require issuer, audience, RS256 signature, and expiry. Forged, wrong-audience, and expired tokens stay rejected. The existing rotation test still accepts a new signing key and rejects an unknown signer.
+
+A service token is `identity_kind=service` with role `service` and no developer or operator role. Product routes return 403. A workload identity is built from the stored run and workflow id. A bearer token that claims to be a workload is rejected. This does not add production revocation or close G3.
+
+See the [identity guide](identity.md) and [verification](f33-validation.md).

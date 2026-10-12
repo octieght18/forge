@@ -56,6 +56,8 @@ func (h *registration) fail(w http.ResponseWriter, r *http.Request, err error) {
 	case errors.Is(err, auth.ErrUnauthenticated):
 		w.Header().Set("WWW-Authenticate", "Bearer")
 		WriteError(w, r, 401, "unauthenticated", "Valid access token required")
+	case errors.Is(err, auth.ErrNotUser):
+		WriteError(w, r, 403, "forbidden", "Service identity cannot call this API")
 	case errors.Is(err, store.ErrForbidden):
 		WriteError(w, r, 403, "forbidden", "Role is not permitted")
 	case errors.Is(err, store.ErrNotFound):
