@@ -1,6 +1,6 @@
 # F04 — Workload API contract
 
-**Status: accepted contract choices, recorded on 5 October 2026.** F04 supplies the versioned contract, executable validation and examples; F05 adds persistence and F06 implements the seven workload/version registration operations with real OIDC/owner checks. F07 starts the complete native local stack. F27 implements run start, read, cancel, history, and result. Run list, rerun, evidence, and report remain future contracts. Use the [current API reference](api-examples.md), the [history guide](execution-history.md), and [quickstart](quickstart.md) for availability and runnable requests. The default `go run ./cmd/api` command alone still serves health-only mode.
+**Status: accepted contract choices, recorded on 5 October 2026.** F04 supplies the versioned contract, executable validation and examples; F05 adds persistence and F06 implements the seven workload/version registration operations with real OIDC/owner checks. F07 starts the complete native local stack. F27 implements run start, read, cancel, history, and result. F28 implements rerun as a new execution. Run list, evidence, and report remain future contracts. Use the [current API reference](api-examples.md), the [history guide](execution-history.md), and [quickstart](quickstart.md) for availability and runnable requests. The default `go run ./cmd/api` command alone still serves health-only mode.
 
 ## Resource model
 
@@ -57,7 +57,7 @@ All spec fields are explicit; registration has no silent schema defaults. Scope/
 | GET | `/api/v1/runs/{run_id}/evidence` |
 | GET | `/api/v1/runs/{run_id}/report` |
 
-Existing public `GET/HEAD /healthz` and `/readyz` are also documented. Workload/version product routes are available in explicitly configured product mode. F27 adds `POST /api/v1/runs`, `GET /api/v1/runs/{run_id}`, `POST /api/v1/runs/{run_id}/cancel`, `GET /api/v1/runs/{run_id}/history`, and `GET /api/v1/runs/{run_id}/result`. Run list, rerun, evidence, and report remain unimplemented.
+Existing public `GET/HEAD /healthz` and `/readyz` are also documented. Workload/version product routes are available in explicitly configured product mode. F27 adds `POST /api/v1/runs`, `GET /api/v1/runs/{run_id}`, `POST /api/v1/runs/{run_id}/cancel`, `GET /api/v1/runs/{run_id}/history`, and `GET /api/v1/runs/{run_id}/result`. F28 adds `POST /api/v1/runs/{run_id}/rerun` as a new run linked by `rerun_of`. Run list, evidence, and report remain unimplemented.
 
 Create workload/version returns 201 with `Location`. Submit/rerun returns 202 with `Location` only after the product transaction durably records the run and pending start command. Cancel returns 202 after its durable command commit; a completed run may win the race. Cancel/rerun accept no body. Repeated cancel has one logical command. Rerun requires confirmed terminal state, copies the original immutable inputs into a new run and links `rerun_of`; it may repeat generation and is distinct from replay.
 

@@ -111,6 +111,7 @@ func Terminals() []Terminal {
 
 // RecordTerminal stores a terminal state. It does not write execution status to PostgreSQL.
 func RecordTerminal(_ context.Context, state Terminal) error {
+	entered()
 	if state.State != "complete" && state.State != "fail_closed" && state.State != "canceled" && state.State != "timed_out" {
 		return temporal.NewNonRetryableApplicationError("unknown terminal state", "permanent", nil)
 	}

@@ -355,3 +355,13 @@ Start and cancel commit the existing PostgreSQL run and command records. History
 The API dials Temporal only when `TEMPORAL_ADDRESS` is set. The native stack does not set it. Without a client, history and result return 503 and the run read reports an unavailable execution. No execution-status column was added.
 
 See the [history guide](execution-history.md) and [verification](f27-validation.md).
+
+## D43 — F28 replay and evaluation fixtures
+
+On 12 October 2026 the owner asked to implement the next backlog ticket, F28. The ticket asks to distinguish replay, retry, and re-execution, to default debugging to fixtures, and to cover a success, an uncertain result, and a failed step.
+
+Replay uses Temporal's workflow replayer. Activity functions are not entered, so the model and MCP are not called. Retry remains the F25 activity policy. Re-execution is `POST /api/v1/runs/{run_id}/rerun`: a new run and workflow ID linked by `rerun_of`. It is not a replay of the original history.
+
+`FORGE_DEBUG=true` selects the in-process corpus fixture and the fixture model and ignores a configured MCP command or model key. The SDK test environment does not export history, so the replay test builds a history and does not claim a download from a live server. No Temporal dev server was started.
+
+See the [mode guide](replay-modes.md) and [verification](f28-validation.md).

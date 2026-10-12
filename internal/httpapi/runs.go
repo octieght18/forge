@@ -1,6 +1,7 @@
 package httpapi
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -51,8 +52,8 @@ type resultBody struct {
 	EvidenceIDs []string `json:"evidence_ids"`
 }
 
-// serveRuns implements start, read, cancel, history, and result.
-// List, rerun, evidence excerpts, and the OpenAPI report stay closed.
+// serveRuns implements start, read, cancel, history, result, and rerun.
+// List, evidence excerpts, and the OpenAPI report stay closed.
 func (h *registration) serveRuns(w http.ResponseWriter, r *http.Request) bool {
 	kind, id, ok := runRoute(r.URL.Path)
 	if !ok || r.URL.Path != r.URL.EscapedPath() {
@@ -64,7 +65,7 @@ func (h *registration) serveRuns(w http.ResponseWriter, r *http.Request) bool {
 	}
 	allow := "GET"
 	method := http.MethodGet
-	if kind == "collection" || kind == "cancel" {
+	if kind == "collection" || kind == "cancel" || kind == "rerun" {
 		allow = "POST"
 		method = http.MethodPost
 	}
@@ -103,6 +104,8 @@ func (h *registration) serveRuns(w http.ResponseWriter, r *http.Request) bool {
 		h.readHistory(w, r, principal, id)
 	case "result":
 		h.readResult(w, r, principal, id)
+	case "rerun":
+		h.rerun(w, r, principal, id, body)
 	}
 	return true
 }
@@ -125,7 +128,7 @@ func runRoute(path string) (kind, id string, ok bool) {
 			return "", "", false
 		}
 		switch parts[4] {
-		case "cancel", "history", "result":
+		case "cancel", "history", "result", "rerun":
 			return parts[4], parts[3], true
 		default:
 			return "unknown", parts[3], true
@@ -198,6 +201,49 @@ func (h *registration) cancelRun(w http.ResponseWriter, r *http.Request, princip
 		RunID             string `json:"run_id"`
 		CancellationState string `json:"cancellation_state"`
 	}{id, state})
+}
+
+func (h *registration) rerun(w http.ResponseWriter, r *http.Request, principal store.Principal, id string, body []byte) {
+	if r.URL.RawQuery != "" || len(strings.TrimSpace(string(body))) != 0 {
+		WriteError(w, r, http.StatusBadRequest, "invalid_request", "Rerun accepts no body")
+		return
+	}
+	keys := r.Header.Values("Idempotency-Key")
+	if len(keys) != 1 || keys[0] == "" {
+		WriteError(w, r, http.StatusBadRequest, "invalid_request", "Idempotency-Key is required")
+		return
+	}
+	run, err := h.Repository.Rerun(r.Context(), principal, id, keys[0], h.confirmedTerminal)
+	if err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	view, err := h.runView(r, principal, run)
+	if err != nil {
+		h.fail(w, r, err)
+		return
+	}
+	w.Header().Set("Location", "/api/v1/runs/"+run.ID)
+	writeJSON(w, http.StatusAccepted, view)
+}
+
+func (h *registration) confirmedTerminal(ctx context.Context, run store.Run) error {
+	if h.Execution == nil {
+		return store.ErrUnavailable
+	}
+	view, err := h.Execution.Result(ctx, run.WorkflowID)
+	if errors.Is(err, execution.ErrNotReady) || errors.Is(err, execution.ErrAbsent) {
+		return store.ErrConflict
+	}
+	if err != nil {
+		return store.ErrUnavailable
+	}
+	switch view.Decision {
+	case "complete", "fail_closed", "canceled", "timed_out":
+		return nil
+	default:
+		return store.ErrConflict
+	}
 }
 
 func (h *registration) readHistory(w http.ResponseWriter, r *http.Request, principal store.Principal, id string) {

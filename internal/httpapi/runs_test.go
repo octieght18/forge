@@ -253,12 +253,42 @@ func TestRunHistoryAndResultHTTP(t *testing.T) {
 	if result.Decision != "complete" || result.Outcome != "answered" || len(result.EvidenceIDs) != 1 || result.EvidenceIDs[0] != created.RunID {
 		t.Fatalf("%#v", result)
 	}
+	status, rerunBody, rerunHeaders := call(t, server.URL, "POST", "/api/v1/runs/"+created.RunID+"/rerun", "a", "", map[string]string{"Idempotency-Key": "rerun-1"})
+	expect(t, status, 202)
+	if validator.Validate("Run", rerunBody) != nil {
+		t.Fatalf("rerun contract %s", rerunBody)
+	}
+	var rerun struct {
+		RunID   string  `json:"run_id"`
+		RerunOf *string `json:"rerun_of"`
+	}
+	json.Unmarshal(rerunBody, &rerun)
+	if rerun.RunID == created.RunID || rerun.RerunOf == nil || *rerun.RerunOf != created.RunID || rerunHeaders.Get("Location") != "/api/v1/runs/"+rerun.RunID {
+		t.Fatalf("%#v %s", rerun, rerunHeaders.Get("Location"))
+	}
+	fake.resultErr = execution.ErrNotReady
+	status, repeatRerun, _ := call(t, server.URL, "POST", "/api/v1/runs/"+created.RunID+"/rerun", "a", "", map[string]string{"Idempotency-Key": "rerun-1"})
+	expect(t, status, 202)
+	var repeatedRerun struct {
+		RunID string `json:"run_id"`
+	}
+	json.Unmarshal(repeatRerun, &repeatedRerun)
+	if repeatedRerun.RunID != rerun.RunID {
+		t.Fatal("idempotent rerun created another execution")
+	}
+	status, _, _ = call(t, server.URL, "POST", "/api/v1/runs/"+created.RunID+"/rerun", "a", "", map[string]string{"Idempotency-Key": "rerun-2"})
+	expect(t, status, 409)
+	status, _, _ = call(t, server.URL, "POST", "/api/v1/runs/"+created.RunID+"/rerun", "operator", "", map[string]string{"Idempotency-Key": "operator-rerun"})
+	expect(t, status, 404)
+	fake.resultErr = nil
 	status, offlineHistory, _ := call(t, offline.URL, "GET", "/api/v1/runs/"+created.RunID+"/history", "a", "", nil)
 	expect(t, status, 503)
 	if !strings.Contains(string(offlineHistory), `"unavailable"`) {
 		t.Fatalf("offline history %s", offlineHistory)
 	}
 	status, _, _ = call(t, offline.URL, "GET", "/api/v1/runs/"+created.RunID+"/result", "a", "", nil)
+	expect(t, status, 503)
+	status, _, _ = call(t, offline.URL, "POST", "/api/v1/runs/"+created.RunID+"/rerun", "a", "", map[string]string{"Idempotency-Key": "offline-rerun"})
 	expect(t, status, 503)
 	status, offlineRun, _ := call(t, offline.URL, "GET", "/api/v1/runs/"+created.RunID, "a", "", nil)
 	expect(t, status, 200)

@@ -43,7 +43,8 @@ func (r *Repository) SubmitRun(ctx context.Context, p Principal, key string, pay
 // Rerun requires the service to confirm terminal status through Temporal.
 // checkTerminal is invoked only for a new acceptance, after owner/key lookup;
 // matching accepted retries work even if Temporal is now unavailable. A callback
-// is not proof of terminal state by itself. No public endpoint invokes this yet.
+// is not proof of terminal state by itself. The HTTP rerun route is re-execution:
+// a new run and workflow ID linked by rerun_of, not a Temporal replay.
 func (r *Repository) Rerun(ctx context.Context, p Principal, parentID, key string, checkTerminal func(context.Context, Run) error) (Run, error) {
 	if err := r.principal(p); err != nil {
 		return Run{}, err

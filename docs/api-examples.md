@@ -1,6 +1,6 @@
 # Current API and runnable examples
 
-Base URL: **`http://127.0.0.1:8081`**. [Start the native stack and log in](quickstart.md) first. All product operations require a verified Keycloak API access token; health endpoints are public. The [OpenAPI document](../internal/contract/openapi.json) includes run list, rerun, report, and evidence as a contract. Those four are not implemented. The seven registration operations below are implemented, and F27 adds run start, read, cancel, history, and result. See the [history guide](execution-history.md). **These seven registration operations are what the PowerShell example calls**:
+Base URL: **`http://127.0.0.1:8081`**. [Start the native stack and log in](quickstart.md) first. All product operations require a verified Keycloak API access token; health endpoints are public. The [OpenAPI document](../internal/contract/openapi.json) includes run list, report, and evidence as a contract. Those three are not implemented. The seven registration operations below are implemented. F27 adds run start, read, cancel, history, and result. F28 adds rerun as a new execution. See the [history guide](execution-history.md) and the [replay guide](replay-modes.md). **These seven registration operations are what the PowerShell example calls**:
 
 | Operation | Method and path | Successful response |
 |---|---|---|
@@ -12,7 +12,7 @@ Base URL: **`http://127.0.0.1:8081`**. [Start the native stack and log in](quick
 | List versions | `GET /api/v1/workloads/{workload_id}/versions` | 200; `items`, `next_cursor` |
 | Read immutable version | `GET /api/v1/workloads/{workload_id}/versions/{version_id}` | 200; version |
 
-Server-issued identifiers are fields **`workload_id`** and **`version_id`**, not `id`. Names must be 1–63 lowercase slug characters, unique within the owner. Versions are immutable; no delete, owner transfer, or version update is available. The [developer CLI](developer-cli.md) calls these same seven registration operations: `deploy` records a version, and `delete` reports the API's 405 rather than adding a deletion API. Run start, cancel, history, and result are API routes and are not CLI commands. Asynchronous environment operations are a separate accepted-work API; see [provisioning operations](provisioning-operations.md).
+Server-issued identifiers are fields **`workload_id`** and **`version_id`**, not `id`. Names must be 1–63 lowercase slug characters, unique within the owner. Versions are immutable; no delete, owner transfer, or version update is available. The [developer CLI](developer-cli.md) calls these same seven registration operations: `deploy` records a version, and `delete` reports the API's 405 rather than adding a deletion API. Run start, cancel, history, result, and rerun are API routes and are not CLI commands. Asynchronous environment operations are a separate accepted-work API; see [provisioning operations](provisioning-operations.md).
 
 ## Complete example
 

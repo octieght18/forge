@@ -121,6 +121,7 @@ func Research(ctx workflow.Context, in Correlation) (Result, error) {
 // Retrieve checks correlation. With a configured corpus tool it resolves the
 // frozen context and calls corpus.search. Without one it does not start a tool.
 func Retrieve(ctx context.Context, in Correlation) (Observation, error) {
+	entered()
 	if Corpus != nil {
 		key := IdempotencyKey(in.RunID, "retrieval", material(in))
 		if saved, ok := recall(key); ok {
@@ -159,6 +160,7 @@ func Retrieve(ctx context.Context, in Correlation) (Observation, error) {
 // Generate asks the configured model for a report. Without a model it does not
 // invent a result.
 func Generate(ctx context.Context, in Correlation, passages []mcp.Passage) (Observation, error) {
+	entered()
 	if err := activityIdentity(ctx, in); err != nil {
 		return Observation{}, err
 	}
@@ -189,6 +191,7 @@ func Generate(ctx context.Context, in Correlation, passages []mcp.Passage) (Obse
 // Compensate withdraws evidence and reports left behind when a run stops after retrieval.
 // A second compensation for the same run does not repeat the withdrawal.
 func Compensate(ctx context.Context, in Correlation) error {
+	entered()
 	key := IdempotencyKey(in.RunID, "compensate", "partial-evidence")
 	if _, ok := recall(key); ok {
 		return nil

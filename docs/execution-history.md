@@ -35,7 +35,7 @@ An absent workflow returns an empty page. A Temporal error, or an API process wi
 
 `GET /result` returns `run_id`, `decision`, `reason`, an optional `outcome`, and `evidence_ids`. Decisions are `complete`, `fail_closed`, `canceled`, or `timed_out`. Evidence ids are lowercase UUID version 4 values. A reason that is not one of the known classes is replaced. A running or absent workflow returns 409. A missing Temporal client returns 503.
 
-The OpenAPI `Report` and `Evidence` schemas require claim text and excerpts. Those values are not in a product table, and this API does not return them. `GET /report` and `GET /evidence` stay closed. `GET /api/v1/runs` list and `POST /rerun` stay closed. Rerun is a later ticket.
+The OpenAPI `Report` and `Evidence` schemas require claim text and excerpts. Those values are not in a product table, and this API does not return them. `GET /report` and `GET /evidence` stay closed. `GET /api/v1/runs` list stays closed. `POST /rerun` is re-execution, described in the [replay guide](replay-modes.md). It is not a replay.
 
 The run read still includes the question and document ids because the accepted `Run` schema requires them. History and result do not repeat that question.
 

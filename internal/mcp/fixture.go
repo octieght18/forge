@@ -2,6 +2,7 @@ package mcp
 
 import (
 	"bufio"
+	"context"
 	"encoding/json"
 	"io"
 )
@@ -69,14 +70,37 @@ func fixtureCall(name string, args map[string]any) map[string]any {
 	return map[string]any{"content": []any{map[string]string{"type": "text", "text": string(body)}}}
 }
 
-func stringList(value any) []string {
-	items, _ := value.([]any)
-	out := make([]string, 0, len(items))
-	for _, item := range items {
-		text, _ := item.(string)
-		if text != "" {
-			out = append(out, text)
-		}
+// FixtureTool is the in-process corpus fixture. Debug and replay use it so a
+// process is not started and the live MCP command is not called.
+type FixtureTool struct{}
+
+func (FixtureTool) Call(_ context.Context, name string, args map[string]any) (json.RawMessage, error) {
+	content, _ := fixtureCall(name, args)["content"].([]any)
+	if len(content) == 0 {
+		return json.RawMessage(`{"passages":[]}`), nil
 	}
-	return out
+	item, _ := content[0].(map[string]string)
+	text := item["text"]
+	if text == "" {
+		return json.RawMessage(`{"passages":[]}`), nil
+	}
+	return json.RawMessage(text), nil
+}
+
+func stringList(value any) []string {
+	switch items := value.(type) {
+	case []string:
+		return append([]string(nil), items...)
+	case []any:
+		out := make([]string, 0, len(items))
+		for _, item := range items {
+			text, _ := item.(string)
+			if text != "" {
+				out = append(out, text)
+			}
+		}
+		return out
+	default:
+		return nil
+	}
 }

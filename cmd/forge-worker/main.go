@@ -28,13 +28,17 @@ func main() {
 		os.Exit(1)
 	}
 	defer service.Close()
-	if command := os.Getenv("FORGE_MCP_COMMAND"); command != "" {
-		execution.Corpus = mcp.Stdio{Command: command}
-	}
-	if key := os.Getenv("FORGE_MODEL_API_KEY"); key != "" {
-		execution.Model = model.OpenRouter{Key: key}
-	} else if os.Getenv("FORGE_MODEL_FIXTURE") == "true" {
-		execution.Model = model.Fixture{}
+	if os.Getenv("FORGE_DEBUG") == "true" {
+		execution.UseDebugFixtures()
+	} else {
+		if command := os.Getenv("FORGE_MCP_COMMAND"); command != "" {
+			execution.Corpus = mcp.Stdio{Command: command}
+		}
+		if key := os.Getenv("FORGE_MODEL_API_KEY"); key != "" {
+			execution.Model = model.OpenRouter{Key: key}
+		} else if os.Getenv("FORGE_MODEL_FIXTURE") == "true" {
+			execution.Model = model.Fixture{}
+		}
 	}
 	process := worker.New(service, execution.TaskQueue, worker.Options{})
 	process.RegisterWorkflowWithOptions(execution.Research, workflow.RegisterOptions{Name: execution.WorkflowName})

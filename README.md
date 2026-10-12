@@ -48,6 +48,8 @@ The owner approved [containerized Kubernetes deployment in WSL](docs/kubernetes-
 
 **F27** exposes [authenticated run history](docs/execution-history.md). Start and cancel commit the existing command records. History and result read Temporal and omit prompts, corpus text, and tokens. Full tenant RBAC remains the M4 gate.
 
+**F28** separates [replay, retry, and re-execution](docs/replay-modes.md). Replay does not call the model or MCP. Retry stays the bounded activity policy. Re-execution is a new run linked to the original. Debug mode uses the fixture tool and fixture model.
+
 - [Internal product brief](docs/product-brief.md)
 - [Product and design decisions](docs/decision-log.md)
 - [Architecture and integration boundaries](docs/architecture.md)
@@ -105,6 +107,8 @@ The owner approved [containerized Kubernetes deployment in WSL](docs/kubernetes-
 - [F26 verification](docs/f26-validation.md)
 - [Execution history and result](docs/execution-history.md)
 - [F27 verification](docs/f27-validation.md)
+- [Replay, retry, and re-execution](docs/replay-modes.md)
+- [F28 verification](docs/f28-validation.md)
 
 The owner must review product and design choices before they become accepted decisions. F02 records the accepted Go HTTP/OpenAPI, PostgreSQL and Temporal foundation, OpenRouter backend and local Kubernetes target. Keycloak OIDC is included from the first release. The testing model is `google/gemma-4-26b-a4b-it:free`. D26 supersedes F07's no-container deployment choice: the current stack can now run in kind inside WSL. F03's HTTP defaults and lifecycle conventions are accepted; new API/identity/workflow decisions still require consultation.
 
