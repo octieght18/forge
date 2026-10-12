@@ -16,6 +16,7 @@ import (
 	"go.temporal.io/sdk/testsuite"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	"github.com/octieght18/forge/internal/audit"
 	"github.com/octieght18/forge/internal/mcp"
 	"github.com/octieght18/forge/internal/model"
 )
@@ -76,6 +77,30 @@ func TestEvaluationFixtures(t *testing.T) {
 			t.Fatalf("%#v calls=%d", got, counter.calls)
 		}
 	})
+}
+
+func TestFixtureUsageReconcilesOnce(t *testing.T) {
+	audit.Reset()
+	previousTool, previousModel := Corpus, Model
+	t.Cleanup(func() {
+		Corpus = previousTool
+		Model = previousModel
+		mcp.Reset()
+		model.Reset()
+		ResetCommits()
+	})
+	resetEval()
+	UseDebugFixtures()
+	got := runEval(t, evalInput("45454545-4545-4455-8455-454545454545", []string{"platform-brief"}, strings.Repeat("e", 64)))
+	reports := model.Reports()
+	prompt, completion, tools := audit.Totals()
+	if len(reports) != 1 || prompt != reports[0].Usage.PromptTokens || completion != reports[0].Usage.CompletionTokens || prompt == 0 || tools != 1 || got.Usage.PromptTokens != prompt {
+		t.Fatalf("meter %d %d tools %d report %#v result %#v", prompt, completion, tools, reports, got)
+	}
+	encoded, _ := json.Marshal(audit.Events())
+	if strings.Contains(string(encoded), "Which service owns execution?") || strings.Contains(string(encoded), "Bearer") {
+		t.Fatal(string(encoded))
+	}
 }
 
 func TestReplayDoesNotCallToolsAndReexecutionDoes(t *testing.T) {

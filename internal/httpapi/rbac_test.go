@@ -12,8 +12,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/octieght18/forge/internal/audit"
 	"github.com/octieght18/forge/internal/auth"
 	"github.com/octieght18/forge/internal/contract"
+	"github.com/octieght18/forge/internal/store"
 	"github.com/octieght18/forge/internal/testsupport"
 )
 
@@ -102,5 +104,18 @@ func TestRoleMatrixAndDeniedTools(t *testing.T) {
 	status, _ = call(t, "POST", "/api/v1/workloads/"+workload.ID+"/versions", developer, strings.Replace(string(example), "corpus.search", "corpus.write", 1), nil)
 	if status != 422 {
 		t.Fatal("denied tool version", status)
+	}
+	audit.Reset()
+	status, _ = call(t, "GET", "/api/v1/workloads/"+workload.ID, developer, "", nil)
+	if status != 200 {
+		t.Fatal(status)
+	}
+	recorded := audit.Events()
+	if len(recorded) != 1 || recorded[0].Actor != "a" || recorded[0].Tenant != store.DemoTenant || recorded[0].Operation != "GET" || recorded[0].Outcome != "success" || recorded[0].Target != "/api/v1/workloads/"+workload.ID {
+		t.Fatalf("%#v", recorded)
+	}
+	encoded, _ := json.Marshal(recorded)
+	if strings.Contains(string(encoded), "Bearer") || strings.Contains(string(encoded), developer) {
+		t.Fatal(string(encoded))
 	}
 }

@@ -87,8 +87,10 @@ func (h *registration) serveRuns(w http.ResponseWriter, r *http.Request) bool {
 		return true
 	}
 	if !h.allow(w, r, principal) {
+		h.record(w, principal, r.Method, r.URL.Path)
 		return true
 	}
+	defer h.record(w, principal, r.Method, r.URL.Path)
 	if id != "" {
 		encoded, _ := json.Marshal(id)
 		if h.validator.Validate("ID", encoded) != nil {

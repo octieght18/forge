@@ -423,3 +423,9 @@ On 12 October 2026 the owner asked to implement the next backlog ticket, F35. `s
 A tenant gets 200 requests per second in one API process, 100 workloads, and 100 pending start commands. The workload and pending-run counts take a transaction lock in PostgreSQL, so callers that share that database observe one cap. The request window does not leave the process. A limited request is 429 with `Retry-After: 1` and the existing error object. No distributed quota consensus is claimed.
 
 See the [verification](f35-validation.md).
+
+## D51 — F36 audit and usage metering
+
+On 12 October 2026 the owner asked to implement the next backlog ticket, F36. Audit events record the actor subject, tenant, operation, time, target path, and outcome. They do not record tokens, prompts, or corpus text. Model units are the prompt and completion token counts already on the fixture report. Tool calls and those token counts are added once per activity idempotency key. The fixture execution is the reconciliation source. The counters live in the process, not in a second database.
+
+See the [verification](f36-validation.md).

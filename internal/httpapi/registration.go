@@ -141,8 +141,10 @@ func (h *registration) serve(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !h.allow(w, r, p) {
+		h.record(w, p, r.Method, r.URL.Path)
 		return
 	}
+	defer h.record(w, p, r.Method, r.URL.Path)
 	for _, i := range []int{3, 5} {
 		if len(parts) > i {
 			encoded := []byte(strconv.Quote(parts[i]))

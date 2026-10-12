@@ -79,8 +79,10 @@ func (h *registration) serveOperation(w http.ResponseWriter, r *http.Request) bo
 		return true
 	}
 	if !h.allow(w, r, principal) {
+		h.record(w, principal, r.Method, r.URL.Path)
 		return true
 	}
+	defer h.record(w, principal, r.Method, r.URL.Path)
 	now := time.Now().UTC()
 	var op provision.Operation
 	switch kind {
@@ -195,8 +197,10 @@ func (h *registration) serveTelemetry(w http.ResponseWriter, r *http.Request) bo
 		return true
 	}
 	if !h.allow(w, r, principal) {
+		h.record(w, principal, r.Method, r.URL.Path)
 		return true
 	}
+	defer h.record(w, principal, r.Method, r.URL.Path)
 	if principal.Role != "operator" {
 		h.fail(w, r, store.ErrForbidden)
 		return true

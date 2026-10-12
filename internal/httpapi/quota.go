@@ -5,6 +5,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/octieght18/forge/internal/audit"
 	"github.com/octieght18/forge/internal/store"
 )
 
@@ -54,4 +55,23 @@ func (h *registration) allow(w http.ResponseWriter, r *http.Request, p store.Pri
 	w.Header().Set("Retry-After", "1")
 	WriteError(w, r, http.StatusTooManyRequests, "rate_limited", "Retry later")
 	return false
+}
+
+func (h *registration) record(w http.ResponseWriter, p store.Principal, operation, target string) {
+	status := 0
+	if writer, ok := w.(*responseWriter); ok {
+		status = writer.status
+	}
+	outcome := "success"
+	switch {
+	case status == http.StatusTooManyRequests:
+		outcome = "limited"
+	case status >= 400:
+		outcome = "denied"
+	}
+	tenant := p.Tenant
+	if tenant == "" {
+		tenant = store.DemoTenant
+	}
+	audit.Record(audit.Event{Actor: p.Subject, Tenant: tenant, Operation: operation, Target: target, Outcome: outcome})
 }

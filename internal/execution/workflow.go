@@ -12,6 +12,7 @@ import (
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 
+	"github.com/octieght18/forge/internal/audit"
 	"github.com/octieght18/forge/internal/mcp"
 	"github.com/octieght18/forge/internal/model"
 )
@@ -154,6 +155,7 @@ func Retrieve(ctx context.Context, in Correlation) (Observation, error) {
 	}
 	obs := Observation{RunID: in.RunID, WorkflowID: in.WorkflowID, CommandID: in.CommandID, Step: "retrieval", Outcome: "succeeded", Passages: outcome.Passages}
 	remember(key, obs)
+	audit.NoteTool(key)
 	return obs, nil
 }
 
@@ -185,6 +187,7 @@ func Generate(ctx context.Context, in Correlation, passages []mcp.Passage) (Obse
 	}
 	obs := Observation{RunID: in.RunID, WorkflowID: in.WorkflowID, CommandID: in.CommandID, Step: "generation", Outcome: "succeeded", Class: report.Outcome, Passages: passages, Usage: report.Usage}
 	remember(key, obs)
+	audit.NoteModel(key, report.Usage.PromptTokens, report.Usage.CompletionTokens)
 	return obs, nil
 }
 
