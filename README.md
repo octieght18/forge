@@ -38,7 +38,9 @@ The owner approved [containerized Kubernetes deployment in WSL](docs/kubernetes-
 
 **F22** runs the research decisions on a [local Temporal worker](docs/temporal-worker.md). PostgreSQL keeps the run and the command. Temporal keeps execution history. The worker does not call a model.
 
-**F23** adds a [read-only MCP adapter](docs/mcp-adapter.md). The worker checks the frozen document scope before it starts `corpus.search`. A deterministic fixture returns one synthetic passage. Model execution stays later.
+**F23** adds a [read-only MCP adapter](docs/mcp-adapter.md). The worker checks the frozen document scope before it starts `corpus.search`. A deterministic fixture returns one synthetic passage.
+
+**F24** produces an [evidence-based report](docs/model-execution.md) from those passages. Tests use a fixture model. The hosted route is OpenRouter's free Gemma model, and the API key stays in the worker environment.
 
 - [Internal product brief](docs/product-brief.md)
 - [Product and design decisions](docs/decision-log.md)
@@ -89,6 +91,8 @@ The owner approved [containerized Kubernetes deployment in WSL](docs/kubernetes-
 - [F22 verification](docs/f22-validation.md)
 - [MCP tool adapter](docs/mcp-adapter.md)
 - [F23 verification](docs/f23-validation.md)
+- [Model execution](docs/model-execution.md)
+- [F24 verification](docs/f24-validation.md)
 
 The owner must review product and design choices before they become accepted decisions. F02 records the accepted Go HTTP/OpenAPI, PostgreSQL and Temporal foundation, OpenRouter backend and local Kubernetes target. Keycloak OIDC is included from the first release. The testing model is `google/gemma-4-26b-a4b-it:free`. D26 supersedes F07's no-container deployment choice: the current stack can now run in kind inside WSL. F03's HTTP defaults and lifecycle conventions are accepted; new API/identity/workflow decisions still require consultation.
 

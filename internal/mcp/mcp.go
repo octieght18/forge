@@ -6,10 +6,12 @@ package mcp
 import (
 	"bufio"
 	"context"
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -40,6 +42,7 @@ type Input struct {
 type Passage struct {
 	DocumentID string `json:"document_id"`
 	PassageID  string `json:"passage_id"`
+	EvidenceID string `json:"evidence_id,omitempty"`
 	TextSHA256 string `json:"text_sha256"`
 	Excerpt    string `json:"excerpt"`
 }
@@ -113,6 +116,7 @@ func Search(ctx context.Context, in Input, tool Tool) (Outcome, error) {
 		}
 		sum := sha256.Sum256([]byte(passage.Excerpt))
 		passage.TextSHA256 = hex.EncodeToString(sum[:])
+		passage.EvidenceID = newEvidenceID()
 		kept = append(kept, passage)
 		mu.Lock()
 		evidence = append(evidence, Evidence{Passage: passage, RunID: in.RunID, WorkflowID: in.WorkflowID, SnapshotID: in.SnapshotID, Retention: RetentionWorkflowHistory})
@@ -150,6 +154,16 @@ func resolve(in Input) (map[string]any, error) {
 // Redact removes credential-shaped text from a tool error.
 func Redact(message string) string {
 	return secret.ReplaceAllString(message, "[redacted]")
+}
+
+func newEvidenceID() string {
+	var b [16]byte
+	if _, err := rand.Read(b[:]); err != nil {
+		return ""
+	}
+	b[6] = (b[6] & 0x0f) | 0x40
+	b[8] = (b[8] & 0x3f) | 0x80
+	return fmt.Sprintf("%x-%x-%x-%x-%x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:])
 }
 
 // Stdio is the worker-owned MCP command. It does not inherit the worker environment.

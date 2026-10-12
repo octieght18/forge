@@ -313,3 +313,13 @@ The dispatcher copies the frozen question, snapshot, and document allow list int
 The fixture answers `corpus.search` and `corpus.read` with one synthetic platform-brief passage. Accepted passages are stored with the run, workflow, snapshot, passage, excerpt hash, and retention `workflow_history`. That retention is the Temporal history period. No product evidence table or expiry clock is added. Generation still returns `model_unavailable`.
 
 See the [adapter guide](mcp-adapter.md) and [verification](f23-validation.md).
+
+## D39 — F24 model execution and evidence-based results
+
+On 12 October 2026 the owner asked to implement the next backlog ticket, F24. The ticket asks for a completed workflow that resolves context, calls tools, and persists a result, with evidence links, model identity, usage, and uncertainty status. Tests must use fixtures, and the backend choice and secret handling must be documented.
+
+The hosted backend remains the OpenRouter route selected in F02: `google/gemma-4-26b-a4b-it:free`, with provider data collection denied and no paid fallback. `FORGE_MODEL_API_KEY` is read from the worker environment and sent only as an Authorization header. The workflow tests use a deterministic fixture instead of that network call. `FORGE_MODEL_FIXTURE=true` selects the same fixture when no key is present.
+
+An answered report cites only evidence IDs returned by the authorized search. No passages produce `insufficient_evidence`. The workflow result in Temporal history is the durable copy. The worker process also keeps the report in memory. No product report table or public run route is added.
+
+See the [model guide](model-execution.md) and [verification](f24-validation.md).

@@ -20,6 +20,7 @@ Start with the [quickstart](quickstart.md), [seven current API operations/exampl
 | [internal/reconcile](../internal/reconcile) | F12 command reconciliation and verified backend boundary. |
 | [internal/execution](../internal/execution), [cmd/forge-worker](../cmd/forge-worker), [cmd/forge-dispatch](../cmd/forge-dispatch) | Temporal research workflow, correlation, and start/cancel delivery. |
 | [internal/mcp](../internal/mcp), [cmd/forge-mcp-fixture](../cmd/forge-mcp-fixture) | Frozen-context tool checks, stdio MCP client, and the deterministic corpus fixture. |
+| [internal/model](../internal/model) | Fixture and OpenRouter report generation, citation checks, and stored model identity and usage. |
 | [internal/environment](../internal/environment), [cmd/forge-environment-controller](../cmd/forge-environment-controller) | Separate operator environment controller with read-only identity lookup, boundary reconciliation and guarded finalization. |
 | [internal/config](../internal/config), [internal/service](../internal/service) | Validated configuration, HTTP deadlines, readiness and graceful drain. |
 | [internal/testsupport](../internal/testsupport) | Real PostgreSQL integration fixtures. |

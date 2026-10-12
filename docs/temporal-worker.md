@@ -25,7 +25,7 @@ go run ./cmd/forge-dispatch
 
 ## Workflow and activities
 
-`research.v1` checks that Temporal's workflow ID matches the product workflow ID and the run ID. It passes the run, workflow, and command IDs into each activity. When `FORGE_MCP_COMMAND` is set, retrieval calls [corpus.search](mcp-adapter.md) after the frozen document scope is checked. Otherwise retrieval does not start a tool. The generation activity returns `model_unavailable`. The workflow then completes with decision `fail_closed`. That completion means the control-plane decisions finished. It is not a research report and it is not written to PostgreSQL.
+`research.v1` checks that Temporal's workflow ID matches the product workflow ID and the run ID. It passes the run, workflow, and command IDs into each activity. When `FORGE_MCP_COMMAND` is set, retrieval calls [corpus.search](mcp-adapter.md) after the frozen document scope is checked. Otherwise retrieval does not start a tool. When `FORGE_MODEL_API_KEY` or `FORGE_MODEL_FIXTURE` is set, generation writes an [evidence-based report](model-execution.md). Without a model, the generation activity returns `model_unavailable` and the workflow completes with decision `fail_closed`. A completed report is the workflow result in Temporal history. It is not written to a product report table.
 
 MCP adapters and model calls belong to later tickets. A missing historical execution is not started again when the command is a cancel. A start whose execution is already present, running or closed, reuses that ID.
 
