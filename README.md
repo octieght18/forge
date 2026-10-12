@@ -54,6 +54,8 @@ The owner approved [containerized Kubernetes deployment in WSL](docs/kubernetes-
 
 **F30** publishes the [workflow and replay guide](docs/workflow-replay-guide.md), including that sample, the retry and compensation rules, and the limits of the SDK clock. It does not set a production SLO.
 
+**F31** writes the [tenant threat model](docs/threat-model.md). G3 stays open. Keycloak, owner isolation, and the read-only MCP command are existing controls, not production isolation. The environment controller remains privileged infrastructure.
+
 - [Internal product brief](docs/product-brief.md)
 - [Product and design decisions](docs/decision-log.md)
 - [Architecture and integration boundaries](docs/architecture.md)
@@ -116,6 +118,8 @@ The owner approved [containerized Kubernetes deployment in WSL](docs/kubernetes-
 - [F29 recovery measurements](docs/f29-validation.md)
 - [Workflow and replay guide](docs/workflow-replay-guide.md)
 - [F30 verification](docs/f30-validation.md)
+- [Tenant threat model](docs/threat-model.md)
+- [F31 verification](docs/f31-validation.md)
 
 The owner must review product and design choices before they become accepted decisions. F02 records the accepted Go HTTP/OpenAPI, PostgreSQL and Temporal foundation, OpenRouter backend and local Kubernetes target. Keycloak OIDC is included from the first release. The testing model is `google/gemma-4-26b-a4b-it:free`. D26 supersedes F07's no-container deployment choice: the current stack can now run in kind inside WSL. F03's HTTP defaults and lifecycle conventions are accepted; new API/identity/workflow decisions still require consultation.
 

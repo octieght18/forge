@@ -381,3 +381,13 @@ On 12 October 2026 the owner asked to implement the next backlog ticket, F30. Th
 The guide repeats the F29 sample rather than a new measurement: 43361 µs and two retrieval attempts for the dependency failure, one compensated evidence row, 12993 µs for `insufficient_evidence`, 1816 µs for `canceled`, and 535 µs for a replayer that did not enter activities. The one-second retry was skipped by the test clock. No production SLO is claimed. The dev server was not started and a live worker was not killed.
 
 See the [guide](workflow-replay-guide.md) and [verification](f30-validation.md).
+
+## D46 — F31 tenant threat model
+
+On 12 October 2026 the owner asked to implement the next backlog ticket, F31. The ticket lists G3 as a prerequisite. G3 is still an open gate. This decision does not mark G3 done.
+
+The design keeps the accepted customer: one engineering team, developers on their own records, operators reading all records and not mutating another owner's. Keycloak already checks issuer, audience, signature, expiry, and the developer and operator roles. The MCP command is one operator-configured executable, checked against the frozen document list before the process starts. The environment controller remains privileged infrastructure and does not hand out a kubeconfig.
+
+The model lists spoofing, confused deputy, cross-tenant data access, SSRF, and tool abuse, and it separates tested demo controls from the missing tenant boundary and from production requirements. A tenant and a project are defined here. They are not columns yet. No production isolation is claimed.
+
+See the [threat model](threat-model.md) and [verification](f31-validation.md).
