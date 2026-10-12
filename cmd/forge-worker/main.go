@@ -1,0 +1,44 @@
+package main
+
+import (
+	"log/slog"
+	"os"
+
+	"github.com/octieght18/forge/internal/execution"
+	"go.temporal.io/sdk/client"
+	"go.temporal.io/sdk/worker"
+	"go.temporal.io/sdk/workflow"
+)
+
+func main() {
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	address := os.Getenv("TEMPORAL_ADDRESS")
+	if address == "" {
+		address = "127.0.0.1:7233"
+	}
+	namespace := os.Getenv("TEMPORAL_NAMESPACE")
+	if namespace == "" {
+		namespace = "default"
+	}
+	service, err := client.Dial(client.Options{HostPort: address, Namespace: namespace, Logger: slogAdapter{logger}})
+	if err != nil {
+		logger.Error("temporal client failed")
+		os.Exit(1)
+	}
+	defer service.Close()
+	process := worker.New(service, execution.TaskQueue, worker.Options{})
+	process.RegisterWorkflowWithOptions(execution.Research, workflow.RegisterOptions{Name: execution.WorkflowName})
+	process.RegisterActivity(execution.Retrieve)
+	process.RegisterActivity(execution.Generate)
+	if err = process.Run(worker.InterruptCh()); err != nil {
+		logger.Error("temporal worker stopped")
+		os.Exit(1)
+	}
+}
+
+type slogAdapter struct{ logger *slog.Logger }
+
+func (s slogAdapter) Debug(msg string, keys ...any) { s.logger.Debug(msg, keys...) }
+func (s slogAdapter) Info(msg string, keys ...any)  { s.logger.Info(msg, keys...) }
+func (s slogAdapter) Warn(msg string, keys ...any)  { s.logger.Warn(msg, keys...) }
+func (s slogAdapter) Error(msg string, keys ...any) { s.logger.Error(msg, keys...) }

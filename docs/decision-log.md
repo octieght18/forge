@@ -293,3 +293,13 @@ F19 and F20, the cards blocking the gate, are already done. F18 measured recover
 The controller leader reads open operations and submits one `ForgeEnvironment` for `provision`, or removes it for `delete`. A second submit with the same owner leaves the object in place. A different owner is refused. The environment role gains SELECT on the operation columns it needs and stays read-only, so it still cannot mark the operation `ready`. The API process still has no Kubernetes credential. The developer receives no kubeconfig. The running cluster uses this behavior after its controller image, grant, and role are updated to this commit.
 
 See the [gate record](g2-validation.md).
+
+## D37 — F22 Temporal execution workers
+
+On 12 October 2026 the owner asked to implement the next backlog ticket, F22. The ticket asks for durable workflow IDs, correlation identity, control-plane records that do not compete with Temporal, a local Temporal deployment, and a Go workflow and activity worker.
+
+The run already stores `forge-run/<run UUID>`. The dispatcher starts that ID with duplicate reuse rejected, and a later start describes the same execution. The workflow copies the run, workflow, and command IDs into each activity. PostgreSQL still stores the run and the command delivery. Temporal history is the execution record. No execution-status column was added.
+
+The worker's retrieval activity does not call a corpus tool. Generation returns `model_unavailable`, and the workflow completes with `fail_closed`. MCP adapters and model calls remain later tickets. The local dev server is `scripts/temporal-dev.ps1`. The native stack does not launch it. Public run routes stay absent.
+
+See the [worker guide](temporal-worker.md) and [verification](f22-validation.md).

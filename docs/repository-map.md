@@ -17,7 +17,8 @@ Start with the [quickstart](quickstart.md), [seven current API operations/exampl
 | [internal/login](../internal/login) | State/cookie-bound authorization code exchange and private token file. |
 | [internal/contract](../internal/contract) | Shared OpenAPI, examples, schema validation, input fingerprints, run lifecycle checks, and the F21 tool/activity/evidence payloads. |
 | [internal/store](../internal/store) | PostgreSQL queries, explicit checked migrations and durable run/start/cancel records. These run records are not HTTP execution endpoints. |
-| [internal/reconcile](../internal/reconcile) | F12 command reconciliation and verified backend boundary; no deployed Temporal adapter yet. |
+| [internal/reconcile](../internal/reconcile) | F12 command reconciliation and verified backend boundary. |
+| [internal/execution](../internal/execution), [cmd/forge-worker](../cmd/forge-worker), [cmd/forge-dispatch](../cmd/forge-dispatch) | Temporal research workflow, correlation, and start/cancel delivery. |
 | [internal/environment](../internal/environment), [cmd/forge-environment-controller](../cmd/forge-environment-controller) | Separate operator environment controller with read-only identity lookup, boundary reconciliation and guarded finalization. |
 | [internal/config](../internal/config), [internal/service](../internal/service) | Validated configuration, HTTP deadlines, readiness and graceful drain. |
 | [internal/testsupport](../internal/testsupport) | Real PostgreSQL integration fixtures. |

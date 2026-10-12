@@ -69,4 +69,4 @@ The message is at most 512 characters and carries no corpus text, token, or file
 
 ## What this design leaves for later tickets
 
-F22 starts Temporal workers. F23 implements context resolution and the MCP adapters. Until those exist, these schemas are the contract the worker must satisfy. Public run, history, evidence, and report routes stay unimplemented. The installed environment controller remains a namespace boundary and is not a research execution.
+F22 starts Temporal workers. F23 implements context resolution and the MCP adapters. The worker now runs the decision sequence and stops at `model_unavailable`. Public run, history, evidence, and report routes stay unimplemented. The installed environment controller remains a namespace boundary and is not a research execution.
