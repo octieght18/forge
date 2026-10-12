@@ -303,3 +303,13 @@ The run already stores `forge-run/<run UUID>`. The dispatcher starts that ID wit
 The worker's retrieval activity does not call a corpus tool. Generation returns `model_unavailable`, and the workflow completes with `fail_closed`. MCP adapters and model calls remain later tickets. The local dev server is `scripts/temporal-dev.ps1`. The native stack does not launch it. Public run routes stay absent.
 
 See the [worker guide](temporal-worker.md) and [verification](f22-validation.md).
+
+## D38 — F23 context resolution and MCP tool adapter
+
+On 12 October 2026 the owner asked to implement the next backlog ticket, F23. The ticket asks for validated tool inputs, authorization before a side effect, redacted credentials, stored context and evidence with provenance and retention intent, one MCP adapter, and one deterministic test tool.
+
+The dispatcher copies the frozen question, snapshot, and document allow list into the workflow. A document outside that list fails before another execution starts. The retrieval activity checks the invocation schema again and only then starts `FORGE_MCP_COMMAND`. The child process keeps `PATH` and does not inherit the worker's other environment. Bearer tokens, database URLs, and `password=` text are removed from tool errors.
+
+The fixture answers `corpus.search` and `corpus.read` with one synthetic platform-brief passage. Accepted passages are stored with the run, workflow, snapshot, passage, excerpt hash, and retention `workflow_history`. That retention is the Temporal history period. No product evidence table or expiry clock is added. Generation still returns `model_unavailable`.
+
+See the [adapter guide](mcp-adapter.md) and [verification](f23-validation.md).

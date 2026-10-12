@@ -2,6 +2,7 @@ package execution
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 
 	"github.com/octieght18/forge/internal/reconcile"
@@ -47,10 +48,11 @@ func (b Backend) Deliver(ctx context.Context, x store.Delivery) (reconcile.Recei
 		if status == StatusRunning || status == StatusClosed {
 			return receipt, nil
 		}
-		err = b.Client.Start(ctx, x.Run.WorkflowID, Correlation{
-			RunID: x.Run.ID, WorkflowID: x.Run.WorkflowID, WorkloadID: x.Run.WorkloadID,
-			VersionID: x.Run.VersionID, CommandID: x.CommandID,
-		})
+		corr, corrErr := correlation(x)
+		if corrErr != nil {
+			return receipt, corrErr
+		}
+		err = b.Client.Start(ctx, x.Run.WorkflowID, corr)
 		if err != nil && !errors.Is(err, errAlreadyStarted) {
 			return receipt, reconcile.ErrRetryable
 		}
@@ -79,6 +81,42 @@ func (b Backend) Deliver(ctx context.Context, x store.Delivery) (reconcile.Recei
 }
 
 var errAlreadyStarted = errors.New("workflow already started")
+
+func correlation(x store.Delivery) (Correlation, error) {
+	out := Correlation{
+		RunID: x.Run.ID, WorkflowID: x.Run.WorkflowID, WorkloadID: x.Run.WorkloadID,
+		VersionID: x.Run.VersionID, CommandID: x.CommandID,
+	}
+	var input struct {
+		Question  string   `json:"question"`
+		Documents []string `json:"document_ids"`
+	}
+	var spec struct {
+		Snapshot    string `json:"corpus_snapshot_id"`
+		Permissions struct {
+			Documents []string `json:"document_ids"`
+		} `json:"permissions"`
+		Limits struct {
+			Max int `json:"max_passages"`
+		} `json:"limits"`
+	}
+	_ = json.Unmarshal(x.Run.Input, &input)
+	_ = json.Unmarshal(x.Spec, &spec)
+	allowed := map[string]bool{}
+	for _, id := range spec.Permissions.Documents {
+		allowed[id] = true
+	}
+	for _, id := range input.Documents {
+		if !allowed[id] {
+			return Correlation{}, ErrIdentity
+		}
+	}
+	out.SnapshotID = spec.Snapshot
+	out.DocumentIDs = input.Documents
+	out.Question = input.Question
+	out.MaxPassages = spec.Limits.Max
+	return out, nil
+}
 
 // SDK adapts the Temporal client. Workflow ID reuse stays rejected.
 type SDK struct{ Client client.Client }

@@ -1,6 +1,7 @@
 // Package execution runs the research workflow on Temporal.
 // PostgreSQL keeps the run and the start/cancel command. Temporal keeps
-// execution history. This package does not call a model or an MCP tool.
+// execution history. Model execution stays a later ticket. A configured corpus
+// tool is called only after the frozen document scope is checked.
 package execution
 
 import (
@@ -11,7 +12,12 @@ import (
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
+
+	"github.com/octieght18/forge/internal/mcp"
 )
+
+// Corpus is the worker-owned tool. A nil tool performs no corpus call.
+var Corpus mcp.Tool
 
 const (
 	TaskQueue    = "forge-research"
@@ -20,11 +26,15 @@ const (
 
 // Correlation is the identity copied from the product command into Temporal.
 type Correlation struct {
-	RunID      string `json:"run_id"`
-	WorkflowID string `json:"workflow_id"`
-	WorkloadID string `json:"workload_id"`
-	VersionID  string `json:"version_id"`
-	CommandID  string `json:"command_id"`
+	RunID       string   `json:"run_id"`
+	WorkflowID  string   `json:"workflow_id"`
+	WorkloadID  string   `json:"workload_id"`
+	VersionID   string   `json:"version_id"`
+	CommandID   string   `json:"command_id"`
+	SnapshotID  string   `json:"snapshot_id,omitempty"`
+	Question    string   `json:"question,omitempty"`
+	DocumentIDs []string `json:"document_ids,omitempty"`
+	MaxPassages int      `json:"max_passages,omitempty"`
 }
 
 // Observation is one activity's view of that identity.
@@ -63,6 +73,9 @@ func Research(ctx workflow.Context, in Correlation) (Result, error) {
 	if retrieved.WorkflowID != info.WorkflowExecution.ID || retrieved.RunID != in.RunID || retrieved.CommandID != in.CommandID {
 		return Result{}, temporal.NewNonRetryableApplicationError("correlation mismatch", "identity_mismatch", nil)
 	}
+	if retrieved.Outcome == "failed" {
+		return Result{RunID: in.RunID, WorkflowID: info.WorkflowExecution.ID, CommandID: in.CommandID, Decision: "fail_closed", Reason: retrieved.Class}, nil
+	}
 	var generated Observation
 	if err := workflow.ExecuteActivity(ctx, Generate, in).Get(ctx, &generated); err != nil {
 		return Result{}, err
@@ -73,10 +86,24 @@ func Research(ctx workflow.Context, in Correlation) (Result, error) {
 	return Result{RunID: in.RunID, WorkflowID: info.WorkflowExecution.ID, CommandID: in.CommandID, Decision: "fail_closed", Reason: "model_unavailable"}, nil
 }
 
-// Retrieve checks correlation and does not call a corpus tool.
+// Retrieve checks correlation. With a configured corpus tool it resolves the
+// frozen context and calls corpus.search. Without one it does not start a tool.
 func Retrieve(ctx context.Context, in Correlation) (Observation, error) {
 	if err := activityIdentity(ctx, in); err != nil {
 		return Observation{}, err
+	}
+	if Corpus == nil {
+		return Observation{RunID: in.RunID, WorkflowID: in.WorkflowID, CommandID: in.CommandID, Step: "retrieval", Outcome: "succeeded"}, nil
+	}
+	outcome, err := mcp.Search(ctx, mcp.Input{
+		RunID: in.RunID, WorkflowID: in.WorkflowID, CommandID: in.CommandID, SnapshotID: in.SnapshotID,
+		Question: in.Question, DocumentIDs: in.DocumentIDs, MaxPassages: in.MaxPassages,
+	}, Corpus)
+	if err != nil {
+		return Observation{}, temporal.NewNonRetryableApplicationError(mcp.Redact(err.Error()), "tool_unavailable", nil)
+	}
+	if outcome.Failed {
+		return Observation{RunID: in.RunID, WorkflowID: in.WorkflowID, CommandID: in.CommandID, Step: "retrieval", Outcome: "failed", Class: outcome.Class}, nil
 	}
 	return Observation{RunID: in.RunID, WorkflowID: in.WorkflowID, CommandID: in.CommandID, Step: "retrieval", Outcome: "succeeded"}, nil
 }

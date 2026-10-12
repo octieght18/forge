@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/octieght18/forge/internal/execution"
+	"github.com/octieght18/forge/internal/mcp"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
 	"go.temporal.io/sdk/workflow"
@@ -26,6 +27,9 @@ func main() {
 		os.Exit(1)
 	}
 	defer service.Close()
+	if command := os.Getenv("FORGE_MCP_COMMAND"); command != "" {
+		execution.Corpus = mcp.Stdio{Command: command}
+	}
 	process := worker.New(service, execution.TaskQueue, worker.Options{})
 	process.RegisterWorkflowWithOptions(execution.Research, workflow.RegisterOptions{Name: execution.WorkflowName})
 	process.RegisterActivity(execution.Retrieve)

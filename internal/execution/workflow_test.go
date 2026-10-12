@@ -3,6 +3,7 @@ package execution
 import (
 	"context"
 	"errors"
+	"strings"
 	"testing"
 
 	"github.com/octieght18/forge/internal/reconcile"
@@ -83,5 +84,12 @@ func TestDeliveryUsesOneWorkflowID(t *testing.T) {
 	fake.status = StatusAbsent
 	if _, err = backend.Deliver(context.Background(), delivery); !errors.Is(err, ErrAbsent) || errors.Is(err, reconcile.ErrRetryable) {
 		t.Fatal(err)
+	}
+	delivery.Kind = "start"
+	delivery.Run.Input = []byte(`{"question":"Which service owns execution?","document_ids":["not-approved"]}`)
+	delivery.Spec = []byte(`{"corpus_snapshot_id":"` + strings.Repeat("a", 64) + `","permissions":{"document_ids":["platform-brief"]},"limits":{"max_passages":8}}`)
+	fake.starts = 0
+	if _, err = backend.Deliver(context.Background(), delivery); !errors.Is(err, ErrIdentity) || fake.starts != 0 {
+		t.Fatal(err, fake.starts)
 	}
 }

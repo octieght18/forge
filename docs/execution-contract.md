@@ -69,4 +69,4 @@ The message is at most 512 characters and carries no corpus text, token, or file
 
 ## What this design leaves for later tickets
 
-F22 starts Temporal workers. F23 implements context resolution and the MCP adapters. The worker now runs the decision sequence and stops at `model_unavailable`. Public run, history, evidence, and report routes stay unimplemented. The installed environment controller remains a namespace boundary and is not a research execution.
+F22 starts Temporal workers. F23 implements context resolution and the MCP adapters. The worker's retrieval activity calls [corpus.search](mcp-adapter.md) only when `FORGE_MCP_COMMAND` names one executable. Generation returns `model_unavailable`, and the workflow completes with `fail_closed`. MCP read of an unauthorized document is rejected before a process starts. Model calls remain a later ticket. Public run, history, evidence, and report routes stay unimplemented. The environment controller remains a namespace boundary and is not a research execution.
