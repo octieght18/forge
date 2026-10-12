@@ -29,7 +29,7 @@ The accepted customer is one engineering team with multiple workload owners. Mul
 | Keycloak | Issuer keys and access tokens | Forge product policy |
 | OpenRouter | The free Gemma route when a key is configured | Debug runs, which use the fixture instead |
 
-A tenant in this design is the engineering team. A project is a group of workloads inside that team. Neither identifier is stored yet. Current rows are owned by issuer and subject. Adding columns is a later change and must not delete demo rows.
+A tenant in this design is the engineering team. A project is a group of workloads inside that team. F32 stores those identifiers. Rows that existed with only issuer and subject keep the demo tenant and demo project. They are not deleted. This is still one team, not a boundary between organizations.
 
 ## Roles
 
@@ -57,6 +57,6 @@ A tenant in this design is the engineering team. A project is a group of workloa
 
 Tested in this repository: Keycloak access-token checks for issuer, audience, signature, expiry, and role; owner reads and operator read-only mutation checks on workloads, versions, runs, cancel, history, and rerun; MCP allow-list rejection before a process; fixture debug path that does not use a live model key.
 
-Incomplete for a demo that still has one team: no tenant or project id on rows; no service or workload identity separate from the user token; no rate limit; no audit trail; G3 remains open. The environment controller is trusted infrastructure, not a tenant sandbox.
+Incomplete for a demo that still has one team: the stored tenant is the migration default, not an organization boundary; no service or workload identity separate from the user token; no rate limit; no audit trail; G3 remains open. The environment controller is trusted infrastructure, not a tenant sandbox.
 
 Production would still need, and this demo does not have: organization-level isolation, network policy around the worker, a private model route with rotation beyond the local Keycloak test, token revocation before the five-minute access-token lifetime, and a reviewed gate that closes G3. None of those are claimed here.

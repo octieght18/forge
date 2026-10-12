@@ -23,6 +23,7 @@ func (r *Repository) CreateVersion(ctx context.Context, p Principal, workloadID 
 	if err := r.principal(p); err != nil {
 		return Version{}, err
 	}
+	p = p.withScope()
 	if err := r.id(workloadID); err != nil {
 		return Version{}, err
 	}
@@ -45,12 +46,14 @@ func (r *Repository) CreateVersion(ctx context.Context, p Principal, workloadID 
 	defer rollback(tx)
 	// Lock one owned workload so MAX+1 is safe across concurrent registrations.
 	var locked string
-	err = tx.QueryRow(ctx, `SELECT w.id::text`+workloadJoin+`WHERE `+mutateOwner+`AND w.id=$3 FOR UPDATE OF w`, p.Issuer, p.Subject, workloadID).Scan(&locked)
+	err = tx.QueryRow(ctx, `SELECT w.id::text`+workloadJoin+`WHERE `+mutateOwner+`AND w.id=$5 FOR UPDATE OF w`, p.Issuer, p.Subject, p.Tenant, p.Project, workloadID).Scan(&locked)
 	if err != nil {
 		return Version{}, storageError(err)
 	}
-	_, err = tx.Exec(ctx, `INSERT INTO forge.versions(id,workload_id,number,spec,fingerprint)
-        SELECT $1,$2,coalesce(max(number),0)+1,$3,$4 FROM forge.versions WHERE workload_id=$2`, id, workloadID, input.Spec, fingerprint)
+	_, err = tx.Exec(ctx, `INSERT INTO forge.versions(id,workload_id,number,spec,fingerprint,tenant_id,project_id)
+        SELECT $1,w.id,coalesce(max(v.number),0)+1,$2,$3,w.tenant_id,w.project_id
+        FROM forge.workloads w LEFT JOIN forge.versions v ON v.workload_id=w.id
+        WHERE w.id=$4 GROUP BY w.id,w.tenant_id,w.project_id`, id, input.Spec, fingerprint, workloadID)
 	if err != nil {
 		return Version{}, storageError(err)
 	}
@@ -73,7 +76,8 @@ func (r *Repository) GetVersion(ctx context.Context, p Principal, workloadID, ve
 	if err := r.id(versionID); err != nil {
 		return Version{}, err
 	}
-	return scanVersion(r.pool.QueryRow(ctx, `SELECT `+versionColumns+versionJoin+`WHERE `+readOwner+`AND w.id=$4 AND v.id=$5`, p.Issuer, p.Subject, p.Role, workloadID, versionID))
+	p = p.withScope()
+	return scanVersion(r.pool.QueryRow(ctx, `SELECT `+versionColumns+versionJoin+`WHERE `+readOwner+`AND w.id=$6 AND v.id=$7`, p.Issuer, p.Subject, p.Role, p.Tenant, p.Project, workloadID, versionID))
 }
 
 // beforeNumber is an internal cursor position; zero means the first page.
@@ -84,6 +88,7 @@ func (r *Repository) ListVersions(ctx context.Context, p Principal, workloadID s
 	if err := r.id(workloadID); err != nil {
 		return nil, err
 	}
+	p = p.withScope()
 	if limit < 1 || limit > 100 || beforeNumber < 0 {
 		return nil, contract.ErrInvalidInput
 	}
@@ -91,8 +96,8 @@ func (r *Repository) ListVersions(ctx context.Context, p Principal, workloadID s
 	if _, err := r.GetWorkload(ctx, p, workloadID); err != nil {
 		return nil, err
 	}
-	rows, err := r.pool.Query(ctx, `SELECT `+versionColumns+versionJoin+`WHERE `+readOwner+`AND w.id=$4
-        AND ($5::bigint=0 OR v.number<$5) ORDER BY v.number DESC LIMIT $6`, p.Issuer, p.Subject, p.Role, workloadID, beforeNumber, limit)
+	rows, err := r.pool.Query(ctx, `SELECT `+versionColumns+versionJoin+`WHERE `+readOwner+`AND w.id=$6
+        AND ($7::bigint=0 OR v.number<$7) ORDER BY v.number DESC LIMIT $8`, p.Issuer, p.Subject, p.Role, p.Tenant, p.Project, workloadID, beforeNumber, limit)
 	if err != nil {
 		return nil, storageError(err)
 	}

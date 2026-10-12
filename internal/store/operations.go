@@ -38,7 +38,8 @@ func (r *Repository) AcceptOperation(ctx context.Context, p Principal, workloadI
 	}
 	defer rollback(tx)
 	var exists bool
-	err = tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM forge.workloads w JOIN forge.principals p ON p.id=w.owner_id WHERE `+mutateOwner+` AND w.id=$3) `, p.Issuer, p.Subject, workloadID).Scan(&exists)
+	p = p.withScope()
+	err = tx.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM forge.workloads w JOIN forge.principals p ON p.id=w.owner_id WHERE `+mutateOwner+` AND w.id=$5) `, p.Issuer, p.Subject, p.Tenant, p.Project, workloadID).Scan(&exists)
 	if err != nil {
 		return provision.Operation{}, storageError(err)
 	}
@@ -91,6 +92,7 @@ func (r *Repository) GetOperation(ctx context.Context, p Principal, id string, n
 	if err := r.id(id); err != nil {
 		return provision.Operation{}, err
 	}
+	p = p.withScope()
 	tx, err := r.pool.Begin(ctx)
 	if err != nil {
 		return provision.Operation{}, storageError(err)
@@ -98,7 +100,7 @@ func (r *Repository) GetOperation(ctx context.Context, p Principal, id string, n
 	defer rollback(tx)
 	op, err := scanOperation(tx.QueryRow(ctx, `SELECT `+operationColumns+` FROM forge.provisioning_operations o
 		JOIN forge.workloads w ON w.id=o.workload_id JOIN forge.principals p ON p.id=w.owner_id
-		WHERE `+readOwner+` AND o.id=$4 FOR UPDATE OF o`, p.Issuer, p.Subject, p.Role, id))
+		WHERE `+readOwner+` AND o.id=$6 FOR UPDATE OF o`, p.Issuer, p.Subject, p.Role, p.Tenant, p.Project, id))
 	if err != nil {
 		return provision.Operation{}, err
 	}
@@ -122,6 +124,7 @@ func (r *Repository) CancelOperation(ctx context.Context, p Principal, id string
 	if err := r.id(id); err != nil {
 		return provision.Operation{}, err
 	}
+	p = p.withScope()
 	tx, err := r.pool.Begin(ctx)
 	if err != nil {
 		return provision.Operation{}, storageError(err)
@@ -129,7 +132,7 @@ func (r *Repository) CancelOperation(ctx context.Context, p Principal, id string
 	defer rollback(tx)
 	op, err := scanOperation(tx.QueryRow(ctx, `SELECT `+operationColumns+` FROM forge.provisioning_operations o
 		JOIN forge.workloads w ON w.id=o.workload_id JOIN forge.principals p ON p.id=w.owner_id
-		WHERE `+mutateOwner+` AND o.id=$3 FOR UPDATE OF o`, p.Issuer, p.Subject, id))
+		WHERE `+mutateOwner+` AND o.id=$5 FOR UPDATE OF o`, p.Issuer, p.Subject, p.Tenant, p.Project, id))
 	if err != nil {
 		return provision.Operation{}, err
 	}

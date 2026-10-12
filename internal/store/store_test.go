@@ -25,9 +25,9 @@ type database struct {
 	migratorConfig  *pgx.ConnConfig
 }
 
-var devA = Principal{"https://identity.example/realms/forge", "a", "developer"}
-var devB = Principal{"https://identity.example/realms/forge", "b", "developer"}
-var operator = Principal{"https://identity.example/realms/forge", "operator", "operator"}
+var devA = Principal{"https://identity.example/realms/forge", "a", "developer", "", ""}
+var devB = Principal{"https://identity.example/realms/forge", "b", "developer", "", ""}
+var operator = Principal{"https://identity.example/realms/forge", "operator", "operator", "", ""}
 
 // Each test owns a new database and two roles. It never drops a supplied database.
 func testDatabase(t *testing.T) *database {
@@ -256,7 +256,7 @@ func TestPostgreSQLRepositories(t *testing.T) {
 		if count(t, db.migrator, "workloads") != before {
 			t.Fatal("malformed input persisted")
 		}
-		_, err := r.CreateWorkload(ctx, Principal{devA.Issuer, "a", "admin"}, []byte(`{"name":"role"}`))
+		_, err := r.CreateWorkload(ctx, Principal{devA.Issuer, "a", "admin", "", ""}, []byte(`{"name":"role"}`))
 		requireError(t, err, ErrForbidden)
 		_, err = r.GetWorkload(ctx, devA, "not-a-uuid")
 		requireError(t, err, contract.ErrInvalidInput)
@@ -458,7 +458,7 @@ func TestPostgreSQLRepositories(t *testing.T) {
 		requireError(t, err, ErrNotFound)
 	})
 	t.Run("keyset pages filter before limit and keep tie breakers", func(t *testing.T) {
-		principal := Principal{devA.Issuer, "page-owner", "developer"}
+		principal := Principal{devA.Issuer, "page-owner", "developer", "", ""}
 		var workloads []Workload
 		for _, name := range []string{"page-a", "page-b", "page-c"} {
 			workloads = append(workloads, createWorkload(t, r, principal, name))
@@ -512,12 +512,12 @@ func TestPostgreSQLRepositories(t *testing.T) {
 	})
 	t.Run("exact OIDC identity and maximum lengths", func(t *testing.T) {
 		prefix := "https://identity.example/"
-		long := Principal{prefix + strings.Repeat("a", 2048-len(prefix)), strings.Repeat("\u03b1", 255), "developer"}
+		long := Principal{prefix + strings.Repeat("a", 2048-len(prefix)), strings.Repeat("\u03b1", 255), "developer", "", ""}
 		w := createWorkload(t, r, long, "long-owner")
 		if _, err := r.GetWorkload(ctx, long, w.ID); err != nil {
 			t.Fatal(err)
 		}
-		other := Principal{"https://other.example/realms/forge", devA.Subject, "developer"}
+		other := Principal{"https://other.example/realms/forge", devA.Subject, "developer", "", ""}
 		owned := createWorkload(t, r, devA, "issuer-identity")
 		_, err := r.GetWorkload(ctx, other, owned.ID)
 		requireError(t, err, ErrNotFound)
@@ -609,7 +609,7 @@ func TestPostgreSQLMigrationsAndPrivileges(t *testing.T) {
 				t.Fatal(err)
 			}
 		}
-		if count(t, db.migrator, "schema_migrations") != 3 {
+		if count(t, db.migrator, "schema_migrations") != 4 {
 			t.Fatal("migration duplicated")
 		}
 	})
@@ -621,11 +621,11 @@ func TestPostgreSQLMigrationsAndPrivileges(t *testing.T) {
 	})
 	t.Run("failed forward migration rolls back DDL and ledger", func(t *testing.T) {
 		files := fstest.MapFS{}
-		for _, name := range []string{"migrations/0001_product_state.sql", "migrations/0002_command_reconciliation.sql", "migrations/0003_provisioning_operations.sql"} {
+		for _, name := range []string{"migrations/0001_product_state.sql", "migrations/0002_command_reconciliation.sql", "migrations/0003_provisioning_operations.sql", "migrations/0004_tenant_project.sql"} {
 			body, _ := migrations.ReadFile(name)
 			files[name] = &fstest.MapFile{Data: body}
 		}
-		files["migrations/0004_failure.sql"] = &fstest.MapFile{Data: []byte("CREATE TABLE forge.rollback_probe(id integer); SELECT no_such_function();")}
+		files["migrations/0005_failure.sql"] = &fstest.MapFile{Data: []byte("CREATE TABLE forge.rollback_probe(id integer); SELECT no_such_function();")}
 		if err := migrateFS(ctx, db.migrator, files); err == nil {
 			t.Fatal("failed migration committed")
 		}
@@ -634,7 +634,7 @@ func TestPostgreSQLMigrationsAndPrivileges(t *testing.T) {
 		if err != nil || exists {
 			t.Fatal("DDL rollback failed", err)
 		}
-		if count(t, db.migrator, "schema_migrations") != 3 {
+		if count(t, db.migrator, "schema_migrations") != 4 {
 			t.Fatal("failed migration ledger persisted")
 		}
 	})
@@ -660,18 +660,62 @@ func TestPostgreSQLCommandMigrationRetainsAcceptedRuns(t *testing.T) {
 	first, _ := migrations.ReadFile("migrations/0001_product_state.sql")
 	db := testDatabaseFiles(t, fstest.MapFS{"migrations/0001_product_state.sql": {Data: first}})
 	ctx := context.Background()
-	w := createWorkload(t, db.repo, devA, "upgrade")
-	v := createVersion(t, db.repo, devA, w)
-	run, err := db.repo.SubmitRun(ctx, devA, "old-accepted", runPayload(w, v))
+	// Rows created before the tenant migration have no tenant columns. The
+	// repository now writes those columns, so this seed uses the old shape.
+	const (
+		principalID = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
+		workloadID  = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"
+		versionID   = "cccccccc-cccc-4ccc-8ccc-cccccccccccc"
+		runID       = "dddddddd-dddd-4ddd-8ddd-dddddddddddd"
+		startID     = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee"
+		cancelID    = "ffffffff-ffff-4fff-8fff-ffffffffffff"
+	)
+	validator, err := contract.New()
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := db.repo.Cancel(ctx, devA, run.ID); err != nil {
+	versionBody, err := contract.Examples.ReadFile("examples/create-version.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var versionRequest struct {
+		Spec json.RawMessage `json:"spec"`
+	}
+	if json.Unmarshal(versionBody, &versionRequest) != nil {
+		t.Fatal("version example")
+	}
+	versionFingerprint, err := validator.VersionFingerprint(versionBody)
+	if err != nil {
+		t.Fatal(err)
+	}
+	w := Workload{ID: workloadID}
+	v := Version{ID: versionID, WorkloadID: workloadID, Fingerprint: versionFingerprint}
+	payload := runPayload(w, v)
+	runFingerprint, err := validator.SubmissionFingerprint(payload)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = db.migrator.Exec(ctx, `INSERT INTO forge.principals(id,issuer,subject,issuer_hash,subject_hash)
+        VALUES ($1,$2,$3,sha256(convert_to($2,'UTF8')),sha256(convert_to($3,'UTF8')))`, principalID, devA.Issuer, devA.Subject); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = db.migrator.Exec(ctx, `INSERT INTO forge.workloads(id,owner_id,name,description) VALUES ($1,$2,'upgrade','fixture')`, workloadID, principalID); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = db.migrator.Exec(ctx, `INSERT INTO forge.versions(id,workload_id,number,spec,fingerprint) VALUES ($1,$2,1,$3,$4)`, versionID, workloadID, versionRequest.Spec, versionFingerprint); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = db.migrator.Exec(ctx, `INSERT INTO forge.runs(id,owner_id,workload_id,version_id,input,idempotency_key,fingerprint,operation,workflow_id)
+        VALUES ($1,$2,$3,$4,$5,'old-accepted',$6,'createRun',$7)`, runID, principalID, workloadID, versionID, payload, runFingerprint, "forge-run/"+runID); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = db.migrator.Exec(ctx, `INSERT INTO forge.commands(id,run_id,kind) VALUES ($1,$2,'start'),($3,$2,'cancel')`, startID, runID, cancelID); err != nil {
 		t.Fatal(err)
 	}
 	if err := Migrate(ctx, db.migrator); err != nil {
 		t.Fatal(err)
 	}
+	run := Run{ID: runID, WorkflowID: "forge-run/" + runID}
 	again, err := db.repo.SubmitRun(ctx, devA, "old-accepted", runPayload(w, v))
 	if err != nil || again.ID != run.ID || again.WorkflowID != run.WorkflowID {
 		t.Fatal("upgrade lost accepted identity", err)
@@ -699,8 +743,8 @@ func TestStoreGuards(t *testing.T) {
 		t.Fatal(err)
 	}
 	r := &Repository{validator: validator}
-	requireError(t, r.principal(Principal{"not-uri", "subject", "developer"}), contract.ErrInvalidInput)
-	requireError(t, r.principal(Principal{devA.Issuer, "a", "untrusted"}), ErrForbidden)
+	requireError(t, r.principal(Principal{"not-uri", "subject", "developer", "", ""}), contract.ErrInvalidInput)
+	requireError(t, r.principal(Principal{devA.Issuer, "a", "untrusted", "", ""}), ErrForbidden)
 	requireError(t, r.page(101, nil), contract.ErrInvalidInput)
 	requireError(t, r.page(1, &Position{ID: "invalid"}), contract.ErrInvalidInput)
 	for i := 0; i < 20; i++ {

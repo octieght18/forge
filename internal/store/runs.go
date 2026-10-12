@@ -18,7 +18,7 @@ type runInput struct {
 }
 
 const runColumns = `r.id::text,p.issuer,p.subject,r.workload_id::text,r.version_id::text,r.input,r.rerun_of::text,r.workflow_id,r.created_at`
-const runJoin = ` FROM forge.runs r JOIN forge.principals p ON p.id=r.owner_id `
+const runJoin = ` FROM forge.runs r JOIN forge.workloads w ON w.id=r.workload_id JOIN forge.principals p ON p.id=r.owner_id `
 
 func scanRun(row pgx.Row) (Run, error) {
 	var run Run
@@ -63,6 +63,7 @@ func (r *Repository) Rerun(ctx context.Context, p Principal, parentID, key strin
 }
 
 func (r *Repository) acceptRun(ctx context.Context, p Principal, key string, payload []byte, input runInput, fingerprint string, parent *Run, checkTerminal func(context.Context, Run) error) (Run, error) {
+	p = p.withScope()
 	encoded, _ := json.Marshal(key)
 	if err := r.validator.Validate("IdempotencyKey", encoded); err != nil {
 		return Run{}, err
@@ -75,7 +76,8 @@ func (r *Repository) acceptRun(ctx context.Context, p Principal, key string, pay
 	// Ownership/version association is checked before owner-scoped key lookup.
 	var owner string
 	var spec []byte
-	err = tx.QueryRow(ctx, `SELECT w.owner_id::text,v.spec`+versionJoin+`WHERE `+mutateOwner+`AND w.id=$3 AND v.id=$4`, p.Issuer, p.Subject, input.WorkloadID, input.VersionID).Scan(&owner, &spec)
+	var tenant, project string
+	err = tx.QueryRow(ctx, `SELECT w.owner_id::text,v.spec,w.tenant_id::text,w.project_id::text`+versionJoin+`WHERE `+mutateOwner+`AND w.id=$5 AND v.id=$6`, p.Issuer, p.Subject, p.Tenant, p.Project, input.WorkloadID, input.VersionID).Scan(&owner, &spec, &tenant, &project)
 	if err != nil {
 		return Run{}, storageError(err)
 	}
@@ -140,8 +142,8 @@ func (r *Repository) acceptRun(ctx context.Context, p Principal, key string, pay
 	if err != nil {
 		return Run{}, err
 	}
-	_, err = tx.Exec(ctx, `INSERT INTO forge.runs(id,owner_id,workload_id,version_id,input,idempotency_key,fingerprint,operation,rerun_of,workflow_id)
-        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`, id, owner, input.WorkloadID, input.VersionID, payload, key, fingerprint, operation, parentID, "forge-run/"+id)
+	_, err = tx.Exec(ctx, `INSERT INTO forge.runs(id,owner_id,workload_id,version_id,input,idempotency_key,fingerprint,operation,rerun_of,workflow_id,tenant_id,project_id)
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`, id, owner, input.WorkloadID, input.VersionID, payload, key, fingerprint, operation, parentID, "forge-run/"+id, tenant, project)
 	if err != nil {
 		return Run{}, storageError(err)
 	}
@@ -166,18 +168,21 @@ func (r *Repository) GetRun(ctx context.Context, p Principal, id string) (Run, e
 	if err := r.id(id); err != nil {
 		return Run{}, err
 	}
-	return scanRun(r.pool.QueryRow(ctx, `SELECT `+runColumns+runJoin+`WHERE `+readOwner+`AND r.id=$4`, p.Issuer, p.Subject, p.Role, id))
+	p = p.withScope()
+	return scanRun(r.pool.QueryRow(ctx, `SELECT `+runColumns+runJoin+`WHERE `+readOwner+`AND r.tenant_id=w.tenant_id AND r.project_id=w.project_id AND r.id=$6`, p.Issuer, p.Subject, p.Role, p.Tenant, p.Project, id))
 }
 func (r *Repository) ownedRun(ctx context.Context, p Principal, id string) (Run, error) {
 	if err := r.id(id); err != nil {
 		return Run{}, err
 	}
-	return scanRun(r.pool.QueryRow(ctx, `SELECT `+runColumns+runJoin+`WHERE `+mutateOwner+`AND r.id=$3`, p.Issuer, p.Subject, id))
+	p = p.withScope()
+	return scanRun(r.pool.QueryRow(ctx, `SELECT `+runColumns+runJoin+`WHERE `+mutateOwner+`AND r.tenant_id=w.tenant_id AND r.project_id=w.project_id AND r.id=$5`, p.Issuer, p.Subject, p.Tenant, p.Project, id))
 }
 func (r *Repository) ListRuns(ctx context.Context, p Principal, filter RunFilter) ([]Run, error) {
 	if err := r.principal(p); err != nil {
 		return nil, err
 	}
+	p = p.withScope()
 	if err := r.page(filter.Limit, filter.After); err != nil {
 		return nil, err
 	}
@@ -195,8 +200,9 @@ func (r *Repository) ListRuns(ctx context.Context, p Principal, filter RunFilter
 		id = filter.After.ID
 	}
 	rows, err := r.pool.Query(ctx, `SELECT `+runColumns+runJoin+`WHERE `+readOwner+`
-        AND ($4::uuid IS NULL OR r.workload_id=$4) AND ($5::timestamptz IS NULL OR (r.created_at,r.id)<($5,$6::uuid))
-        ORDER BY r.created_at DESC,r.id DESC LIMIT $7`, p.Issuer, p.Subject, p.Role, workload, at, id, filter.Limit)
+        AND r.tenant_id=w.tenant_id AND r.project_id=w.project_id
+        AND ($6::uuid IS NULL OR r.workload_id=$6) AND ($7::timestamptz IS NULL OR (r.created_at,r.id)<($7,$8::uuid))
+        ORDER BY r.created_at DESC,r.id DESC LIMIT $9`, p.Issuer, p.Subject, p.Role, p.Tenant, p.Project, workload, at, id, filter.Limit)
 	if err != nil {
 		return nil, storageError(err)
 	}
@@ -252,9 +258,10 @@ func (r *Repository) Commands(ctx context.Context, p Principal, runID string) ([
 	if _, err := r.GetRun(ctx, p, runID); err != nil {
 		return nil, err
 	}
+	p = p.withScope()
 	rows, err := r.pool.Query(ctx, `SELECT c.id::text,c.run_id::text,c.kind,c.state,c.created_at,c.delivered_at
-        FROM forge.commands c JOIN forge.runs r ON r.id=c.run_id JOIN forge.principals p ON p.id=r.owner_id
-        WHERE `+readOwner+`AND r.id=$4 ORDER BY CASE c.kind WHEN 'start' THEN 0 ELSE 1 END`, p.Issuer, p.Subject, p.Role, runID)
+        FROM forge.commands c JOIN forge.runs r ON r.id=c.run_id JOIN forge.workloads w ON w.id=r.workload_id JOIN forge.principals p ON p.id=r.owner_id
+        WHERE `+readOwner+`AND r.tenant_id=w.tenant_id AND r.project_id=w.project_id AND r.id=$6 ORDER BY CASE c.kind WHEN 'start' THEN 0 ELSE 1 END`, p.Issuer, p.Subject, p.Role, p.Tenant, p.Project, runID)
 	if err != nil {
 		return nil, storageError(err)
 	}

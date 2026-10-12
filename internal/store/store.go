@@ -24,7 +24,25 @@ var (
 	ErrUnavailable  = errors.New("product storage unavailable")
 )
 
-type Principal struct{ Issuer, Subject, Role string }
+const (
+	// DemoTenant and DemoProject are the migration boundary for rows that were
+	// stored with issuer and subject and no tenant id.
+	DemoTenant  = "00000000-0000-4000-8000-000000000001"
+	DemoProject = "00000000-0000-4000-8000-000000000002"
+)
+
+type Principal struct{ Issuer, Subject, Role, Tenant, Project string }
+
+func (p Principal) withScope() Principal {
+	if p.Tenant == "" {
+		p.Tenant = DemoTenant
+	}
+	if p.Project == "" {
+		p.Project = DemoProject
+	}
+	return p
+}
+
 type Owner struct {
 	Issuer  string `json:"issuer"`
 	Subject string `json:"subject"`
@@ -95,7 +113,13 @@ func (r *Repository) principal(p Principal) error {
 		return ErrForbidden
 	}
 	b, _ := json.Marshal(Owner{p.Issuer, p.Subject})
-	return r.validator.Validate("Owner", b)
+	if err := r.validator.Validate("Owner", b); err != nil {
+		return err
+	}
+	if p.Tenant != "" && r.id(p.Tenant) != nil || p.Project != "" && r.id(p.Project) != nil {
+		return contract.ErrInvalidInput
+	}
+	return nil
 }
 func (r *Repository) id(id string) error {
 	b, _ := json.Marshal(id)
@@ -173,8 +197,8 @@ func ownerID(ctx context.Context, tx pgx.Tx, p Principal) (string, error) {
 
 const workloadColumns = `w.id::text,p.issuer,p.subject,w.name,w.description,w.revision,w.created_at,w.updated_at`
 const workloadJoin = ` FROM forge.workloads w JOIN forge.principals p ON p.id=w.owner_id `
-const readOwner = ` (p.issuer=$1 AND p.subject=$2 OR $3::text='operator') `
-const mutateOwner = ` p.issuer=$1 AND p.subject=$2 `
+const readOwner = ` (p.issuer=$1 AND p.subject=$2 OR $3::text='operator') AND w.tenant_id=$4::uuid AND w.project_id=$5::uuid `
+const mutateOwner = ` p.issuer=$1 AND p.subject=$2 AND w.tenant_id=$3::uuid AND w.project_id=$4::uuid `
 
 func scanWorkload(row pgx.Row) (Workload, error) {
 	var w Workload
@@ -186,6 +210,7 @@ func (r *Repository) CreateWorkload(ctx context.Context, p Principal, payload []
 	if err := r.principal(p); err != nil {
 		return Workload{}, err
 	}
+	p = p.withScope()
 	if err := r.validator.ValidateRequest("CreateWorkloadRequest", payload); err != nil {
 		return Workload{}, err
 	}
@@ -204,7 +229,7 @@ func (r *Repository) CreateWorkload(ctx context.Context, p Principal, payload []
 	if err != nil {
 		return Workload{}, err
 	}
-	_, err = tx.Exec(ctx, `INSERT INTO forge.workloads(id,owner_id,name,description) VALUES ($1,$2,$3,$4)`, id, owner, input.Name, input.Description)
+	_, err = tx.Exec(ctx, `INSERT INTO forge.workloads(id,owner_id,name,description,tenant_id,project_id) VALUES ($1,$2,$3,$4,$5,$6)`, id, owner, input.Name, input.Description, p.Tenant, p.Project)
 	if err != nil {
 		return Workload{}, storageError(err)
 	}
@@ -224,12 +249,14 @@ func (r *Repository) GetWorkload(ctx context.Context, p Principal, id string) (W
 	if err := r.id(id); err != nil {
 		return Workload{}, err
 	}
-	return scanWorkload(r.pool.QueryRow(ctx, `SELECT `+workloadColumns+workloadJoin+`WHERE `+readOwner+`AND w.id=$4`, p.Issuer, p.Subject, p.Role, id))
+	p = p.withScope()
+	return scanWorkload(r.pool.QueryRow(ctx, `SELECT `+workloadColumns+workloadJoin+`WHERE `+readOwner+`AND w.id=$6`, p.Issuer, p.Subject, p.Role, p.Tenant, p.Project, id))
 }
 func (r *Repository) ListWorkloads(ctx context.Context, p Principal, limit int, after *Position) ([]Workload, error) {
 	if err := r.principal(p); err != nil {
 		return nil, err
 	}
+	p = p.withScope()
 	if err := r.page(limit, after); err != nil {
 		return nil, err
 	}
@@ -240,7 +267,7 @@ func (r *Repository) ListWorkloads(ctx context.Context, p Principal, limit int, 
 		id = &after.ID
 	}
 	rows, err := r.pool.Query(ctx, `SELECT `+workloadColumns+workloadJoin+`WHERE `+readOwner+`
-        AND ($4::timestamptz IS NULL OR (w.created_at,w.id)<($4,$5::uuid)) ORDER BY w.created_at DESC,w.id DESC LIMIT $6`, p.Issuer, p.Subject, p.Role, at, id, limit)
+        AND ($6::timestamptz IS NULL OR (w.created_at,w.id)<($6,$7::uuid)) ORDER BY w.created_at DESC,w.id DESC LIMIT $8`, p.Issuer, p.Subject, p.Role, p.Tenant, p.Project, at, id, limit)
 	if err != nil {
 		return nil, storageError(err)
 	}
@@ -265,6 +292,7 @@ func (r *Repository) UpdateWorkload(ctx context.Context, p Principal, id string,
 	if revision < 1 {
 		return Workload{}, contract.ErrInvalidInput
 	}
+	p = p.withScope()
 	if err := r.validator.ValidateRequest("UpdateWorkloadRequest", payload); err != nil {
 		return Workload{}, err
 	}
@@ -275,7 +303,7 @@ func (r *Repository) UpdateWorkload(ctx context.Context, p Principal, id string,
 		return Workload{}, storageError(err)
 	}
 	defer rollback(tx)
-	w, err := scanWorkload(tx.QueryRow(ctx, `SELECT `+workloadColumns+workloadJoin+`WHERE `+mutateOwner+`AND w.id=$3 FOR UPDATE OF w`, p.Issuer, p.Subject, id))
+	w, err := scanWorkload(tx.QueryRow(ctx, `SELECT `+workloadColumns+workloadJoin+`WHERE `+mutateOwner+`AND w.id=$5 FOR UPDATE OF w`, p.Issuer, p.Subject, p.Tenant, p.Project, id))
 	if err != nil {
 		return Workload{}, err
 	}

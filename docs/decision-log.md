@@ -391,3 +391,11 @@ The design keeps the accepted customer: one engineering team, developers on thei
 The model lists spoofing, confused deputy, cross-tenant data access, SSRF, and tool abuse, and it separates tested demo controls from the missing tenant boundary and from production requirements. A tenant and a project are defined here. They are not columns yet. No production isolation is claimed.
 
 See the [threat model](threat-model.md) and [verification](f31-validation.md).
+
+## D47 — F32 tenant and project boundaries
+
+On 12 October 2026 the owner asked to implement the next backlog ticket, F32. Existing records are owned by issuer and subject. The forward migration assigns them the demo tenant and demo project and does not delete them. Workloads, versions, and runs store those identifiers, and repository reads and mutations require the caller's tenant and project. Operators still read other owners inside that scope and cannot mutate them. A developer or operator read of another tenant's id is 404.
+
+There is no product evidence table. Evidence stays reachable only through a scoped run. This is not production tenant isolation, and G3 stays open.
+
+See the [verification](f32-validation.md).
