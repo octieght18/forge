@@ -7,7 +7,6 @@ package execution
 import (
 	"context"
 	"errors"
-	"time"
 
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/temporal"
@@ -74,13 +73,10 @@ func Research(ctx workflow.Context, in Correlation) (Result, error) {
 	if !sameIdentity(info.WorkflowExecution.ID, in) {
 		return Result{}, temporal.NewNonRetryableApplicationError("workflow identity mismatch", "identity_mismatch", nil)
 	}
-	ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
-		StartToCloseTimeout: 10 * time.Second,
-		RetryPolicy:         Policy(),
-	})
+	ctx = workflow.WithActivityOptions(ctx, activityOptions())
 	var retrieved Observation
 	if err := workflow.ExecuteActivity(ctx, Retrieve, in).Get(ctx, &retrieved); err != nil {
-		return Result{}, err
+		return canceled(ctx, in, err)
 	}
 	if retrieved.WorkflowID != info.WorkflowExecution.ID || retrieved.RunID != in.RunID || retrieved.CommandID != in.CommandID {
 		return Result{}, temporal.NewNonRetryableApplicationError("correlation mismatch", "identity_mismatch", nil)
@@ -90,12 +86,15 @@ func Research(ctx workflow.Context, in Correlation) (Result, error) {
 	}
 	var generated Observation
 	if err := workflow.ExecuteActivity(ctx, Generate, in, retrieved.Passages).Get(ctx, &generated); err != nil {
-		return Result{}, err
+		return canceled(ctx, in, err)
 	}
 	if generated.WorkflowID != info.WorkflowExecution.ID {
 		return Result{}, temporal.NewNonRetryableApplicationError("correlation mismatch", "identity_mismatch", nil)
 	}
 	if generated.Outcome == "succeeded" {
+		if err := recordTerminal(ctx, in, "complete", "none"); err != nil {
+			return Result{}, err
+		}
 		return Result{
 			RunID: in.RunID, WorkflowID: info.WorkflowExecution.ID, CommandID: in.CommandID,
 			Decision: "complete", Reason: generated.Class, Outcome: generated.Class,
@@ -105,10 +104,18 @@ func Research(ctx workflow.Context, in Correlation) (Result, error) {
 	if generated.Outcome != "failed" || generated.Class != "model_unavailable" {
 		return Result{}, temporal.NewNonRetryableApplicationError("unexpected generation result", "permanent", nil)
 	}
+	compensation := "compensation_completed"
 	if err := workflow.ExecuteActivity(ctx, Compensate, in).Get(ctx, nil); err != nil {
+		compensation = "compensation_incomplete"
+	}
+	if err := recordTerminal(ctx, in, "fail_closed", compensation); err != nil {
 		return Result{}, err
 	}
-	return Result{RunID: in.RunID, WorkflowID: info.WorkflowExecution.ID, CommandID: in.CommandID, Decision: "fail_closed", Reason: "model_unavailable"}, nil
+	reason := "model_unavailable"
+	if compensation == "compensation_incomplete" {
+		reason = compensation
+	}
+	return Result{RunID: in.RunID, WorkflowID: info.WorkflowExecution.ID, CommandID: in.CommandID, Decision: "fail_closed", Reason: reason}, nil
 }
 
 // Retrieve checks correlation. With a configured corpus tool it resolves the
@@ -127,11 +134,15 @@ func Retrieve(ctx context.Context, in Correlation) (Observation, error) {
 		return Observation{RunID: in.RunID, WorkflowID: in.WorkflowID, CommandID: in.CommandID, Step: "retrieval", Outcome: "succeeded"}, nil
 	}
 	key := IdempotencyKey(in.RunID, "retrieval", material(in))
+	beat(ctx, in.RunID)
 	outcome, err := mcp.Search(ctx, mcp.Input{
 		RunID: in.RunID, WorkflowID: in.WorkflowID, CommandID: in.CommandID, SnapshotID: in.SnapshotID,
 		Question: in.Question, DocumentIDs: in.DocumentIDs, MaxPassages: in.MaxPassages,
 	}, Corpus)
 	if err != nil {
+		if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+			return Observation{}, err
+		}
 		return Observation{}, failure("tool_unavailable", err)
 	}
 	if outcome.Failed {
@@ -158,8 +169,12 @@ func Generate(ctx context.Context, in Correlation, passages []mcp.Passage) (Obse
 	if saved, ok := recall(key); ok {
 		return saved, nil
 	}
+	beat(ctx, in.RunID)
 	report, err := Model.Generate(ctx, in.RunID, in.Question, passages)
 	if err != nil {
+		if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+			return Observation{}, err
+		}
 		return Observation{}, failure("model_unavailable", err)
 	}
 	report.WorkflowID = in.WorkflowID
@@ -185,6 +200,37 @@ func Compensate(ctx context.Context, in Correlation) error {
 	model.Compensate(in.RunID)
 	remember(key, Observation{RunID: in.RunID, WorkflowID: in.WorkflowID, CommandID: in.CommandID, Step: "compensate", Outcome: "succeeded"})
 	return nil
+}
+
+func activityOptions() workflow.ActivityOptions {
+	return workflow.ActivityOptions{
+		StartToCloseTimeout: ActivityTimeout,
+		HeartbeatTimeout:    HeartbeatTimeout,
+		RetryPolicy:         Policy(),
+	}
+}
+
+func recordTerminal(ctx workflow.Context, in Correlation, state, compensation string) error {
+	return workflow.ExecuteActivity(ctx, RecordTerminal, Terminal{RunID: in.RunID, WorkflowID: in.WorkflowID, State: state, Compensation: compensation}).Get(ctx, nil)
+}
+
+func canceled(ctx workflow.Context, in Correlation, err error) (Result, error) {
+	if err != nil && !temporal.IsCanceledError(err) {
+		return Result{}, err
+	}
+	disconnected, stop := workflow.NewDisconnectedContext(ctx)
+	defer stop()
+	disconnected = workflow.WithActivityOptions(disconnected, workflow.ActivityOptions{StartToCloseTimeout: ActivityTimeout, RetryPolicy: &temporal.RetryPolicy{MaximumAttempts: 1}})
+	compensation := "compensation_completed"
+	if compErr := workflow.ExecuteActivity(disconnected, Compensate, in).Get(disconnected, nil); compErr != nil {
+		compensation = "compensation_incomplete"
+	}
+	_ = recordTerminal(disconnected, in, "canceled", compensation)
+	return Result{RunID: in.RunID, WorkflowID: in.WorkflowID, CommandID: in.CommandID, Decision: "canceled", Reason: compensation}, temporal.NewCanceledError(compensation)
+}
+
+func beat(ctx context.Context, runID string) {
+	activity.RecordHeartbeat(ctx, runID)
 }
 
 func activityIdentity(ctx context.Context, in Correlation) error {

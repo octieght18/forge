@@ -41,6 +41,7 @@ func main() {
 	process.RegisterActivity(execution.Retrieve)
 	process.RegisterActivity(execution.Generate)
 	process.RegisterActivity(execution.Compensate)
+	process.RegisterActivity(execution.RecordTerminal)
 	if err = process.Run(worker.InterruptCh()); err != nil {
 		logger.Error("temporal worker stopped")
 		os.Exit(1)

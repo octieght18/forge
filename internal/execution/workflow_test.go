@@ -13,6 +13,7 @@ import (
 	"github.com/octieght18/forge/internal/reconcile"
 	"github.com/octieght18/forge/internal/store"
 	"go.temporal.io/sdk/client"
+	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/testsuite"
 	"go.temporal.io/sdk/worker"
 )
@@ -24,6 +25,7 @@ func TestWorkflowPropagatesCorrelationAndStopsBeforeModel(t *testing.T) {
 	env.RegisterActivity(Retrieve)
 	env.RegisterActivity(Generate)
 	env.RegisterActivity(Compensate)
+	env.RegisterActivity(RecordTerminal)
 	in := Correlation{
 		RunID: "33333333-3333-4333-8333-333333333333", WorkflowID: "forge-run/33333333-3333-4333-8333-333333333333",
 		WorkloadID: "11111111-1111-4111-8111-111111111111", VersionID: "22222222-2222-4222-8222-222222222222",
@@ -64,6 +66,7 @@ func TestWorkflowPersistsCitedReport(t *testing.T) {
 	env.RegisterActivity(Retrieve)
 	env.RegisterActivity(Generate)
 	env.RegisterActivity(Compensate)
+	env.RegisterActivity(RecordTerminal)
 	in := Correlation{
 		RunID: "33333333-3333-4333-8333-333333333333", WorkflowID: "forge-run/33333333-3333-4333-8333-333333333333",
 		WorkloadID: "11111111-1111-4111-8111-111111111111", VersionID: "22222222-2222-4222-8222-222222222222",
@@ -119,6 +122,7 @@ func TestRetryReusesWorkAndCompensatesPartialEvidence(t *testing.T) {
 	env.RegisterActivity(Retrieve)
 	env.RegisterActivity(Generate)
 	env.RegisterActivity(Compensate)
+	env.RegisterActivity(RecordTerminal)
 	in := Correlation{
 		RunID: "33333333-3333-4333-8333-333333333333", WorkflowID: "forge-run/33333333-3333-4333-8333-333333333333",
 		WorkloadID: "11111111-1111-4111-8111-111111111111", VersionID: "22222222-2222-4222-8222-222222222222",
@@ -146,6 +150,54 @@ func TestRetryReusesWorkAndCompensatesPartialEvidence(t *testing.T) {
 	}
 	if err := Compensate(context.Background(), in); err != nil || mcp.EvidenceRecords()[0].Retention != "compensated" {
 		t.Fatal(err)
+	}
+}
+
+type blockingTool struct{}
+
+func (blockingTool) Call(ctx context.Context, _ string, _ map[string]any) (json.RawMessage, error) {
+	<-ctx.Done()
+	return nil, ctx.Err()
+}
+
+func TestCancellationCompensatesOrExplainsTheGap(t *testing.T) {
+	mcp.Reset()
+	ResetCommits()
+	ResetTerminals()
+	previousTool, previousModel := Corpus, Model
+	Corpus = blockingTool{}
+	Model = model.Fixture{}
+	t.Cleanup(func() {
+		Corpus = previousTool
+		Model = previousModel
+		ResetCommits()
+	})
+	var suite testsuite.WorkflowTestSuite
+	env := suite.NewTestWorkflowEnvironment()
+	env.RegisterActivity(Retrieve)
+	env.RegisterActivity(Generate)
+	env.RegisterActivity(Compensate)
+	env.RegisterActivity(RecordTerminal)
+	env.RegisterDelayedCallback(func() { env.CancelWorkflow() }, time.Millisecond)
+	in := Correlation{
+		RunID: "33333333-3333-4333-8333-333333333333", WorkflowID: "forge-run/33333333-3333-4333-8333-333333333333",
+		WorkloadID: "11111111-1111-4111-8111-111111111111", VersionID: "22222222-2222-4222-8222-222222222222",
+		CommandID: "44444444-4444-4444-8444-444444444444", SnapshotID: strings.Repeat("a", 64),
+		Question: "Which service owns execution?", DocumentIDs: []string{"platform-brief"}, MaxPassages: 8,
+	}
+	env.SetStartWorkflowOptions(client.StartWorkflowOptions{ID: in.WorkflowID, WorkflowExecutionTimeout: WorkflowTimeout})
+	env.ExecuteWorkflow(Research, in)
+	if !env.IsWorkflowCompleted() || !temporal.IsCanceledError(env.GetWorkflowError()) {
+		t.Fatal(env.GetWorkflowError())
+	}
+	var got Result
+	_ = env.GetWorkflowResult(&got)
+	states := Terminals()
+	if len(states) != 1 || states[0].State != "canceled" || (states[0].Compensation != "compensation_completed" && states[0].Compensation != "compensation_incomplete") {
+		t.Fatalf("%#v %#v", got, states)
+	}
+	if ActivityTimeout != 30*time.Second || HeartbeatTimeout != 10*time.Second || WorkflowTimeout != 2*time.Minute {
+		t.Fatal(ActivityTimeout, HeartbeatTimeout, WorkflowTimeout)
 	}
 }
 

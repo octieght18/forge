@@ -1,6 +1,7 @@
 package execution
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"strings"
@@ -11,7 +12,13 @@ import (
 	"go.temporal.io/sdk/temporal"
 )
 
-const MaxAttempts = 3
+const (
+	MaxAttempts       = 3
+	ActivityTimeout   = 30 * time.Second
+	HeartbeatTimeout  = 10 * time.Second
+	WorkflowTimeout   = 2 * time.Minute
+	HeartbeatInterval = 2 * time.Second
+)
 
 // Policy is the activity retry limit. Three attempts use 1s, then 2s, then stop
 // at a 4s ceiling. Nonretryable errors do not use this budget.
@@ -73,4 +80,42 @@ func failure(class string, err error) error {
 
 func material(in Correlation) string {
 	return in.SnapshotID + "\x00" + in.Question + "\x00" + strings.Join(in.DocumentIDs, ",")
+}
+
+// Terminal is the safe end state recorded for a run. Compensation is incomplete
+// when that cleanup activity does not finish.
+type Terminal struct {
+	RunID, WorkflowID, State, Compensation string
+}
+
+var (
+	terminalMu sync.Mutex
+	terminals  []Terminal
+)
+
+// ResetTerminals clears recorded end states. Tests use it.
+func ResetTerminals() {
+	terminalMu.Lock()
+	terminals = nil
+	terminalMu.Unlock()
+}
+
+// Terminals returns the end states recorded in this process.
+func Terminals() []Terminal {
+	terminalMu.Lock()
+	defer terminalMu.Unlock()
+	out := make([]Terminal, len(terminals))
+	copy(out, terminals)
+	return out
+}
+
+// RecordTerminal stores a terminal state. It does not write execution status to PostgreSQL.
+func RecordTerminal(_ context.Context, state Terminal) error {
+	if state.State != "complete" && state.State != "fail_closed" && state.State != "canceled" && state.State != "timed_out" {
+		return temporal.NewNonRetryableApplicationError("unknown terminal state", "permanent", nil)
+	}
+	terminalMu.Lock()
+	terminals = append(terminals, state)
+	terminalMu.Unlock()
+	return nil
 }

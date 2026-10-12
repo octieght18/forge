@@ -44,6 +44,8 @@ The owner approved [containerized Kubernetes deployment in WSL](docs/kubernetes-
 
 **F25** classifies [activity retries and compensation](docs/retry-compensation.md). A transient tool failure can run again. A committed retrieval is not repeated. Evidence left without a report is marked compensated.
 
+**F26** adds [timeouts, heartbeats, and cancellation](docs/execution-timeouts.md). Canceling a workflow stops the tool through the activity context and records `canceled`. If compensation does not finish, the record says so.
+
 - [Internal product brief](docs/product-brief.md)
 - [Product and design decisions](docs/decision-log.md)
 - [Architecture and integration boundaries](docs/architecture.md)
@@ -97,6 +99,8 @@ The owner approved [containerized Kubernetes deployment in WSL](docs/kubernetes-
 - [F24 verification](docs/f24-validation.md)
 - [Retry classification and compensation](docs/retry-compensation.md)
 - [F25 verification](docs/f25-validation.md)
+- [Execution timeouts and cancellation](docs/execution-timeouts.md)
+- [F26 verification](docs/f26-validation.md)
 
 The owner must review product and design choices before they become accepted decisions. F02 records the accepted Go HTTP/OpenAPI, PostgreSQL and Temporal foundation, OpenRouter backend and local Kubernetes target. Keycloak OIDC is included from the first release. The testing model is `google/gemma-4-26b-a4b-it:free`. D26 supersedes F07's no-container deployment choice: the current stack can now run in kind inside WSL. F03's HTTP defaults and lifecycle conventions are accepted; new API/identity/workflow decisions still require consultation.
 

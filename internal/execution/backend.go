@@ -124,7 +124,8 @@ type SDK struct{ Client client.Client }
 func (s SDK) Start(ctx context.Context, workflowID string, in Correlation) error {
 	_, err := s.Client.ExecuteWorkflow(ctx, client.StartWorkflowOptions{
 		ID: workflowID, TaskQueue: TaskQueue,
-		WorkflowIDReusePolicy: enums.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
+		WorkflowExecutionTimeout: WorkflowTimeout,
+		WorkflowIDReusePolicy:    enums.WORKFLOW_ID_REUSE_POLICY_REJECT_DUPLICATE,
 	}, WorkflowName, in)
 	if temporal.IsWorkflowExecutionAlreadyStartedError(err) {
 		return errAlreadyStarted

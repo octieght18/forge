@@ -333,3 +333,13 @@ On 12 October 2026 the owner asked to implement the next backlog ticket, F25. Th
 A successful retrieval or generation is stored under a key from the run, the step, and the frozen context. A duplicate delivery returns that observation and does not call the tool or the model again. Evidence written by a search that never becomes a report is the compensated side effect: its retention becomes `compensated`, and a report for that run is dropped. Compensating the same run again does not change the record. This does not reverse a hosted model charge.
 
 See the [retry guide](retry-compensation.md) and [verification](f25-validation.md).
+
+## D41 — F26 timeout, cancellation, and long-running status
+
+On 12 October 2026 the owner asked to implement the next backlog ticket, F26. The ticket asks for cancellation propagated to tools and context deadlines, persisted safe terminal states, an explanation when compensation does not finish, and activity or workflow timeouts with a heartbeat where a call can wait.
+
+The workflow execution deadline is 2 minutes. Each activity must finish within 30 seconds and heartbeat within 10 seconds. Retrieval and generation record a heartbeat before the tool or model call. The tool process uses that activity context, so cancellation or a deadline stops it. A canceled context is not retried as `tool_unavailable`.
+
+After cancellation, a disconnected context compensates leftover evidence and records `canceled`. The compensation note is `compensation_completed` or `compensation_incomplete`. The run stays canceled in either case. Incomplete compensation means the evidence may still say `workflow_history`. Temporal history is the record a restarted worker can see. The in-process list is not. No public status route or product execution-status column is added.
+
+See the [timeout guide](execution-timeouts.md) and [verification](f26-validation.md).

@@ -109,6 +109,9 @@ func Search(ctx context.Context, in Input, tool Tool) (Outcome, error) {
 	}
 	body, err := tool.Call(ctx, "corpus.search", args)
 	if err != nil {
+		if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+			return Outcome{}, err
+		}
 		return Outcome{Failed: true, Class: "tool_unavailable"}, errors.New(Redact(err.Error()))
 	}
 	var parsed struct {
@@ -184,6 +187,9 @@ type Stdio struct{ Command string }
 func (s Stdio) Call(ctx context.Context, name string, args map[string]any) (json.RawMessage, error) {
 	if s.Command == "" || strings.ContainsAny(s.Command, " \t\r\n|&;<>") {
 		return nil, ErrDenied
+	}
+	if err := ctx.Err(); err != nil {
+		return nil, err
 	}
 	cmd := exec.CommandContext(ctx, s.Command)
 	cmd.Env = []string{"PATH=" + os.Getenv("PATH")}
