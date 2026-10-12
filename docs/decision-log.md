@@ -365,3 +365,11 @@ Replay uses Temporal's workflow replayer. Activity functions are not entered, so
 `FORGE_DEBUG=true` selects the in-process corpus fixture and the fixture model and ignores a configured MCP command or model key. The SDK test environment does not export history, so the replay test builds a history and does not claim a download from a live server. No Temporal dev server was started.
 
 See the [mode guide](replay-modes.md) and [verification](f28-validation.md).
+
+## D44 — F29 durable recovery measurements
+
+On 12 October 2026 the owner asked to implement the next backlog ticket, F29. The ticket asks for attempt counts, no duplicated side effects, cancellation state, measured recovery time, and a worker killed mid-execution and resumed.
+
+The Temporal CLI is not installed here and the dev server script was not started. A live process kill was not run. The SDK test suite is the measurement. A flaky tool fails once and then succeeds: retrieval has two attempts, one evidence row is stored, and compensation marks that row rather than adding another. An uncertain fixture result stores no evidence. Cancellation records `canceled`. A replayer started afterward does not enter activities. The one-second retry interval was skipped by the test clock; the recorded wall times are one sample, not an SLO.
+
+See the [verification](f29-validation.md).
