@@ -30,13 +30,15 @@ type Registration struct {
 	Timeout    time.Duration
 	// Execution reads Temporal. Nil means history and result are unavailable.
 	// Full tenant RBAC beyond this verifier's developer and operator roles is the M4 gate.
-	Execution execution.Reader
+	Execution         execution.Reader
+	RequestsPerSecond int
 }
 type registration struct {
 	Registration
 	validator *contract.Validator
 	cursors   cursors
 	ready     *Readiness
+	rate      *rateGate
 }
 
 func NewRegistrationHandler(logger *slog.Logger, ready *Readiness, c Registration) (http.Handler, error) {
@@ -47,7 +49,11 @@ func NewRegistrationHandler(logger *slog.Logger, ready *Readiness, c Registratio
 	if err != nil {
 		return nil, err
 	}
-	h := &registration{c, v, cursors{append([]byte(nil), c.CursorKey...), time.Now}, ready}
+	limit := c.RequestsPerSecond
+	if limit <= 0 {
+		limit = 200
+	}
+	h := &registration{Registration: c, validator: v, cursors: cursors{append([]byte(nil), c.CursorKey...), time.Now}, ready: ready, rate: newRate(limit)}
 	return Middleware(logger, http.HandlerFunc(h.serve)), nil
 }
 
@@ -60,6 +66,9 @@ func (h *registration) fail(w http.ResponseWriter, r *http.Request, err error) {
 		WriteError(w, r, 403, "forbidden", "Service identity cannot call this API")
 	case errors.Is(err, store.ErrForbidden):
 		WriteError(w, r, 403, "forbidden", "Role is not permitted")
+	case errors.Is(err, store.ErrLimited):
+		w.Header().Set("Retry-After", "1")
+		WriteError(w, r, 429, "rate_limited", "Retry later")
 	case errors.Is(err, store.ErrNotFound):
 		WriteError(w, r, 404, "not_found", "Resource not found")
 	case errors.Is(err, store.ErrConflict):
@@ -129,6 +138,9 @@ func (h *registration) serve(w http.ResponseWriter, r *http.Request) {
 			err = ctx.Err()
 		}
 		h.fail(w, r, err)
+		return
+	}
+	if !h.allow(w, r, p) {
 		return
 	}
 	for _, i := range []int{3, 5} {

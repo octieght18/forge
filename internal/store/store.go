@@ -22,6 +22,7 @@ var (
 	ErrPrecondition = errors.New("workload revision does not match")
 	ErrForbidden    = errors.New("principal role is not permitted")
 	ErrUnavailable  = errors.New("product storage unavailable")
+	ErrLimited      = errors.New("tenant quota exceeded")
 )
 
 const (
@@ -93,8 +94,10 @@ type RunFilter struct {
 	Limit      int
 }
 type Repository struct {
-	pool      *pgxpool.Pool
-	validator *contract.Validator
+	pool           *pgxpool.Pool
+	validator      *contract.Validator
+	maxWorkloads   int
+	maxPendingRuns int
 }
 
 func New(pool *pgxpool.Pool) (*Repository, error) {
@@ -105,7 +108,13 @@ func New(pool *pgxpool.Pool) (*Repository, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Repository{pool: pool, validator: validator}, nil
+	return &Repository{pool: pool, validator: validator, maxWorkloads: 100, maxPendingRuns: 100}, nil
+}
+
+// SetLimits replaces the per-tenant workload and pending-run caps. Zero disables a cap.
+func (r *Repository) SetLimits(workloads, pendingRuns int) {
+	r.maxWorkloads = workloads
+	r.maxPendingRuns = pendingRuns
 }
 
 func (r *Repository) principal(p Principal) error {
@@ -228,6 +237,18 @@ func (r *Repository) CreateWorkload(ctx context.Context, p Principal, payload []
 	owner, err := ownerID(ctx, tx, p)
 	if err != nil {
 		return Workload{}, err
+	}
+	if _, err = tx.Exec(ctx, `SELECT pg_advisory_xact_lock(hashtextextended($1,0))`, p.Tenant+":"+p.Project+":workloads"); err != nil {
+		return Workload{}, storageError(err)
+	}
+	if r.maxWorkloads > 0 {
+		var existing int
+		if err = tx.QueryRow(ctx, `SELECT count(*) FROM forge.workloads WHERE tenant_id=$1 AND project_id=$2`, p.Tenant, p.Project).Scan(&existing); err != nil {
+			return Workload{}, storageError(err)
+		}
+		if existing >= r.maxWorkloads {
+			return Workload{}, ErrLimited
+		}
 	}
 	_, err = tx.Exec(ctx, `INSERT INTO forge.workloads(id,owner_id,name,description,tenant_id,project_id) VALUES ($1,$2,$3,$4,$5,$6)`, id, owner, input.Name, input.Description, p.Tenant, p.Project)
 	if err != nil {

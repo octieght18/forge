@@ -86,6 +86,9 @@ func (h *registration) serveRuns(w http.ResponseWriter, r *http.Request) bool {
 		h.fail(w, r, err)
 		return true
 	}
+	if !h.allow(w, r, principal) {
+		return true
+	}
 	if id != "" {
 		encoded, _ := json.Marshal(id)
 		if h.validator.Validate("ID", encoded) != nil {

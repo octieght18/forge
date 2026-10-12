@@ -415,3 +415,11 @@ On 12 October 2026 the owner asked to implement the next backlog ticket, F34. Th
 The matrix is developer, operator, and service. Reads and mutations already require the caller's tenant and project. Provision stays a developer action. Telemetry stays an operator read. A service token and a mixed-role token are rejected. `corpus.write` is rejected before `exec`. Cross-tenant run ids stay 404. The activity does not carry a second tenant check; the API is the admission point. G3 stays open.
 
 See the [matrix](authorization.md) and [verification](f34-validation.md).
+
+## D50 — F35 quotas and rate limits
+
+On 12 October 2026 the owner asked to implement the next backlog ticket, F35. `small-v1` already caps one namespace. This change adds API admission limits and does not replace that profile.
+
+A tenant gets 200 requests per second in one API process, 100 workloads, and 100 pending start commands. The workload and pending-run counts take a transaction lock in PostgreSQL, so callers that share that database observe one cap. The request window does not leave the process. A limited request is 429 with `Retry-After: 1` and the existing error object. No distributed quota consensus is claimed.
+
+See the [verification](f35-validation.md).

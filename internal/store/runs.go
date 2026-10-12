@@ -134,6 +134,18 @@ func (r *Repository) acceptRun(ctx context.Context, p Principal, key string, pay
 		parentID = &parent.ID
 		operation = "rerun"
 	}
+	if _, err = tx.Exec(ctx, `SELECT pg_advisory_xact_lock(hashtextextended($1,0))`, p.Tenant+":"+p.Project+":runs"); err != nil {
+		return Run{}, storageError(err)
+	}
+	if r.maxPendingRuns > 0 {
+		var pending int
+		if err = tx.QueryRow(ctx, `SELECT count(*) FROM forge.runs r JOIN forge.commands c ON c.run_id=r.id AND c.kind='start' AND c.state='pending' WHERE r.tenant_id=$1 AND r.project_id=$2`, p.Tenant, p.Project).Scan(&pending); err != nil {
+			return Run{}, storageError(err)
+		}
+		if pending >= r.maxPendingRuns {
+			return Run{}, ErrLimited
+		}
+	}
 	id, err := uuid()
 	if err != nil {
 		return Run{}, err

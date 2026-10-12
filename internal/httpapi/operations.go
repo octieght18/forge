@@ -78,6 +78,9 @@ func (h *registration) serveOperation(w http.ResponseWriter, r *http.Request) bo
 		h.fail(w, r, err)
 		return true
 	}
+	if !h.allow(w, r, principal) {
+		return true
+	}
 	now := time.Now().UTC()
 	var op provision.Operation
 	switch kind {
@@ -189,6 +192,9 @@ func (h *registration) serveTelemetry(w http.ResponseWriter, r *http.Request) bo
 	principal, err := h.Auth.Authenticate(r.Context(), r)
 	if err != nil {
 		h.fail(w, r, err)
+		return true
+	}
+	if !h.allow(w, r, principal) {
 		return true
 	}
 	if principal.Role != "operator" {
