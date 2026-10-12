@@ -1,5 +1,7 @@
 # Replay, retry, and re-execution — F28
 
+The [workflow and replay guide](workflow-replay-guide.md) is the operator procedure and the recorded failure timeline. This page is the mode boundary.
+
 A failed step can be inspected in three different ways. They are not interchangeable. [D43](decision-log.md#d43--f28-replay-and-evaluation-fixtures) records the boundary.
 
 | Mode | What runs | Side effects |

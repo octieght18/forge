@@ -52,6 +52,8 @@ The owner approved [containerized Kubernetes deployment in WSL](docs/kubernetes-
 
 **F29** measures [SDK recovery](docs/f29-validation.md): two retrieval attempts after a dependency failure, one compensated evidence row, an uncertain result with no evidence, and a canceled run. A replayer does not repeat the tool. No live worker was killed.
 
+**F30** publishes the [workflow and replay guide](docs/workflow-replay-guide.md), including that sample, the retry and compensation rules, and the limits of the SDK clock. It does not set a production SLO.
+
 - [Internal product brief](docs/product-brief.md)
 - [Product and design decisions](docs/decision-log.md)
 - [Architecture and integration boundaries](docs/architecture.md)
@@ -112,6 +114,8 @@ The owner approved [containerized Kubernetes deployment in WSL](docs/kubernetes-
 - [Replay, retry, and re-execution](docs/replay-modes.md)
 - [F28 verification](docs/f28-validation.md)
 - [F29 recovery measurements](docs/f29-validation.md)
+- [Workflow and replay guide](docs/workflow-replay-guide.md)
+- [F30 verification](docs/f30-validation.md)
 
 The owner must review product and design choices before they become accepted decisions. F02 records the accepted Go HTTP/OpenAPI, PostgreSQL and Temporal foundation, OpenRouter backend and local Kubernetes target. Keycloak OIDC is included from the first release. The testing model is `google/gemma-4-26b-a4b-it:free`. D26 supersedes F07's no-container deployment choice: the current stack can now run in kind inside WSL. F03's HTTP defaults and lifecycle conventions are accepted; new API/identity/workflow decisions still require consultation.
 

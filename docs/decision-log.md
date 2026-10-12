@@ -373,3 +373,11 @@ On 12 October 2026 the owner asked to implement the next backlog ticket, F29. Th
 The Temporal CLI is not installed here and the dev server script was not started. A live process kill was not run. The SDK test suite is the measurement. A flaky tool fails once and then succeeds: retrieval has two attempts, one evidence row is stored, and compensation marks that row rather than adding another. An uncertain fixture result stores no evidence. Cancellation records `canceled`. A replayer started afterward does not enter activities. The one-second retry interval was skipped by the test clock; the recorded wall times are one sample, not an SLO.
 
 See the [verification](f29-validation.md).
+
+## D45 — F30 workflow and replay guide
+
+On 12 October 2026 the owner asked to implement the next backlog ticket, F30. The ticket asks for replay safety, operator procedures, the recorded failure timeline, current limitations, and an explanation of retries, compensation, uncertainty, and evidence storage.
+
+The guide repeats the F29 sample rather than a new measurement: 43361 µs and two retrieval attempts for the dependency failure, one compensated evidence row, 12993 µs for `insufficient_evidence`, 1816 µs for `canceled`, and 535 µs for a replayer that did not enter activities. The one-second retry was skipped by the test clock. No production SLO is claimed. The dev server was not started and a live worker was not killed.
+
+See the [guide](workflow-replay-guide.md) and [verification](f30-validation.md).
