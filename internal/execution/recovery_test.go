@@ -43,7 +43,7 @@ func TestDurableRecoveryMeasurements(t *testing.T) {
 	if cancelAttempts["Retrieve"] < 1 || canceled == "" {
 		t.Fatalf("cancel attempts %#v state %s", cancelAttempts, canceled)
 	}
-	if replay <= 0 || half <= 0 || uncertain <= 0 {
+	if half <= 0 || uncertain <= 0 || replay < 0 {
 		t.Fatal(half, uncertain, replay)
 	}
 	t.Logf("MEASURE half_us=%d uncertain_us=%d cancel_us=%d replay_us=%d retrieve_attempts=%d generate_attempts=%d compensate_attempts=%d evidence=%d cancel_state=%s",

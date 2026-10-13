@@ -104,18 +104,21 @@ func TestCleanupRefusesWithoutDeleting(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	linked := t.TempDir()
-	target := filepath.Join(linked, "elsewhere.txt")
-	write(t, target, "kept")
-	if err := os.Symlink(target, filepath.Join(linked, "demo-synthetic-link.txt")); err != nil {
-		t.Fatal(err)
-	}
-	if _, err := Cleanup(linked, ConfirmPhrase); err == nil || !strings.Contains(err.Error(), "link") {
-		t.Fatal(err)
-	}
-	if _, err := os.Stat(target); err != nil {
-		t.Fatal(err)
-	}
+	t.Run("symlink", func(t *testing.T) {
+		linked := t.TempDir()
+		target := filepath.Join(linked, "elsewhere.txt")
+		write(t, target, "kept")
+		link := filepath.Join(linked, "demo-synthetic-link.txt")
+		if err := os.Symlink(target, link); err != nil {
+			t.Skip("symlink creation is not permitted on this machine")
+		}
+		if _, err := Cleanup(linked, ConfirmPhrase); err == nil || !strings.Contains(err.Error(), "link") {
+			t.Fatal(err)
+		}
+		if _, err := os.Stat(target); err != nil {
+			t.Fatal(err)
+		}
+	})
 }
 
 func write(t *testing.T, path, body string) {
