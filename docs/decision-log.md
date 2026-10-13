@@ -519,3 +519,13 @@ The test injected 40 errors in 100 requests and an 800 millisecond latency. Dete
 Automatic restore stops when a forward-only migration has already been applied, when a model call has already completed, or when the previous pin is missing. Temporal history is not rewritten.
 
 See the [rollback guide](rollback.md) and [verification](f45-validation.md).
+
+## D61 — F46 backup and restore drill
+
+On 13 October 2026 ahmad asked to implement the next backlog ticket, F46. The ticket asks for a backup scope, a restore into a separate environment, a measured recovery, and a statement of what the backup cannot recover.
+
+The drill used disposable PostgreSQL 16.15 databases. It did not open the retained product database. A workload row was dumped and read back from the second database with the same id, name, and description. The dump measured 61.758744 milliseconds. The restore through that read measured 71.794097 milliseconds.
+
+The dump is plaintext SQL in a temporary file. It is not encrypted and it was not copied offsite. Temporal history, in-process evidence, and in-process audit events are not in the dump and are unrecoverable from it.
+
+See the [backup guide](backup.md) and [verification](f46-validation.md).

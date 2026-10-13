@@ -84,6 +84,8 @@ The owner approved [containerized Kubernetes deployment in WSL](docs/kubernetes-
 
 **F45** rolls a regressed canary [back to the previous pin](docs/rollback.md). One injected window was detected in 292 nanoseconds and restored in 52.762 microseconds. Execution identifiers stayed. A completed model call or an applied migration waits for a human.
 
+**F46** dumps a disposable database and [restores it into a second one](docs/backup.md). The sample dump took 61.758744 milliseconds and the checked restore took 71.794097 milliseconds. Temporal history and in-process evidence are not in that dump. No offsite encrypted backup was created.
+
 - [Internal product brief](docs/product-brief.md)
 - [Product and design decisions](docs/decision-log.md)
 - [Architecture and integration boundaries](docs/architecture.md)
@@ -172,6 +174,8 @@ The owner approved [containerized Kubernetes deployment in WSL](docs/kubernetes-
 - [F44 verification](docs/f44-validation.md)
 - [Canary rollback](docs/rollback.md)
 - [F45 verification](docs/f45-validation.md)
+- [Backup and restore](docs/backup.md)
+- [F46 verification](docs/f46-validation.md)
 
 The owner must review product and design choices before they become accepted decisions. F02 records the accepted Go HTTP/OpenAPI, PostgreSQL and Temporal foundation, OpenRouter backend and local Kubernetes target. Keycloak OIDC is included from the first release. The testing model is `google/gemma-4-26b-a4b-it:free`. D26 supersedes F07's no-container deployment choice: the current stack can now run in kind inside WSL. F03's HTTP defaults and lifecycle conventions are accepted; new API/identity/workflow decisions still require consultation.
 
