@@ -69,6 +69,28 @@ func TestUnsafePodIsRejectedAndSafePodIsNot(t *testing.T) {
 	}
 }
 
+func TestGatewayIsLocalAndUnauthenticatedPathStaysOnTheAPI(t *testing.T) {
+	data, err := os.ReadFile(filepath.Join("..", "..", "deploy", "gateway", "envoy.yaml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	text := string(data)
+	for _, want := range []string{`prefix: "/api/"`, "max_tokens: 200", "type: ClusterIP", "envoy.filters.http.local_ratelimit"} {
+		if !strings.Contains(text, want) {
+			t.Fatal(want)
+		}
+	}
+	for _, banned := range []string{"PRIVATE KEY", "BEGIN CERTIFICATE", "LoadBalancer", "hostNetwork: true", "type: NodePort"} {
+		if strings.Contains(text, banned) {
+			t.Fatal(banned)
+		}
+	}
+	found, err := CheckYAML(data)
+	if err != nil || len(found) != 0 {
+		t.Fatal(err, found)
+	}
+}
+
 func TestRepositoryManifestsAndNetworkAssumptions(t *testing.T) {
 	root := filepath.Join("..", "..", "deploy")
 	found, err := CheckTree(root)

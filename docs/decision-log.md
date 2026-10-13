@@ -479,3 +479,13 @@ The module is Amazon EKS only. It pins Terraform 1.16.5 and hashicorp/aws 6.68.0
 State for this validation stays in a gitignored local file. The documented remote backend is S3 with a gitignored `backend.hcl` and no access keys in Git. GKE is not implemented.
 
 See the [EKS plan](terraform-eks.md) and [verification](f41-validation.md).
+
+## D57 — F42 gateway, DNS, and TLS
+
+On 13 October 2026 ahmad asked to implement the next backlog ticket, F42. The ticket asks for DNS, TLS, load-balancer behavior, authenticated traffic, and denied unauthenticated requests, using Envoy or another standard gateway.
+
+The Envoy manifest routes `/api/`, `/healthz`, and `/readyz` to the API service and sets a 200 token local rate limit. The Service is ClusterIP. It was not applied. No domain was bought, no certificate was issued, and no load balancer was created. TLS was not verified. The local path remains loopback HTTP behind the kind NGINX proxy.
+
+`TestRegistrationHTTPPostgreSQL` passed on the disposable database. A missing token returned 401. A developer token returned 201. The gateway does not replace that check.
+
+See the [gateway guide](gateway.md) and [verification](f42-validation.md).
