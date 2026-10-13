@@ -1,8 +1,10 @@
 package policy
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 )
@@ -88,6 +90,62 @@ func TestGatewayIsLocalAndUnauthenticatedPathStaysOnTheAPI(t *testing.T) {
 	found, err := CheckYAML(data)
 	if err != nil || len(found) != 0 {
 		t.Fatal(err, found)
+	}
+}
+
+func TestGitOpsPinsExistingDigests(t *testing.T) {
+	raw, err := os.ReadFile(filepath.Join("..", "..", "deploy", "kubernetes", "images.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var images map[string]string
+	if err := json.Unmarshal(raw, &images); err != nil {
+		t.Fatal(err)
+	}
+	known := map[string]bool{}
+	for _, ref := range images {
+		if i := strings.Index(ref, "sha256:"); i >= 0 {
+			known[ref[i:]] = true
+		}
+	}
+	root := filepath.Join("..", "..", "deploy", "gitops")
+	digest := regexp.MustCompile(`sha256:[a-f0-9]{64}`)
+	seen := 0
+	err = filepath.WalkDir(root, func(path string, entry os.DirEntry, err error) error {
+		if err != nil || entry.IsDir() {
+			return err
+		}
+		data, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		text := string(data)
+		if strings.Contains(text, "password") || strings.Contains(text, "BEGIN ") || strings.Contains(strings.ToLower(text), "token") {
+			t.Fatalf("credential-shaped text in %s", path)
+		}
+		for _, item := range digest.FindAllString(text, -1) {
+			seen++
+			if !known[item] {
+				t.Fatalf("digest not in images.json: %s", item)
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if seen < 3 {
+		t.Fatal(seen)
+	}
+	for _, name := range []string{"forge-local.yaml", "forge-staging.yaml"} {
+		text, err := os.ReadFile(filepath.Join(root, "applications", name))
+		if err != nil {
+			t.Fatal(err)
+		}
+		body := string(text)
+		if !strings.Contains(body, "selfHeal: true") || strings.Contains(body, "terraform") {
+			t.Fatal(name)
+		}
 	}
 }
 

@@ -31,6 +31,7 @@ Start with the [quickstart](quickstart.md), [API examples](api-examples.md), the
 | [deploy/policy](../deploy/policy), [internal/policy](../internal/policy) | Kyverno privileged-manifest policy, default-deny network documents, and the CI checker. Kind does not enforce NetworkPolicy. |
 | [deploy/terraform/eks](../deploy/terraform/eks) | One EKS module. Local backend for validation. Not applied. |
 | [deploy/gateway](../deploy/gateway) | Envoy routing and local rate limit. Not applied. No DNS name or certificate. |
+| [deploy/gitops](../deploy/gitops) | Argo CD applications and local/staging overlays. Digests only where one already exists. Not installed. |
 | [scripts/kubernetes-stack.ps1](../scripts/kubernetes-stack.ps1) | Windows entry point for copied Kubernetes stack in WSL. |
 | [scripts/environment.ps1](../scripts/environment.ps1) | Operator apply/status/delete intent for per-workload Kubernetes boundaries. |
 | [scripts/local-stack.ps1](../scripts/local-stack.ps1) | Windows `up`, `status`, `stop`, `login` entry point. |

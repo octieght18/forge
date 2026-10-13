@@ -489,3 +489,13 @@ The Envoy manifest routes `/api/`, `/healthz`, and `/readyz` to the API service 
 `TestRegistrationHTTPPostgreSQL` passed on the disposable database. A missing token returned 401. A developer token returned 201. The gateway does not replace that check.
 
 See the [gateway guide](gateway.md) and [verification](f42-validation.md).
+
+## D58 — F43 Argo CD GitOps
+
+On 13 October 2026 ahmad asked to implement the next backlog ticket, F43. The ticket asks for environment overlays, Argo CD applications, signed immutable image references, drift reconciliation, and a separation between bootstrap credentials and application state.
+
+Local and staging Applications point at `deploy/gitops/overlays`. Both set `selfHeal: true`. They do not point at the Terraform directory. Digests in the pin ConfigMap are the PostgreSQL, Keycloak, and proxy digests already in `images.json`. The API image has no digest there, and no signature was invented. Argo CD was not installed, so no reconciliation was observed.
+
+The initial admin credential is created by an Argo CD install and stays with the operator. It is not in Git.
+
+See the [GitOps guide](gitops.md) and [verification](f43-validation.md).
