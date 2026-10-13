@@ -499,3 +499,13 @@ Local and staging Applications point at `deploy/gitops/overlays`. Both set `self
 The initial admin credential is created by an Argo CD install and stays with the operator. It is not in Git.
 
 See the [GitOps guide](gitops.md) and [verification](f43-validation.md).
+
+## D59 — F44 canary promotion
+
+On 13 October 2026 ahmad asked to implement the next backlog ticket, F44. The ticket asks for a promotion across local, staging, and the selected cloud, a canary or blue-green choice with measurable success criteria, and the compatibility limits of rollback.
+
+The strategy is a canary. `forge-promote` copies `deploy/gitops/overlays/local/release.txt` to staging after `--confirm promote-local-to-staging`. The success ceiling is an error rate at or below 1 percent in an observation window. That window was not collected against a live staging cluster. A cloud, EKS, or GKE destination is refused. The selected cloud environment was not created, and promotion there did not run.
+
+Migrations stay forward-only. Rolling the Git pin back does not reverse a migration, unsend a model call, or rewrite Temporal history. Retained execution rows are not deleted.
+
+See the [promotion guide](promotion.md) and [verification](f44-validation.md).

@@ -22,7 +22,8 @@ Start with the [quickstart](quickstart.md), [API examples](api-examples.md), the
 | [internal/mcp](../internal/mcp), [cmd/forge-mcp-fixture](../cmd/forge-mcp-fixture) | Frozen-context tool checks, stdio MCP client, and the deterministic corpus fixture. |
 | [internal/model](../internal/model) | Fixture and OpenRouter report generation, citation checks, and stored model identity and usage. |
 | [internal/environment](../internal/environment), [cmd/forge-environment-controller](../cmd/forge-environment-controller) | Separate operator environment controller with read-only identity lookup, boundary reconciliation and guarded finalization. |
-| [internal/retention](../internal/retention), [cmd/forge-demo-cleanup](../cmd/forge-demo-cleanup) | Retention rules and the synthetic demo cleanup. The command does not open PostgreSQL. | |
+| [internal/retention](../internal/retention), [cmd/forge-demo-cleanup](../cmd/forge-demo-cleanup) | Retention rules and the synthetic demo cleanup. The command does not open PostgreSQL. |
+| [internal/delivery](../internal/delivery), [cmd/forge-promote](../cmd/forge-promote) | Canary pin copy from local to staging. Cloud destinations are refused. | |
 | [internal/config](../internal/config), [internal/service](../internal/service) | Validated configuration, HTTP deadlines, readiness and graceful drain. |
 | [internal/testsupport](../internal/testsupport) | Real PostgreSQL integration fixtures. |
 | [deploy/native](../deploy/native) | Native PostgreSQL/Keycloak/API lifecycle, private launchers, realm and real-login smoke. |
