@@ -61,7 +61,11 @@ func TestRegistrationLoadProfile(t *testing.T) {
 	}
 	for _, clients := range []int{1, 2} {
 		t.Run(fmt.Sprintf("clients-%d", clients), func(t *testing.T) {
-			f := newRegistrationFixture(t, 10*time.Second)
+			// The closed loop is faster than the product caps. Those caps are
+			// checked by the quota tests. Leaving them on here turns a working
+			// registration path into 429s and fails the zero-error smoke.
+			f := newRegistrationFixture(t, 10*time.Second, 1_000_000)
+			f.db.Repo.SetLimits(0, 0)
 			// Private synthetic identities and disposable DB/roles come from the
 			// shared fixture; no production DSN or bearer token is written out.
 			dir := filepath.Join(output, fmt.Sprintf("clients-%d", clients))

@@ -35,7 +35,7 @@ type registrationFixture struct {
 	patchFinished chan error
 }
 
-func newRegistrationFixture(t *testing.T, grace time.Duration, middleware ...func(http.Handler) http.Handler) *registrationFixture {
+func newRegistrationFixture(t *testing.T, grace time.Duration, requestsPerSecond int, middleware ...func(http.Handler) http.Handler) *registrationFixture {
 	t.Helper()
 	db := testsupport.NewDatabase(t)
 	var wrap func(http.Handler) http.Handler
@@ -53,7 +53,7 @@ func newRegistrationFixture(t *testing.T, grace time.Duration, middleware ...fun
 	}
 	f := &registrationFixture{db: db, token: issuer.Token(t, "f10-owner", "developer", nil), client: &http.Client{Timeout: 10 * time.Second}, done: make(chan struct{}), ready: &httpapi.Readiness{}, patchFinished: make(chan error, 1)}
 	logger := slog.New(slog.NewJSONHandler(io.Discard, nil))
-	h, err := httpapi.NewRegistrationHandler(logger, f.ready, httpapi.Registration{Repository: db.Repo, Auth: v, Pool: db.Pool, Policy: policy, CursorKey: bytes.Repeat([]byte{3}, 32), Timeout: 5 * time.Second})
+	h, err := httpapi.NewRegistrationHandler(logger, f.ready, httpapi.Registration{Repository: db.Repo, Auth: v, Pool: db.Pool, Policy: policy, CursorKey: bytes.Repeat([]byte{3}, 32), Timeout: 5 * time.Second, RequestsPerSecond: requestsPerSecond})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -87,7 +87,7 @@ func newRegistrationFixture(t *testing.T, grace time.Duration, middleware ...fun
 func TestRegistrationJWKSHTTPDisconnect(t *testing.T) {
 	started, released := make(chan struct{}), make(chan struct{})
 	var once sync.Once
-	f := newRegistrationFixture(t, time.Second, func(next http.Handler) http.Handler {
+	f := newRegistrationFixture(t, time.Second, 0, func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.URL.Path == "/keys" {
 				once.Do(func() { close(started) })
@@ -214,7 +214,7 @@ func TestRegistrationCancellationAndDrain(t *testing.T) {
 			if mode == "grace-expiry" {
 				grace = 100 * time.Millisecond
 			}
-			f := newRegistrationFixture(t, grace)
+			f := newRegistrationFixture(t, grace, 0)
 			status, body, err := f.request(context.Background(), "POST", "/api/v1/workloads", `{"name":"cancellation-fixture","description":"original"}`, "")
 			if err != nil || status != 201 {
 				t.Fatalf("seed status=%d error=%v", status, err)
