@@ -46,6 +46,11 @@ jobs:
       - name: Profile statistics tests
         if: runner.os == 'Linux'
         run: python3 -m unittest discover -s scripts -p 'test_profile_summary.py'
+      - name: Module SBOM and guarded image scan
+        if: runner.os == 'Linux'
+        run: |
+          python3 -m unittest discover -s scripts -p 'test_supply_chain.py'
+          python3 scripts/supply-chain.py --check
       - name: Balanced local target evaluator and recorded evidence
         if: runner.os == 'Linux'
         run: |

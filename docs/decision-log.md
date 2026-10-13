@@ -449,3 +449,13 @@ The ClusterPolicy rejects privileged containers, privilege escalation, host name
 The network documents are default-deny for `forge-local`, same-namespace ingress and egress, DNS to `kube-dns`, and TCP 443 for the model route. Corpus tools stay stdio and have no network rule. Kind's current network plugin does not enforce NetworkPolicy. The manifests were not applied. No denied network path was observed.
 
 See the [policy guide](policy.md) and [verification](f38-validation.md).
+
+## D54 — F39 SBOM, scan, and signature
+
+On 13 October 2026 ahmad asked to implement the next backlog ticket, F39. The ticket asks for an SBOM, an image scan, a signed artifact, and a triage rule that does not treat a signature as proof of safety.
+
+`syft`, `grype`, `trivy`, `cosign`, and Docker were not installed. No image was built, scanned, or signed. The CI job still generates a CycloneDX document from `go.sum`. Syft, Grype, Trivy, and Cosign run only when that tool is on `PATH` and an image reference is supplied. Cosign also requires `FORGE_COSIGN_KEY`, which is operator-held and is not committed. The script prints `clean-scan: not-claimed` when it did not run a scanner.
+
+ahmad triages findings before a release tag. Critical and high findings block that review. A signature matches a key. It does not prove the code is safe.
+
+See the [supply-chain guide](supply-chain.md) and [verification](f39-validation.md).
