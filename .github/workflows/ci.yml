@@ -43,6 +43,9 @@ jobs:
       - name: Privileged manifest rejection
         if: runner.os == 'Linux'
         run: python3 -m unittest discover -s deploy/policy -p 'test_*.py'
+      - name: EKS module guards
+        if: runner.os == 'Linux'
+        run: python3 -m unittest discover -s deploy/terraform -p 'test_*.py'
       - name: Profile statistics tests
         if: runner.os == 'Linux'
         run: python3 -m unittest discover -s scripts -p 'test_profile_summary.py'

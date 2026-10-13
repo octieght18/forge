@@ -17,3 +17,10 @@ __pycache__/
 
 # F10 raw/profile evidence stays local by owner instruction.
 docs/profiles/
+
+# Terraform local state and operator backend config
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+backend.hcl

@@ -469,3 +469,13 @@ The auth, RBAC, quota, and redaction tests passed on a disposable PostgreSQL 16.
 G3 stays open. G4 is not marked done in this repository. The threat model now lists those gaps and the controls required before any production deployment. This ticket does not mark the demo production-ready.
 
 See the [threat model](threat-model.md) and [verification](f40-validation.md).
+
+## D56 — F41 EKS Terraform
+
+On 13 October 2026 ahmad asked to implement the next backlog ticket, F41. The ticket asks for one cloud target, networking, cluster identity, minimal IAM, a plan and cost review, and remote-state guidance. G4 is a prerequisite and is not marked done. F02 selected local kind rather than a paid EKS or GKE cluster.
+
+The module is Amazon EKS only. It pins Terraform 1.16.5 and hashicorp/aws 6.68.0. The cluster role and the node role use the three worker policies plus the cluster policy, not an administrator policy. The API endpoint is private. `terraform validate` succeeded. `terraform plan` and `terraform apply` were not run. No AWS credentials were configured. No resources were created and no spend occurred.
+
+State for this validation stays in a gitignored local file. The documented remote backend is S3 with a gitignored `backend.hcl` and no access keys in Git. GKE is not implemented.
+
+See the [EKS plan](terraform-eks.md) and [verification](f41-validation.md).
