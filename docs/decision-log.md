@@ -439,3 +439,13 @@ Executions stay in PostgreSQL and in Temporal history. Principals, versions, and
 The demo cleanup is `forge-demo-cleanup`. It deletes only regular files named `demo-synthetic-*` in an explicit directory after `--confirm delete-synthetic-demo-records`. It refuses a `forge-native` or `forge-kubernetes` path, a directory that contains `PG_VERSION` or a secret file, a secret-shaped name, and a symlink. It does not take a database URL. Native purge remains a separate operator action and is not this job. A backup stored with the retained state is outside the cleanup.
 
 See the [retention guide](retention.md) and [verification](f37-validation.md).
+
+## D53 — F38 network and policy-as-code
+
+On 13 October 2026 ahmad asked to implement the next backlog ticket, F38. The architecture already preferred Kyverno for Kubernetes resource policy, and OPA for later dynamic API policy. This ticket uses Kyverno. It does not add an OPA service or a second authorizer.
+
+The ClusterPolicy rejects privileged containers, privilege escalation, host namespaces, and host path volumes. Kyverno is not installed in this session. Docker, kind, and kubectl were not available. The rejection that ran is the CI checker over the policy documents and the kind resource generator.
+
+The network documents are default-deny for `forge-local`, same-namespace ingress and egress, DNS to `kube-dns`, and TCP 443 for the model route. Corpus tools stay stdio and have no network rule. Kind's current network plugin does not enforce NetworkPolicy. The manifests were not applied. No denied network path was observed.
+
+See the [policy guide](policy.md) and [verification](f38-validation.md).

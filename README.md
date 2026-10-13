@@ -68,6 +68,8 @@ The owner approved [containerized Kubernetes deployment in WSL](docs/kubernetes-
 
 **F37** defines [retention and secret homes](docs/retention.md). Executions stay in PostgreSQL and Temporal. Evidence and audit stay in the process. The demo cleanup removes only `demo-synthetic-*` files and refuses the retained database and secret files.
 
+**F38** selects Kyverno and checks [privileged manifests in CI](docs/policy.md). Default-deny network manifests allow same-namespace traffic, DNS, and TCP 443 for the model route. Kind does not enforce NetworkPolicy here, and no denied path was observed.
+
 - [Internal product brief](docs/product-brief.md)
 - [Product and design decisions](docs/decision-log.md)
 - [Architecture and integration boundaries](docs/architecture.md)
@@ -141,6 +143,8 @@ The owner approved [containerized Kubernetes deployment in WSL](docs/kubernetes-
 - [F36 audit and metering verification](docs/f36-validation.md)
 - [Retention and secret homes](docs/retention.md)
 - [F37 verification](docs/f37-validation.md)
+- [Admission and network policy](docs/policy.md)
+- [F38 verification](docs/f38-validation.md)
 
 The owner must review product and design choices before they become accepted decisions. F02 records the accepted Go HTTP/OpenAPI, PostgreSQL and Temporal foundation, OpenRouter backend and local Kubernetes target. Keycloak OIDC is included from the first release. The testing model is `google/gemma-4-26b-a4b-it:free`. D26 supersedes F07's no-container deployment choice: the current stack can now run in kind inside WSL. F03's HTTP defaults and lifecycle conventions are accepted; new API/identity/workflow decisions still require consultation.
 

@@ -1,0 +1,55 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: forge-reject-privileged
+spec:
+  validationFailureAction: Enforce
+  background: false
+  rules:
+    - name: reject-privileged-containers
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      validate:
+        message: Privileged containers are not allowed.
+        pattern:
+          spec:
+            containers:
+              - securityContext:
+                  privileged: "false"
+                  allowPrivilegeEscalation: "false"
+            =(initContainers):
+              - securityContext:
+                  privileged: "false"
+                  allowPrivilegeEscalation: "false"
+            =(ephemeralContainers):
+              - securityContext:
+                  privileged: "false"
+                  allowPrivilegeEscalation: "false"
+    - name: reject-host-namespaces
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      validate:
+        message: Host namespaces are not allowed.
+        pattern:
+          spec:
+            hostNetwork: "false"
+            hostPID: "false"
+            hostIPC: "false"
+    - name: reject-host-path
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      validate:
+        message: Host path volumes are not allowed.
+        pattern:
+          spec:
+            =(volumes):
+              - X(hostPath): "null"

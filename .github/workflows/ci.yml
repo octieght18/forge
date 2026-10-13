@@ -40,6 +40,9 @@ jobs:
       - name: Kubernetes deployment boundary guards
         if: runner.os == 'Linux'
         run: python3 -m unittest discover -s deploy/kubernetes -p 'test_*.py'
+      - name: Privileged manifest rejection
+        if: runner.os == 'Linux'
+        run: python3 -m unittest discover -s deploy/policy -p 'test_*.py'
       - name: Profile statistics tests
         if: runner.os == 'Linux'
         run: python3 -m unittest discover -s scripts -p 'test_profile_summary.py'

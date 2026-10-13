@@ -28,6 +28,7 @@ Start with the [quickstart](quickstart.md), [API examples](api-examples.md), the
 | [deploy/native](../deploy/native) | Native PostgreSQL/Keycloak/API lifecycle, private launchers, realm and real-login smoke. |
 | [Dockerfile](../Dockerfile), [.dockerignore](../.dockerignore) | Static non-root API/migration image and source-only build context. |
 | [deploy/kubernetes](../deploy/kubernetes) | kind resources, fixed proxy, digest lock, retained migration/lifecycle and verified tools. |
+| [deploy/policy](../deploy/policy), [internal/policy](../internal/policy) | Kyverno privileged-manifest policy, default-deny network documents, and the CI checker. Kind does not enforce NetworkPolicy. |
 | [scripts/kubernetes-stack.ps1](../scripts/kubernetes-stack.ps1) | Windows entry point for copied Kubernetes stack in WSL. |
 | [scripts/environment.ps1](../scripts/environment.ps1) | Operator apply/status/delete intent for per-workload Kubernetes boundaries. |
 | [scripts/local-stack.ps1](../scripts/local-stack.ps1) | Windows `up`, `status`, `stop`, `login` entry point. |
