@@ -46,10 +46,10 @@ func TestDisposableDumpRestoresTheWorkload(t *testing.T) {
 	if !strings.HasPrefix(source, "forge_http_") || strings.Contains(source, "forge-native") || strings.Contains(source, "forge-kubernetes") {
 		t.Fatal("refusing a non-disposable database name")
 	}
-	password := adminPassword(t)
+	host, port, user, password := adminEndpoint(t)
 	dump := filepath.Join(t.TempDir(), "dump.sql")
 	dumpStarted := time.Now()
-	if err := runTool(t, password, "pg_dump", "--no-owner", "--no-acl", "-h", "127.0.0.1", "-U", "postgres", "-d", source, "-f", dump); err != nil {
+	if err := runTool(t, password, "pg_dump", "--no-owner", "--no-acl", "-h", host, "-p", port, "-U", user, "-d", source, "-f", dump); err != nil {
 		t.Fatal(err)
 	}
 	dumpDuration := time.Since(dumpStarted)
@@ -65,7 +65,7 @@ func TestDisposableDumpRestoresTheWorkload(t *testing.T) {
 		db.Admin.Exec(context.Background(), "DROP DATABASE IF EXISTS "+quoted+" WITH (FORCE)")
 	})
 	restoreStarted := time.Now()
-	if err := runTool(t, password, "psql", "-v", "ON_ERROR_STOP=1", "-h", "127.0.0.1", "-U", "postgres", "-d", restoreName, "-f", dump); err != nil {
+	if err := runTool(t, password, "psql", "-v", "ON_ERROR_STOP=1", "-h", host, "-p", port, "-U", user, "-d", restoreName, "-f", dump); err != nil {
 		t.Fatal(err)
 	}
 	cfg, err := pgx.ParseConfig(os.Getenv("FORGE_TEST_ADMIN_DATABASE_URL"))
@@ -93,17 +93,20 @@ func TestDisposableDumpRestoresTheWorkload(t *testing.T) {
 	t.Logf("dump=%s restore=%s", dumpDuration, restoreDuration)
 }
 
-func adminPassword(t *testing.T) string {
+func adminEndpoint(t *testing.T) (host, port, user, password string) {
 	t.Helper()
 	parsed, err := url.Parse(os.Getenv("FORGE_TEST_ADMIN_DATABASE_URL"))
-	if err != nil {
+	if err != nil || parsed.User == nil {
 		t.Fatal("admin configuration invalid")
 	}
+	host = parsed.Hostname()
+	port = parsed.Port()
+	user = parsed.User.Username()
 	password, ok := parsed.User.Password()
-	if !ok || password == "" {
+	if host == "" || port == "" || user == "" || !ok || password == "" {
 		t.Fatal("admin configuration invalid")
 	}
-	return password
+	return host, port, user, password
 }
 
 func runTool(t *testing.T, password, name string, args ...string) error {

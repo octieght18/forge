@@ -10,7 +10,7 @@ The dump file is plaintext SQL in a temporary directory, mode 0600, and the test
 
 ## Dependencies
 
-Restore needs `pg_dump`, `psql`, a second empty database on the same server, and the dump file. It does not need Temporal, a model key, or the retained state directory.
+Restore needs `pg_dump`, `psql`, a second empty database on the same server, and the dump file. The client major version has to match the server: the GitHub runner ships PostgreSQL 16, which cannot dump the CI PostgreSQL 18.6 service, so that job installs the 18.6 client and puts it first on `PATH`. It does not need Temporal, a model key, or the retained state directory.
 
 ## Drill
 
