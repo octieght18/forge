@@ -509,3 +509,13 @@ The strategy is a canary. `forge-promote` copies `deploy/gitops/overlays/local/r
 Migrations stay forward-only. Rolling the Git pin back does not reverse a migration, unsend a model call, or rewrite Temporal history. Retained execution rows are not deleted.
 
 See the [promotion guide](promotion.md) and [verification](f44-validation.md).
+
+## D60 — F45 canary rollback
+
+On 13 October 2026 ahmad asked to implement the next backlog ticket, F45. The ticket asks for an injected error-rate and latency regression, a measured rollback, restored traffic, retained execution state, and the cases that need a human.
+
+The test injected 40 errors in 100 requests and an 800 millisecond latency. Detection measured 292 nanoseconds. Restoring the previous pin measured 52.762 microseconds. The whole call measured 54.421 microseconds. The staging pin returned to `local-overlay`. The execution identifiers were copied and not deleted. A missing token on the registration API still returned 401.
+
+Automatic restore stops when a forward-only migration has already been applied, when a model call has already completed, or when the previous pin is missing. Temporal history is not rewritten.
+
+See the [rollback guide](rollback.md) and [verification](f45-validation.md).

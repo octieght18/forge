@@ -82,6 +82,8 @@ The owner approved [containerized Kubernetes deployment in WSL](docs/kubernetes-
 
 **F44** promotes a [canary pin](docs/promotion.md) from the local overlay to staging. The success ceiling is a 1 percent error rate. The paid cloud environment was not created, so promotion there is refused. A model call cannot be unsent and Temporal history is not rewritten.
 
+**F45** rolls a regressed canary [back to the previous pin](docs/rollback.md). One injected window was detected in 292 nanoseconds and restored in 52.762 microseconds. Execution identifiers stayed. A completed model call or an applied migration waits for a human.
+
 - [Internal product brief](docs/product-brief.md)
 - [Product and design decisions](docs/decision-log.md)
 - [Architecture and integration boundaries](docs/architecture.md)
@@ -168,6 +170,8 @@ The owner approved [containerized Kubernetes deployment in WSL](docs/kubernetes-
 - [F43 verification](docs/f43-validation.md)
 - [Canary promotion](docs/promotion.md)
 - [F44 verification](docs/f44-validation.md)
+- [Canary rollback](docs/rollback.md)
+- [F45 verification](docs/f45-validation.md)
 
 The owner must review product and design choices before they become accepted decisions. F02 records the accepted Go HTTP/OpenAPI, PostgreSQL and Temporal foundation, OpenRouter backend and local Kubernetes target. Keycloak OIDC is included from the first release. The testing model is `google/gemma-4-26b-a4b-it:free`. D26 supersedes F07's no-container deployment choice: the current stack can now run in kind inside WSL. F03's HTTP defaults and lifecycle conventions are accepted; new API/identity/workflow decisions still require consultation.
 
