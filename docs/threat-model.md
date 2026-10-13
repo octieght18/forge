@@ -47,7 +47,7 @@ A tenant in this design is the engineering team. A project is a group of workloa
 
 **Confused deputy.** A workload must not choose the MCP command, a URL, or a tool name outside `corpus.search` and `corpus.read`. The worker starts one configured executable only after the frozen document allow list matches. The environment controller is privileged infrastructure: it can create a namespace, and a developer cannot steer that privilege with a kubeconfig. The controller's database role cannot write product rows.
 
-**Cross-tenant data access.** Another developer's read of an id returns 404. Operators can read. There is no tenant column, so this is owner isolation inside one team, not a boundary between organizations. An operator read includes the submitted question because the Run schema requires it. History and result omit the question and corpus text.
+**Cross-tenant data access.** F32 stores a tenant and a project. A developer or operator read of another tenant's id returns 404. Operators can read other owners inside the same tenant and project. Existing rows keep the demo tenant. That is still one team, not a boundary between organizations. An operator read includes the submitted question because the Run schema requires it. History and result omit the question and corpus text.
 
 **SSRF.** The research tools are not HTTP clients. The model route used by a configured worker is the OpenRouter endpoint in code, not a URL from the workload. A workload field cannot name a host. Debug mode does not call that network. A future tool that accepted a URL would be a new threat and is not part of this design.
 
@@ -55,8 +55,21 @@ A tenant in this design is the engineering team. A project is a group of workloa
 
 ## Controls
 
-Tested in this repository: Keycloak access-token checks for issuer, audience, signature, expiry, and role; owner reads and operator read-only mutation checks on workloads, versions, runs, cancel, history, and rerun; MCP allow-list rejection before a process; fixture debug path that does not use a live model key.
+Tested in this repository: Keycloak access-token checks for issuer, audience, signature, expiry, and role; owner reads and operator read-only mutation checks on workloads, versions, runs, cancel, history, and rerun; MCP allow-list rejection before a process; fixture debug path that does not use a live model key. F35 adds a per-process request limit and a database cap on workloads and pending runs. F36 records an audit event without the token. F37 names secret homes and refuses demo cleanup of the retained database.
 
-Incomplete for a demo that still has one team: the stored tenant is the migration default, not an organization boundary; service and workload identities are distinguished but not a production mesh; no rate limit; no audit trail; G3 remains open. The environment controller is trusted infrastructure, not a tenant sandbox.
+The stored tenant is still the demo tenant for existing rows, not an organization boundary. Service and workload identities are not a production mesh. The request limit does not leave the API process. Audit events leave with the process. G3 remains open. G4 is not marked done in this repository. The environment controller is trusted infrastructure, not a tenant sandbox.
 
-Production would still need, and this demo does not have: organization-level isolation, network policy around the worker, a private model route with rotation beyond the local Keycloak test, token revocation before the five-minute access-token lifetime, and a reviewed gate that closes G3. None of those are claimed here.
+## F40 gaps
+
+These checks were not demonstrated:
+
+| Gap | Why it stays open |
+|---|---|
+| Default-deny network enforcement | Kind's current network plugin does not enforce NetworkPolicy. No connection was attempted, so no denied path was observed |
+| Live Kyverno admission | The ClusterPolicy is a file. The CI checker rejected a privileged fixture. Kyverno was not installed |
+| Signed image and vulnerability scan | `syft`, `grype`, `trivy`, and `cosign` were absent. No clean scan is claimed |
+| Production gateway, TLS, and DNS | Not issued. The local API is loopback HTTP |
+
+## Before any production deployment
+
+Do not treat this demo as production-ready. A production deployment still requires, and this repository does not have: G3 closed, G4 closed, organization-level isolation, an enforcing network policy with an observed deny, Kyverno admission on the cluster rather than only in CI, a reviewed image scan, a signature that is verified against an operator-held key, token revocation before the five-minute access-token lifetime, a private model route, and an issued DNS name with a live TLS certificate. None of those are claimed here.

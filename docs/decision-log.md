@@ -459,3 +459,13 @@ On 13 October 2026 ahmad asked to implement the next backlog ticket, F39. The ti
 ahmad triages findings before a release tag. Critical and high findings block that review. A signature matches a key. It does not prove the code is safe.
 
 See the [supply-chain guide](supply-chain.md) and [verification](f39-validation.md).
+
+## D55 — F40 tenant security validation
+
+On 13 October 2026 ahmad asked to implement the next backlog ticket, F40. The ticket asks for pass and fail evidence, negative cases for auth, RBAC, quota, network, and secret redaction, and a threat model that states what production still requires.
+
+The auth, RBAC, quota, and redaction tests passed on a disposable PostgreSQL 16.15. That instance is not the retained product database. Network denial was not run. The policy test records that no denied path was observed. Kyverno is not installed. No image was signed or scanned.
+
+G3 stays open. G4 is not marked done in this repository. The threat model now lists those gaps and the controls required before any production deployment. This ticket does not mark the demo production-ready.
+
+See the [threat model](threat-model.md) and [verification](f40-validation.md).
