@@ -37,8 +37,8 @@ func entered() { activityEntries.Add(1) }
 // UseDebugFixtures selects the in-process corpus fixture and the fixture model.
 // A debug or replay path uses this instead of a configured MCP command or API key.
 func UseDebugFixtures() {
-	Corpus = mcp.FixtureTool{}
-	Model = model.Fixture{}
+	SetCorpus(mcp.FixtureTool{})
+	SetModel(model.Fixture{})
 }
 
 // Replay runs workflow code against recorded history. Activities are not executed.

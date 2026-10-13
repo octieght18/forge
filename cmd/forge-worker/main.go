@@ -32,12 +32,12 @@ func main() {
 		execution.UseDebugFixtures()
 	} else {
 		if command := os.Getenv("FORGE_MCP_COMMAND"); command != "" {
-			execution.Corpus = mcp.Stdio{Command: command}
+			execution.SetCorpus(mcp.Stdio{Command: command})
 		}
 		if key := os.Getenv("FORGE_MODEL_API_KEY"); key != "" {
-			execution.Model = model.OpenRouter{Key: key}
+			execution.SetModel(model.OpenRouter{Key: key})
 		} else if os.Getenv("FORGE_MODEL_FIXTURE") == "true" {
-			execution.Model = model.Fixture{}
+			execution.SetModel(model.Fixture{})
 		}
 	}
 	process := worker.New(service, execution.TaskQueue, worker.Options{})

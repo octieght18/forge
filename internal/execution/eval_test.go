@@ -25,10 +25,10 @@ func TestEvaluationFixtures(t *testing.T) {
 	if ModeReplay == ModeRetry || ModeRetry == ModeReexecution || ModeReplay == "" {
 		t.Fatal(ModeReplay, ModeRetry, ModeReexecution)
 	}
-	previousTool, previousModel := Corpus, Model
+	previousTool, previousModel := currentCorpus(), currentModel()
 	t.Cleanup(func() {
-		Corpus = previousTool
-		Model = previousModel
+		SetCorpus(previousTool)
+		SetModel(previousModel)
 		mcp.Reset()
 		model.Reset()
 		ResetCommits()
@@ -69,8 +69,8 @@ func TestEvaluationFixtures(t *testing.T) {
 	t.Run("failed step", func(t *testing.T) {
 		resetEval()
 		counter := &denyCounter{}
-		Corpus = counter
-		Model = model.Fixture{}
+		SetCorpus(counter)
+		SetModel(model.Fixture{})
 		in := evalInput("77777777-7777-4777-8777-777777777777", []string{"platform-brief"}, "short")
 		got := runEval(t, in)
 		if got.Decision != "fail_closed" || got.Reason != "tool_denied" || counter.calls != 0 || len(mcp.EvidenceRecords()) != 0 {
@@ -81,10 +81,10 @@ func TestEvaluationFixtures(t *testing.T) {
 
 func TestFixtureUsageReconcilesOnce(t *testing.T) {
 	audit.Reset()
-	previousTool, previousModel := Corpus, Model
+	previousTool, previousModel := currentCorpus(), currentModel()
 	t.Cleanup(func() {
-		Corpus = previousTool
-		Model = previousModel
+		SetCorpus(previousTool)
+		SetModel(previousModel)
 		mcp.Reset()
 		model.Reset()
 		ResetCommits()
@@ -104,17 +104,17 @@ func TestFixtureUsageReconcilesOnce(t *testing.T) {
 }
 
 func TestReplayDoesNotCallToolsAndReexecutionDoes(t *testing.T) {
-	previousTool, previousModel := Corpus, Model
+	previousTool, previousModel := currentCorpus(), currentModel()
 	t.Cleanup(func() {
-		Corpus = previousTool
-		Model = previousModel
+		SetCorpus(previousTool)
+		SetModel(previousModel)
 		mcp.Reset()
 		model.Reset()
 		ResetCommits()
 	})
 	calls := 0
-	Corpus = countingTool{&calls}
-	Model = model.Fixture{}
+	SetCorpus(countingTool{&calls})
+	SetModel(model.Fixture{})
 	ResetActivityEntries()
 	first := evalInput("88888888-8888-4888-8888-888888888888", []string{"platform-brief"}, strings.Repeat("c", 64))
 	before := ActivityEntries()

@@ -54,12 +54,12 @@ func (passageTool) Call(context.Context, string, map[string]any) (json.RawMessag
 func TestWorkflowPersistsCitedReport(t *testing.T) {
 	mcp.Reset()
 	model.Reset()
-	previousTool, previousModel := Corpus, Model
-	Corpus = passageTool{}
-	Model = model.Fixture{}
+	previousTool, previousModel := currentCorpus(), currentModel()
+	SetCorpus(passageTool{})
+	SetModel(model.Fixture{})
 	t.Cleanup(func() {
-		Corpus = previousTool
-		Model = previousModel
+		SetCorpus(previousTool)
+		SetModel(previousModel)
 	})
 	var suite testsuite.WorkflowTestSuite
 	env := suite.NewTestWorkflowEnvironment()
@@ -109,12 +109,12 @@ func TestRetryReusesWorkAndCompensatesPartialEvidence(t *testing.T) {
 	mcp.Reset()
 	ResetCommits()
 	tool := &flakyTool{}
-	previousTool, previousModel := Corpus, Model
-	Corpus = tool
-	Model = nil
+	previousTool, previousModel := currentCorpus(), currentModel()
+	SetCorpus(tool)
+	SetModel(nil)
 	t.Cleanup(func() {
-		Corpus = previousTool
-		Model = previousModel
+		SetCorpus(previousTool)
+		SetModel(previousModel)
 		ResetCommits()
 	})
 	var suite testsuite.WorkflowTestSuite
@@ -164,12 +164,12 @@ func TestCancellationCompensatesOrExplainsTheGap(t *testing.T) {
 	mcp.Reset()
 	ResetCommits()
 	ResetTerminals()
-	previousTool, previousModel := Corpus, Model
-	Corpus = blockingTool{}
-	Model = model.Fixture{}
+	previousTool, previousModel := currentCorpus(), currentModel()
+	SetCorpus(blockingTool{})
+	SetModel(model.Fixture{})
 	t.Cleanup(func() {
-		Corpus = previousTool
-		Model = previousModel
+		SetCorpus(previousTool)
+		SetModel(previousModel)
 		ResetCommits()
 	})
 	var suite testsuite.WorkflowTestSuite

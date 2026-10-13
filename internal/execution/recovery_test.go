@@ -16,10 +16,10 @@ import (
 )
 
 func TestDurableRecoveryMeasurements(t *testing.T) {
-	previousTool, previousModel := Corpus, Model
+	previousTool, previousModel := currentCorpus(), currentModel()
 	t.Cleanup(func() {
-		Corpus = previousTool
-		Model = previousModel
+		SetCorpus(previousTool)
+		SetModel(previousModel)
 		mcp.Reset()
 		model.Reset()
 		ResetCommits()
@@ -56,8 +56,8 @@ func measureHalf(t *testing.T) (time.Duration, map[string]int, int) {
 	t.Helper()
 	resetEval()
 	tool := &flakyTool{}
-	Corpus = tool
-	Model = nil
+	SetCorpus(tool)
+	SetModel(nil)
 	in := evalInput("abababab-abab-4bab-8bab-abababababab", []string{"platform-brief"}, strings.Repeat("a", 64))
 	attempts := map[string]int{}
 	started := time.Now()
@@ -90,8 +90,8 @@ func measureUncertain(t *testing.T) (time.Duration, map[string]int) {
 func measureCancel(t *testing.T) (string, map[string]int) {
 	t.Helper()
 	resetEval()
-	Corpus = blockingTool{}
-	Model = model.Fixture{}
+	SetCorpus(blockingTool{})
+	SetModel(model.Fixture{})
 	var suite testsuite.WorkflowTestSuite
 	env := suite.NewTestWorkflowEnvironment()
 	attempts := map[string]int{}

@@ -7,6 +7,7 @@ package execution
 import (
 	"context"
 	"errors"
+	"sync"
 
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/temporal"
@@ -17,11 +18,41 @@ import (
 	"github.com/octieght18/forge/internal/model"
 )
 
-// Corpus is the worker-owned tool. A nil tool performs no corpus call.
-var Corpus mcp.Tool
+// corpus is the worker-owned tool. A nil tool performs no corpus call.
+// generator is the worker-owned model. A nil model reports model_unavailable.
+// A cancelled activity can still read these from Temporal's heartbeat goroutine
+// after the test environment has returned, so every swap takes the lock.
+var (
+	dependencyMu sync.RWMutex
+	corpus       mcp.Tool
+	generator    model.Generator
+)
 
-// Model is the worker-owned generator. A nil model reports model_unavailable.
-var Model model.Generator
+// SetCorpus installs the tool activities call.
+func SetCorpus(tool mcp.Tool) {
+	dependencyMu.Lock()
+	corpus = tool
+	dependencyMu.Unlock()
+}
+
+// SetModel installs the generator activities call.
+func SetModel(next model.Generator) {
+	dependencyMu.Lock()
+	generator = next
+	dependencyMu.Unlock()
+}
+
+func currentCorpus() mcp.Tool {
+	dependencyMu.RLock()
+	defer dependencyMu.RUnlock()
+	return corpus
+}
+
+func currentModel() model.Generator {
+	dependencyMu.RLock()
+	defer dependencyMu.RUnlock()
+	return generator
+}
 
 const (
 	TaskQueue    = "forge-research"
@@ -123,7 +154,8 @@ func Research(ctx workflow.Context, in Correlation) (Result, error) {
 // frozen context and calls corpus.search. Without one it does not start a tool.
 func Retrieve(ctx context.Context, in Correlation) (Observation, error) {
 	entered()
-	if Corpus != nil {
+	tool := currentCorpus()
+	if tool != nil {
 		key := IdempotencyKey(in.RunID, "retrieval", material(in))
 		if saved, ok := recall(key); ok {
 			return saved, nil
@@ -132,7 +164,7 @@ func Retrieve(ctx context.Context, in Correlation) (Observation, error) {
 	if err := activityIdentity(ctx, in); err != nil {
 		return Observation{}, err
 	}
-	if Corpus == nil {
+	if tool == nil {
 		return Observation{RunID: in.RunID, WorkflowID: in.WorkflowID, CommandID: in.CommandID, Step: "retrieval", Outcome: "succeeded"}, nil
 	}
 	key := IdempotencyKey(in.RunID, "retrieval", material(in))
@@ -140,7 +172,7 @@ func Retrieve(ctx context.Context, in Correlation) (Observation, error) {
 	outcome, err := mcp.Search(ctx, mcp.Input{
 		RunID: in.RunID, WorkflowID: in.WorkflowID, CommandID: in.CommandID, SnapshotID: in.SnapshotID,
 		Question: in.Question, DocumentIDs: in.DocumentIDs, MaxPassages: in.MaxPassages,
-	}, Corpus)
+	}, tool)
 	if err != nil {
 		if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
 			return Observation{}, err
@@ -166,7 +198,8 @@ func Generate(ctx context.Context, in Correlation, passages []mcp.Passage) (Obse
 	if err := activityIdentity(ctx, in); err != nil {
 		return Observation{}, err
 	}
-	if Model == nil {
+	gen := currentModel()
+	if gen == nil {
 		return Observation{RunID: in.RunID, WorkflowID: in.WorkflowID, CommandID: in.CommandID, Step: "generation", Outcome: "failed", Class: "model_unavailable"}, nil
 	}
 	key := IdempotencyKey(in.RunID, "generation", material(in))
@@ -174,7 +207,7 @@ func Generate(ctx context.Context, in Correlation, passages []mcp.Passage) (Obse
 		return saved, nil
 	}
 	beat(ctx, in.RunID)
-	report, err := Model.Generate(ctx, in.RunID, in.Question, passages)
+	report, err := gen.Generate(ctx, in.RunID, in.Question, passages)
 	if err != nil {
 		if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
 			return Observation{}, err
