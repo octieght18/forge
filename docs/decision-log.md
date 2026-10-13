@@ -429,3 +429,13 @@ See the [verification](f35-validation.md).
 On 12 October 2026 the owner asked to implement the next backlog ticket, F36. Audit events record the actor subject, tenant, operation, time, target path, and outcome. They do not record tokens, prompts, or corpus text. Model units are the prompt and completion token counts already on the fixture report. Tool calls and those token counts are added once per activity idempotency key. The fixture execution is the reconciliation source. The counters live in the process, not in a second database.
 
 See the [verification](f36-validation.md).
+
+## D52 — F37 secrets and data retention
+
+On 13 October 2026 ahmad asked to implement the next backlog ticket, F37. The ticket asks for a retention and deletion policy for executions, evidence, audit, and attachments, a safe demo cleanup, and a statement of where secrets live.
+
+Executions stay in PostgreSQL and in Temporal history. Principals, versions, and runs already reject DELETE. Evidence and audit stay in process memory and are not product tables. The API does not accept attachments. Secret values stay in environment variables, Kubernetes Secret objects, or local files under the retained state directory. They are not written into Git, specs, or logs.
+
+The demo cleanup is `forge-demo-cleanup`. It deletes only regular files named `demo-synthetic-*` in an explicit directory after `--confirm delete-synthetic-demo-records`. It refuses a `forge-native` or `forge-kubernetes` path, a directory that contains `PG_VERSION` or a secret file, a secret-shaped name, and a symlink. It does not take a database URL. Native purge remains a separate operator action and is not this job. A backup stored with the retained state is outside the cleanup.
+
+See the [retention guide](retention.md) and [verification](f37-validation.md).
