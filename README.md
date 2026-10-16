@@ -176,6 +176,8 @@ The owner approved [containerized Kubernetes deployment in WSL](docs/kubernetes-
 - [F45 verification](docs/f45-validation.md)
 - [Backup and restore](docs/backup.md)
 - [F46 verification](docs/f46-validation.md)
+- [Failure injection](docs/failure-injection.md)
+- [F47 verification](docs/f47-validation.md)
 
 The owner must review product and design choices before they become accepted decisions. F02 records the accepted Go HTTP/OpenAPI, PostgreSQL and Temporal foundation, OpenRouter backend and local Kubernetes target. Keycloak OIDC is included from the first release. The testing model is `google/gemma-4-26b-a4b-it:free`. D26 supersedes F07's no-container deployment choice: the current stack can now run in kind inside WSL. F03's HTTP defaults and lifecycle conventions are accepted; new API/identity/workflow decisions still require consultation.
 

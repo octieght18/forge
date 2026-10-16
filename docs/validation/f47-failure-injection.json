@@ -1,0 +1,49 @@
+{
+  "scenarios": [
+    {
+      "name": "worker_loss",
+      "recovered": true,
+      "isolated": true,
+      "side_effects": 0,
+      "duplicate_side_effects": 0,
+      "duration_us": 38118,
+      "limit": "No worker process was killed and no Temporal server was started. Resume is replay of constructed history, which does not call the tool or model."
+    },
+    {
+      "name": "tool_model_outage",
+      "recovered": true,
+      "isolated": true,
+      "side_effects": 1,
+      "duplicate_side_effects": 0,
+      "duration_us": 30695,
+      "limit": "The outage is the in-process fixture. No OpenRouter call and no MCP process were started."
+    },
+    {
+      "name": "bad_rollout",
+      "recovered": true,
+      "isolated": true,
+      "side_effects": 1,
+      "duplicate_side_effects": 0,
+      "duration_us": 33,
+      "limit": "Rollback rewrites the staging pin file. It does not reverse a migration, unsend a model call, or change a live cluster."
+    },
+    {
+      "name": "database_outage",
+      "recovered": true,
+      "isolated": true,
+      "side_effects": 1,
+      "duplicate_side_effects": 0,
+      "duration_us": 17329,
+      "limit": "The outage disables login for the disposable test role and terminates its sessions. The retained product database was not stopped."
+    },
+    {
+      "name": "quota_exhaustion",
+      "recovered": true,
+      "isolated": true,
+      "side_effects": 1,
+      "duplicate_side_effects": 0,
+      "duration_us": 16572,
+      "limit": "The cap is the in-process tenant workload limit of one. It is not a distributed quota and it does not change small-v1."
+    }
+  ]
+}

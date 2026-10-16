@@ -529,3 +529,13 @@ The drill used disposable PostgreSQL 16.15 databases. It did not open the retain
 The dump is plaintext SQL in a temporary file. It is not encrypted and it was not copied offsite. Temporal history, in-process evidence, and in-process audit events are not in the dump and are unrecoverable from it.
 
 See the [backup guide](backup.md) and [verification](f46-validation.md).
+
+## D62 — F47 failure injection
+
+On 16 October 2026 ahmad asked to implement the next backlog ticket, F47. The ticket asks for database outage, worker loss, tool or model outage, quota exhaustion, and a bad rollout, with recovery, isolation, no duplicated side effects, and a published command and raw result.
+
+The suite is `go test -count=1 -timeout 180s -run TestFailureInjection ./internal/failure`. Worker loss is replay of constructed history: 38118 microseconds, zero tool calls. Tool and model outage took 30695 microseconds and stored one evidence row; a secret-shaped tool error was redacted. The bad rollout restored the staging pin in 33 microseconds and did not write it again when no regression remained. The disposable database role lost login for 17329 microseconds; liveness stayed up, the owner read recovered, and the other subject stayed hidden. Quota exhaustion at a cap of one took 16572 microseconds and left a single row.
+
+No worker process was killed. No Temporal server was started. The tool and model are fixtures. Rollback does not change a live cluster. The retained product database was not stopped. The quota is not distributed, and `small-v1` is unchanged.
+
+See the [failure-injection guide](failure-injection.md) and [verification](f47-validation.md).
