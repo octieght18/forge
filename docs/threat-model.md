@@ -1,6 +1,6 @@
-# Tenant threat model and authorization — F31
+# Tenant threat model and failure-mode analysis — F31 / F55
 
-This is a design for the demo platform. [D46](decision-log.md#d46--f31-tenant-threat-model) records the boundary. G3, the security gate listed as this ticket's prerequisite, is still open. This document does not mark G3 done and does not treat the demo controls as production isolation.
+This is a design for the demo platform. [D46](decision-log.md#d46--f31-tenant-threat-model) and [D70](decision-log.md#d70--f55-threat-model-and-failure-modes) record the boundary. **G3 and G4 remain open.** This document does not mark those gates done and does not treat the demo controls as production isolation.
 
 The accepted customer is one engineering team with multiple workload owners. Multiple organizations are outside that decision. Developers read and mutate their own workloads and runs. Operators can read every owner's records and cannot mutate another owner's workload, version, run, or cancel command.
 
@@ -15,6 +15,8 @@ The accepted customer is one engineering team with multiple workload owners. Mul
 | `FORGE_MODEL_API_KEY` | Worker environment. Sent only as an Authorization header to the configured model route |
 | Cursor signing key | API process |
 | Namespace and quota | Environment controller. Developers do not receive a kubeconfig |
+| Audit / usage meters | In-process only; lost on process exit |
+| Canary release pin | Git overlay files under `deploy/gitops/overlays` |
 
 ## Trust boundaries
 
@@ -41,34 +43,60 @@ A tenant in this design is the engineering team. A project is a group of workloa
 | Read telemetry | No | Yes |
 | Apply a namespace | No | Through the controller and `scripts/environment.ps1`, not a kubeconfig handed to a developer |
 
-## Threats
+## Threats → controls → tests → gaps
 
-**Spoofing.** A caller presents a token with a forged signature, the wrong issuer, the wrong audience, or an expired time, or omits the developer and operator roles. `TestAccessTokensAndKeyRotation` rejects those tokens for the registration verifier. Run routes use the same verifier. The API does not accept identity headers.
+| Threat / failure | Control | Test / evidence | Remaining gap |
+|---|---|---|---|
+| Spoofed / expired / wrong-audience token | OIDC JWKS verification; no identity headers | `TestAccessTokensAndKeyRotation`; F40 | No revocation before 5-minute lifetime |
+| Service token on product routes | Distinct service identity → 403 | F33 | Not a mesh SPIFFE deployment |
+| Cross-owner mutation | Role matrix | F34 `TestRoleMatrixAndDeniedTools` | Org multi-tenant still out of scope |
+| Cross-tenant read | Tenant/project on rows; other tenant → 404 | F32 | Demo tenant on legacy rows |
+| Confused deputy / tool abuse | Only `corpus.search` / `corpus.read`; allow list before process | F23/F34; F47 `tool_model_outage` redaction | No additional tools |
+| SSRF via workload URL | Tools are not HTTP clients; model URL fixed in code | Design + code review | Future URL tools would be new threats |
+| Worker loss mid-run | Temporal history SoT; replay without re-calling tools | F47 `worker_loss` 38118 µs / 0 side effects; F29 replayer 535 µs | No live process kill demonstrated |
+| Tool/model outage | Retryable classes capped at 3; denied not retried | F47 30695 µs; F29 43361 µs | Free-route availability unmeasured in prod |
+| Database login loss | Health ≠ store; owner recover; other subject 404 | F47 `database_outage` 17329 µs | Retained DB not stopped; no multi-AZ |
+| Quota exhaustion | Per-process caps; 429 Retry-After | F47 `quota_exhaustion` 16572 µs; F35 | Not distributed |
+| Bad canary rollout | Pin restore; human gates for migration/model | F47 33 µs; F45 54.4 µs call | Live staging window not collected |
+| Backup gaps | Document unrecoverable Temporal/evidence | F46 dump/restore ms; `Encrypted`/`Offsite` false | No offsite encrypted backup |
+| Privileged admission bypass | Kyverno policy file + CI checker | F38 | Kyverno not installed live |
+| Network lateral movement | Default-deny manifests | F38/F40 | Kind does not enforce NetworkPolicy |
+| Supply-chain surprise | Module SBOM; optional scan/sign | F39 | No image signed in session |
 
-**Confused deputy.** A workload must not choose the MCP command, a URL, or a tool name outside `corpus.search` and `corpus.read`. The worker starts one configured executable only after the frozen document allow list matches. The environment controller is privileged infrastructure: it can create a namespace, and a developer cannot steer that privilege with a kubeconfig. The controller's database role cannot write product rows.
+## Durability and side-effect safety
 
-**Cross-tenant data access.** F32 stores a tenant and a project. A developer or operator read of another tenant's id returns 404. Operators can read other owners inside the same tenant and project. Existing rows keep the demo tenant. That is still one team, not a boundary between organizations. An operator read includes the submitted question because the Run schema requires it. History and result omit the question and corpus text.
+- Workflow timeout 2m; activity start-to-close 30s; heartbeat 10s.
+- Retryable: `tool_unavailable`, failed configured-model call (3 attempts). Not retryable: `tool_denied`, `model_invalid`, `identity_mismatch`.
+- Terminal states: `complete`, `fail_closed`, `canceled`, `timed_out` with `compensation_completed` vs `compensation_incomplete`.
+- Replay must not call MCP/model; re-execution is a new run. Duplicate side effects measured **0** in F47 scenarios.
+- PostgreSQL is not the execution status authority after dispatch.
 
-**SSRF.** The research tools are not HTTP clients. The model route used by a configured worker is the OpenRouter endpoint in code, not a URL from the workload. A workload field cannot name a host. Debug mode does not call that network. A future tool that accepted a URL would be a new threat and is not part of this design.
+## Recovery boundaries
 
-**Tool abuse.** The version permits exactly the two corpus tools. A document outside the frozen list fails before a process starts. The child keeps `PATH` and does not inherit the worker environment. A denied tool in the failed-step evaluation does not call the tool function.
+| Domain | Recovery path | Cannot recover |
+|---|---|---|
+| API process crash | Restart; in-process audit/evidence gone | Lost meters |
+| PostgreSQL rows | F46 disposable dump/restore drill | Temporal history, process evidence |
+| Worker | Replay history | Unrecorded external effects if any existed outside fixtures |
+| Canary pin | F45/F47 rollback | Applied migration; completed model call |
+| Cloud cluster | Not created — promotion refused | N/A |
 
-## Controls
+## Tenant isolation limits (demonstrated vs required)
 
-Tested in this repository: Keycloak access-token checks for issuer, audience, signature, expiry, and role; owner reads and operator read-only mutation checks on workloads, versions, runs, cancel, history, and rerun; MCP allow-list rejection before a process; fixture debug path that does not use a live model key. F35 adds a per-process request limit and a database cap on workloads and pending runs. F36 records an audit event without the token. F37 names secret homes and refuses demo cleanup of the retained database.
+**Demonstrated:** owner-private reads/writes; operator read-only cross-owner; other-tenant 404; service token 403; MCP allow list; secret redaction in tool errors; disposable-DB isolation during F47 outage/quota.
 
-The stored tenant is still the demo tenant for existing rows, not an organization boundary. Service and workload identities are not a production mesh. The request limit does not leave the API process. Audit events leave with the process. G3 remains open. G4 is not marked done in this repository. The environment controller is trusted infrastructure, not a tenant sandbox.
+**Required for production (not claimed):** close G3/G4; organization isolation; enforcing NetworkPolicy with observed deny; live Kyverno; reviewed image scan; cosign verify against operator key; token revocation; private model route; issued DNS+TLS; distributed quota/audit.
 
-## F40 gaps
-
-These checks were not demonstrated:
+## F40 / F55 gap table
 
 | Gap | Why it stays open |
 |---|---|
-| Default-deny network enforcement | Kind's current network plugin does not enforce NetworkPolicy. No connection was attempted, so no denied path was observed |
-| Live Kyverno admission | The ClusterPolicy is a file. The CI checker rejected a privileged fixture. Kyverno was not installed |
-| Signed image and vulnerability scan | `syft`, `grype`, `trivy`, and `cosign` were absent. No clean scan is claimed |
-| Production gateway, TLS, and DNS | Not issued. The local API is loopback HTTP |
+| Default-deny network enforcement | Kind's current network plugin does not enforce NetworkPolicy |
+| Live Kyverno admission | ClusterPolicy is a file; Kyverno was not installed |
+| Signed image and vulnerability scan | Tools/images absent or not-run; no clean scan claimed |
+| Production gateway, TLS, and DNS | Not issued; local API is loopback HTTP |
+| Live worker kill / Temporal server failure | F47/F29 use constructed history / SDK tests |
+| G3 / G4 gates | Explicitly still Backlog |
 
 ## Before any production deployment
 
