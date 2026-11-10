@@ -1,0 +1,14 @@
+{
+  "assessed_at": "2026-11-10",
+  "module_sbom_components": 117,
+  "module_sbom_path": "docs/validation/sbom-cyclonedx.json",
+  "syft": "absent",
+  "grype": "absent",
+  "trivy": "absent",
+  "cosign": "absent",
+  "image_sbom": "not-run",
+  "image_scan": "not-run",
+  "signed_image": "not-run",
+  "clean_scan": "not-claimed",
+  "note": "Same honesty as F39; no image signed."
+}
