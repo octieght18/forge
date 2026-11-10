@@ -90,6 +90,8 @@ The owner approved [containerized Kubernetes deployment in WSL](docs/kubernetes-
 
 **F48** publishes [operator runbooks](docs/runbooks/README.md) and three [simulated incident reports](docs/incidents/README.md) tied to those F47 samples and the F45/F46 restore/rollback measurements.
 
+**F49** publishes a [capacity and cost model](docs/capacity-cost-model.md) from existing harness numbers and dated public list prices. No live cluster was sized and no cloud spend occurred.
+
 - [Internal product brief](docs/product-brief.md)
 - [Product and design decisions](docs/decision-log.md)
 - [Architecture and integration boundaries](docs/architecture.md)
@@ -185,6 +187,8 @@ The owner approved [containerized Kubernetes deployment in WSL](docs/kubernetes-
 - [Incident runbooks](docs/runbooks/README.md)
 - [Simulated incident reports](docs/incidents/README.md)
 - [F48 verification](docs/f48-validation.md)
+- [Capacity and cost model](docs/capacity-cost-model.md)
+- [F49 verification](docs/f49-validation.md)
 
 The owner must review product and design choices before they become accepted decisions. F02 records the accepted Go HTTP/OpenAPI, PostgreSQL and Temporal foundation, OpenRouter backend and local Kubernetes target. Keycloak OIDC is included from the first release. The testing model is `google/gemma-4-26b-a4b-it:free`. D26 supersedes F07's no-container deployment choice: the current stack can now run in kind inside WSL. F03's HTTP defaults and lifecycle conventions are accepted; new API/identity/workflow decisions still require consultation.
 

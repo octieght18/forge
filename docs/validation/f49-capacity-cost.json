@@ -1,0 +1,86 @@
+{
+  "ticket": "F49",
+  "assessed_at": "2026-11-10",
+  "production_slo": false,
+  "terraform_applied": false,
+  "session_host": {
+    "nproc": 4,
+    "mem_total_bytes": 16780623872,
+    "go": "go1.27.1",
+    "os": "linux/amd64",
+    "note": "Cloud agent VM re-check only; capacity figures reuse published samples."
+  },
+  "reused_measurements": {
+    "f08_startup_median_s": 66.468,
+    "f08_registration_journey_median_s": 0.022,
+    "f10_clients_1_req_per_s": 1196.3112081700024,
+    "f10_clients_2_req_per_s": 2148.5,
+    "f10_clients_1_request_p95_ms": 1.392868,
+    "f10_clients_2_request_p95_ms": 1.614451,
+    "f10_db_pairs_after_profile_clients_1": 5949,
+    "f10_db_pairs_after_profile_clients_2": 10746,
+    "f10_cpu_seconds_15s_clients_1": 11.19,
+    "f10_cpu_seconds_15s_clients_2": 21.15,
+    "f19_provision_accept_median_ms": 4.041,
+    "f29_dependency_failure_us": 43361,
+    "f29_replayer_us": 535,
+    "f45_rollback_call_us": 54.421,
+    "f46_dump_ms": 61.758744,
+    "f46_restore_ms": 71.794097,
+    "f47_durations_us": {
+      "worker_loss": 38118,
+      "tool_model_outage": 30695,
+      "bad_rollout": 33,
+      "database_outage": 17329,
+      "quota_exhaustion": 16572
+    }
+  },
+  "product_caps": {
+    "requests_per_second_per_process": 200,
+    "workloads_per_tenant_per_process": 100,
+    "pending_runs_per_tenant_per_process": 100,
+    "distributed": false
+  },
+  "balanced_local_targets_reassessment": {
+    "command": "python3 scripts/check-performance-targets.py --baseline-summary docs/baselines/f08-2026-10-07/summary.json --profile-summary docs/validation/f10-registration-summary.json",
+    "passed": true
+  },
+  "cost_model": {
+    "price_date": "2026-10-10",
+    "region": "us-east-1",
+    "currency": "USD",
+    "hours_per_month": 730,
+    "sources": [
+      "https://aws.amazon.com/eks/pricing/",
+      "public EC2 t3.small on-demand list $0.0208/h",
+      "OpenRouter free slug google/gemma-4-26b-a4b-it:free listed $0 token price on 2026-10-05"
+    ],
+    "line_items_monthly": {
+      "eks_control_plane_standard": 73.0,
+      "ec2_t3_small_x1": 15.18,
+      "nat_gateway_hourly": 32.85,
+      "ebs_gp3_20gib_assumption": 1.6,
+      "openrouter_free_tokens": 0.0,
+      "illustrative_idle_floor_total": 122.63
+    },
+    "unit_costs": {
+      "infra_per_request_at_1e6_req_mo_full_attribution_usd": 0.00012263,
+      "infra_per_request_at_1e6_req_mo_10pct_attribution_usd": 0.000012263,
+      "model_per_research_run_usd": 0.0,
+      "planning_requests_per_month": 1000000,
+      "utilization_attribution_fraction": 0.1
+    },
+    "sensitivity": {
+      "second_t3_small_monthly_add_usd": 15.18,
+      "nat_100gib_data_monthly_add_usd": 4.5,
+      "eks_extended_support_control_plane_monthly_usd": 438.0
+    }
+  },
+  "limits": [
+    "No live cluster capacity was measured.",
+    "terraform apply was not run and no cloud spend occurred.",
+    "No production SLO is claimed.",
+    "Database growth is row-pair counts from F10, not measured GiB.",
+    "PowerShell checker may be unavailable on Linux cloud VMs."
+  ]
+}

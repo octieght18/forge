@@ -547,3 +547,11 @@ On 10 November 2026 the portfolio delivery batch asked for F48: runbooks for pro
 The runbooks live under `docs/runbooks/`. The simulated reports are INC-SIM-001 (database login loss), INC-SIM-002 (worker resume and tool/model outage), and INC-SIM-003 (bad canary pin and quota exhaustion). Timings cited are the published F47/F45/F46/F29 samples. No production incident occurred. No worker process was killed and no Temporal server was started for these documents. G3–G6 stay open. The local Wekan board was not modified.
 
 See the [runbook index](runbooks/README.md), [incident index](incidents/README.md), and [verification](f48-validation.md).
+
+## D64 — F49 capacity and cost model
+
+On 10 November 2026 the portfolio delivery batch asked for F49: concurrency, latency, saturation, and database-growth evidence plus a dated cost model covering model, cluster, storage, and telemetry.
+
+Capacity numbers reuse F08/F10/F19/F29/F45/F46/F47 published samples. This session re-ran the Balanced local target checker (passed) and the existing failure/rollback/recovery Go tests on a 4 vCPU cloud VM. No new live-cluster capacity profile was collected. The cost model uses public us-east-1 list assumptions (EKS $0.10/h standard, t3.small $0.0208/h, NAT $0.045/h, gp3 assumption $0.08/GiB-month) with price date 2026-10-10 and free OpenRouter token price from 5 October 2026. Illustrative idle floor ≈ $122.63/month. terraform apply was not run. No production SLO is claimed.
+
+See the [capacity and cost model](capacity-cost-model.md) and [verification](f49-validation.md).
