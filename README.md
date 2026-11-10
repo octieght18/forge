@@ -106,6 +106,18 @@ The owner approved [containerized Kubernetes deployment in WSL](docs/kubernetes-
 
 **F56** indexes [cost and operational evidence](docs/operational-evidence-bundle.md) including simulated incidents and backup/rollback samples.
 
+**F57** publishes a [timed five-minute demo script](docs/demo/five-minute-demo.md). No video file was produced in this environment.
+
+**F58** publishes the [technical architecture article](docs/articles/secure-self-service-control-plane.md).
+
+**F59** prepares [platform](docs/portfolio/resume-platform-engineering.md) and [AI infrastructure](docs/portfolio/resume-ai-infrastructure.md) resume variants from in-repo evidence only.
+
+**F60** records the [FR01–FR12 platform review](docs/platform-review.md). **G3–G6 stay open.**
+
+**F61** indexes the [portfolio release package](docs/portfolio/README.md) and regenerates the module SBOM without signing an image.
+
+**F62** publishes [adoption review and next-iteration backlog](docs/adoption-next-iteration.md). No external feedback was collected yet.
+
 - [Internal product brief](docs/product-brief.md)
 - [Product and design decisions](docs/decision-log.md)
 - [Architecture and integration boundaries](docs/architecture.md)
@@ -217,6 +229,17 @@ The owner approved [containerized Kubernetes deployment in WSL](docs/kubernetes-
 - [F55 verification](docs/f55-validation.md)
 - [Operational evidence bundle](docs/operational-evidence-bundle.md)
 - [F56 verification](docs/f56-validation.md)
+- [Five-minute demo script](docs/demo/five-minute-demo.md)
+- [F57 verification](docs/f57-validation.md)
+- [Architecture article](docs/articles/secure-self-service-control-plane.md)
+- [F58 verification](docs/f58-validation.md)
+- [Portfolio index](docs/portfolio/README.md)
+- [F59 verification](docs/f59-validation.md)
+- [Platform review](docs/platform-review.md)
+- [F60 verification](docs/f60-validation.md)
+- [F61 verification](docs/f61-validation.md)
+- [Adoption and next iteration](docs/adoption-next-iteration.md)
+- [F62 verification](docs/f62-validation.md)
 
 The owner must review product and design choices before they become accepted decisions. F02 records the accepted Go HTTP/OpenAPI, PostgreSQL and Temporal foundation, OpenRouter backend and local Kubernetes target. Keycloak OIDC is included from the first release. The testing model is `google/gemma-4-26b-a4b-it:free`. D26 supersedes F07's no-container deployment choice: the current stack can now run in kind inside WSL. F03's HTTP defaults and lifecycle conventions are accepted; new API/identity/workflow decisions still require consultation.
 

@@ -611,3 +611,51 @@ On 10 November 2026 the portfolio delivery batch asked for F56: publish per-requ
 `docs/operational-evidence-bundle.md` indexes F49 costs, F48 incidents, F45/F46/F47 ops evidence, and F54 benchmarks. No cloud spend occurred.
 
 See [operational-evidence-bundle.md](operational-evidence-bundle.md) and [verification](f56-validation.md).
+
+## D72 — F57 five-minute technical demo
+
+On 10 November 2026 the portfolio delivery batch asked for F57: a five-minute demo covering registration, self-service environment, tool permissions, async execution, failure injection, safe replay, and rollback/audit.
+
+A timed shot list with published timings was written to `docs/demo/five-minute-demo.md`. No video recording file was produced in this environment. Timings cited are F08/F19/F29/F45/F47/F49 samples only.
+
+See [demo/five-minute-demo.md](demo/five-minute-demo.md) and [verification](f57-validation.md).
+
+## D73 — F58 technical architecture article
+
+On 10 November 2026 the portfolio delivery batch asked for F58: an article on a secure self-service control plane for asynchronous AI workloads without rebuilding Kubernetes, Temporal, or model serving.
+
+The article is `docs/articles/secure-self-service-control-plane.md`. Factual claims link to repository validation docs. No unverifiable marketing claims were added.
+
+See the [article](articles/secure-self-service-control-plane.md) and [verification](f58-validation.md).
+
+## D74 — F59 resume variants
+
+On 10 November 2026 the portfolio delivery batch asked for F59: two evidence-backed resume variants (platform engineering and AI infrastructure).
+
+Markdown resumes under `docs/portfolio/` cite only in-repo measurements. No employer history was invented.
+
+See [portfolio/resume-platform-engineering.md](portfolio/resume-platform-engineering.md), [portfolio/resume-ai-infrastructure.md](portfolio/resume-ai-infrastructure.md), and [verification](f59-validation.md).
+
+## D75 — F60 final platform review
+
+On 10 November 2026 the portfolio delivery batch asked for F60: end-to-end acceptance against FR01–FR12 with pass/fail/deferred, rehearsal notes, and remaining work. Do not close open gates.
+
+`docs/platform-review.md` records demo-level pass-with-limits for FR01–FR12 and written rehearsal notes. G3–G6 stay open.
+
+See [platform-review.md](platform-review.md) and [verification](f60-validation.md).
+
+## D76 — F61 portfolio and release package
+
+On 10 November 2026 the portfolio delivery batch asked for F61: bundle architecture, API, threat model, failure analysis, benchmarks, cost, incidents; build signed release with SBOM/examples/quickstart/deployment guide using the existing supply-chain path.
+
+`docs/portfolio/README.md` indexes the bundle. The module CycloneDX SBOM was regenerated into `docs/validation/sbom-cyclonedx.json` (117 components). Image scan/sign tools were absent: signed-image not-run, clean-scan not-claimed. Docs checker verifies links.
+
+See [portfolio/README.md](portfolio/README.md) and [verification](f61-validation.md).
+
+## D77 — F62 adoption and next iteration
+
+On 10 November 2026 the portfolio delivery batch asked for F62: compare final capability to the product brief, collect feedback if available, and create a prioritized follow-up backlog from measured gaps.
+
+`docs/adoption-next-iteration.md` compares brief measures, publishes a feedback template, and records that no external feedback was collected. The backlog prioritizes live worker-kill, NetworkPolicy/Kyverno, image signing, and optional cloud apply. G3–G6 stay open. The local Wekan board was not modified.
+
+See [adoption-next-iteration.md](adoption-next-iteration.md) and [verification](f62-validation.md).

@@ -36,6 +36,11 @@ Start with the [quickstart](quickstart.md), [API examples](api-examples.md), the
 | [docs/f53-validation.md](f53-validation.md) | F53 quickstart/API docs trial and gaps on cloud Linux. |
 | [docs/performance-developer-benchmark.md](performance-developer-benchmark.md) | F54 methodology and reused F08/F19/F29/F47 results. |
 | [docs/operational-evidence-bundle.md](operational-evidence-bundle.md) | F56 cost scenarios plus incident and backup links. |
+| [docs/demo/five-minute-demo.md](demo/five-minute-demo.md) | F57 timed demo script; recording file not produced. |
+| [docs/articles/secure-self-service-control-plane.md](articles/secure-self-service-control-plane.md) | F58 architecture article with measured results. |
+| [docs/portfolio](portfolio/README.md) | F59 resumes and F61 release/portfolio index. |
+| [docs/platform-review.md](platform-review.md) | F60 FR01–FR12 matrix and rehearsal notes. |
+| [docs/adoption-next-iteration.md](adoption-next-iteration.md) | F62 brief comparison, feedback template, backlog. |
 | [internal/config](../internal/config), [internal/service](../internal/service) | Validated configuration, HTTP deadlines, readiness and graceful drain. |
 | [internal/testsupport](../internal/testsupport) | Real PostgreSQL integration fixtures. |
 | [deploy/native](../deploy/native) | Native PostgreSQL/Keycloak/API lifecycle, private launchers, realm and real-login smoke. |
