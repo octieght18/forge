@@ -2,7 +2,9 @@ package execution
 
 import (
 	"context"
+	"maps"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -94,15 +96,23 @@ func measureCancel(t *testing.T) (string, map[string]int) {
 	SetModel(model.Fixture{})
 	var suite testsuite.WorkflowTestSuite
 	env := suite.NewTestWorkflowEnvironment()
+	var attemptMu sync.Mutex
 	attempts := map[string]int{}
 	env.SetOnActivityStartedListener(func(info *activity.Info, _ context.Context, _ converter.EncodedValues) {
+		attemptMu.Lock()
 		attempts[info.ActivityType.Name]++
+		count := attempts[info.ActivityType.Name]
+		attemptMu.Unlock()
+		// Cancel only after Retrieve has started. A fixed 1ms delay can fire on
+		// Windows before the start listener runs, leaving attempts without Retrieve.
+		if info.ActivityType.Name == "Retrieve" && count == 1 {
+			env.RegisterDelayedCallback(func() { env.CancelWorkflow() }, time.Millisecond)
+		}
 	})
 	env.RegisterActivity(Retrieve)
 	env.RegisterActivity(Generate)
 	env.RegisterActivity(Compensate)
 	env.RegisterActivity(RecordTerminal)
-	env.RegisterDelayedCallback(func() { env.CancelWorkflow() }, time.Millisecond)
 	in := evalInput("cdcdcdcd-cdcd-4dcd-8dcd-cdcdcdcdcdcd", []string{"platform-brief"}, strings.Repeat("c", 64))
 	env.SetStartWorkflowOptions(client.StartWorkflowOptions{ID: in.WorkflowID, WorkflowExecutionTimeout: WorkflowTimeout})
 	started := time.Now()
@@ -115,7 +125,10 @@ func measureCancel(t *testing.T) (string, map[string]int) {
 	if len(states) != 1 || states[0].State != "canceled" {
 		t.Fatalf("%#v", states)
 	}
-	return states[0].State, attempts
+	attemptMu.Lock()
+	out := maps.Clone(attempts)
+	attemptMu.Unlock()
+	return states[0].State, out
 }
 
 var cancelObserved time.Duration
