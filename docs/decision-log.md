@@ -555,3 +555,11 @@ On 10 November 2026 the portfolio delivery batch asked for F49: concurrency, lat
 Capacity numbers reuse F08/F10/F19/F29/F45/F46/F47 published samples. This session re-ran the Balanced local target checker (passed) and the existing failure/rollback/recovery Go tests on a 4 vCPU cloud VM. No new live-cluster capacity profile was collected. The cost model uses public us-east-1 list assumptions (EKS $0.10/h standard, t3.small $0.0208/h, NAT $0.045/h, gp3 assumption $0.08/GiB-month) with price date 2026-10-10 and free OpenRouter token price from 5 October 2026. Illustrative idle floor ≈ $122.63/month. terraform apply was not run. No production SLO is claimed.
 
 See the [capacity and cost model](capacity-cost-model.md) and [verification](f49-validation.md).
+
+## D65 — F50 cloud deployment guide
+
+On 10 November 2026 the portfolio delivery batch asked for F50: a self-service cloud deployment guide covering bootstrap, app deployment, onboarding, and teardown, reusing terraform-eks, gateway, gitops, backup, and promotion docs, with estimated spend and production gaps.
+
+The guide is `docs/cloud-deployment-guide.md`. It sequences the existing manifests and refuses to treat unapplied steps as done. Local validation re-ran GitOps/gateway policy tests, promote refusal of cloud targets, and the docs checker. terraform apply, live Argo, DNS, and TLS were not run. Spend estimate points at the F49 illustrative floor. G5 stays open.
+
+See the [cloud deployment guide](cloud-deployment-guide.md) and [verification](f50-validation.md).

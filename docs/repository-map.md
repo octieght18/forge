@@ -29,6 +29,7 @@ Start with the [quickstart](quickstart.md), [API examples](api-examples.md), the
 | [docs/runbooks](runbooks/README.md) | Operator runbooks for stuck provisioning, stuck execution, auth failures, and data restore (F48). |
 | [docs/incidents](incidents/README.md) | Simulated incident reports tied to F47/F45/F46 measurements (F48). |
 | [docs/capacity-cost-model.md](capacity-cost-model.md) | F49 concurrency/latency reuse and dated public-price cost model. |
+| [docs/cloud-deployment-guide.md](cloud-deployment-guide.md) | F50 bootstrap, deploy, onboard, teardown guide; cloud apply not run. |
 | [internal/config](../internal/config), [internal/service](../internal/service) | Validated configuration, HTTP deadlines, readiness and graceful drain. |
 | [internal/testsupport](../internal/testsupport) | Real PostgreSQL integration fixtures. |
 | [deploy/native](../deploy/native) | Native PostgreSQL/Keycloak/API lifecycle, private launchers, realm and real-login smoke. |
