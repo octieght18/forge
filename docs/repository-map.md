@@ -26,6 +26,8 @@ Start with the [quickstart](quickstart.md), [API examples](api-examples.md), the
 | [internal/delivery](../internal/delivery), [cmd/forge-promote](../cmd/forge-promote) | Canary pin copy from local to staging, and rollback of a regressed pin. Execution rows are not deleted. |
 | [internal/backup](../internal/backup) | Disposable PostgreSQL dump and restore. Temporal history and process evidence are outside the dump. |
 | [internal/failure](../internal/failure) | Failure-injection scenarios for database login loss, replay after worker loss, tool and model outage, quota exhaustion, and a bad pin. |
+| [docs/runbooks](runbooks/README.md) | Operator runbooks for stuck provisioning, stuck execution, auth failures, and data restore (F48). |
+| [docs/incidents](incidents/README.md) | Simulated incident reports tied to F47/F45/F46 measurements (F48). |
 | [internal/config](../internal/config), [internal/service](../internal/service) | Validated configuration, HTTP deadlines, readiness and graceful drain. |
 | [internal/testsupport](../internal/testsupport) | Real PostgreSQL integration fixtures. |
 | [deploy/native](../deploy/native) | Native PostgreSQL/Keycloak/API lifecycle, private launchers, realm and real-login smoke. |

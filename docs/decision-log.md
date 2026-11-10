@@ -539,3 +539,11 @@ The suite is `go test -count=1 -timeout 180s -run TestFailureInjection ./interna
 No worker process was killed. No Temporal server was started. The tool and model are fixtures. Rollback does not change a live cluster. The retained product database was not stopped. The quota is not distributed, and `small-v1` is unchanged.
 
 See the [failure-injection guide](failure-injection.md) and [verification](f47-validation.md).
+
+## D63 — F48 incident runbooks and reports
+
+On 10 November 2026 the portfolio delivery batch asked for F48: runbooks for provisioning stuck, execution stuck, auth failures, and data restore, plus three clearly labelled simulated incident reports tied to F47 observations and earlier backup/rollback docs.
+
+The runbooks live under `docs/runbooks/`. The simulated reports are INC-SIM-001 (database login loss), INC-SIM-002 (worker resume and tool/model outage), and INC-SIM-003 (bad canary pin and quota exhaustion). Timings cited are the published F47/F45/F46/F29 samples. No production incident occurred. No worker process was killed and no Temporal server was started for these documents. G3–G6 stay open. The local Wekan board was not modified.
+
+See the [runbook index](runbooks/README.md), [incident index](incidents/README.md), and [verification](f48-validation.md).
