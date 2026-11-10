@@ -587,3 +587,27 @@ On 10 November 2026 the portfolio delivery batch asked for F53: validate the fin
 This cloud Linux VM cannot run the native WSL/PowerShell/Keycloak path. Validation covered OpenAPI inventory, contract/CLI/template/httpapi/execution/provision Go tests, and the docs checker. Stale “not implemented” claims for runs/provision/quotas were corrected in quickstart and api-examples. Prior F09 seven-operation Keycloak evidence remains the live registration sample. Human onboarding timings stay unmeasured. G5 stays open.
 
 See [verification](f53-validation.md) and [validation/f53-quickstart-trial.json](validation/f53-quickstart-trial.json).
+
+## D69 — F54 performance and developer-impact benchmark
+
+On 10 November 2026 the portfolio delivery batch asked for F54: compare manual setup to self-service provisioning using published numbers, and report workload counts, reconciliation, execution reliability, and recovery time with methodology and limits.
+
+The benchmark document reuses F08/F10/F19/F29/F47 samples and does not invent a new manual baseline or a single speedup headline. The brief's 10/10 paired provisioning trials remain unclaimed. Human worksheet timings remain null.
+
+See [performance-developer-benchmark.md](performance-developer-benchmark.md) and [verification](f54-validation.md).
+
+## D70 — F55 threat model and failure modes
+
+On 10 November 2026 the portfolio delivery batch asked for F55: map threats/failures to controls, tests, and gaps; describe durability, side-effect safety, recovery boundaries, and tenant isolation limits; separate demonstrated properties from production work. G3 and G4 stay open.
+
+`docs/threat-model.md` was expanded with an explicit threat→control→test→gap table and F47/F45/F46 recovery links. No gate was closed.
+
+See [threat-model.md](threat-model.md) and [verification](f55-validation.md).
+
+## D71 — F56 cost and operational evidence bundle
+
+On 10 November 2026 the portfolio delivery batch asked for F56: publish per-request/per-workload cost scenarios, link the three simulated incidents and backup/rollback measurements, and review retention/budget/capacity against the product brief.
+
+`docs/operational-evidence-bundle.md` indexes F49 costs, F48 incidents, F45/F46/F47 ops evidence, and F54 benchmarks. No cloud spend occurred.
+
+See [operational-evidence-bundle.md](operational-evidence-bundle.md) and [verification](f56-validation.md).

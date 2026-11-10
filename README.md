@@ -100,6 +100,12 @@ The owner approved [containerized Kubernetes deployment in WSL](docs/kubernetes-
 
 **F53** re-validates [quickstart](docs/quickstart.md) and API docs via contract/tests on this VM, updates stale claims, and records that native Keycloak/PowerShell was not re-run here.
 
+**F54** publishes the [performance and developer-impact benchmark](docs/performance-developer-benchmark.md) from F08/F19/F29/F47 evidence without inventing unpaired speedups.
+
+**F55** expands the [threat model and failure-mode analysis](docs/threat-model.md). **G3 and G4 stay open.**
+
+**F56** indexes [cost and operational evidence](docs/operational-evidence-bundle.md) including simulated incidents and backup/rollback samples.
+
 - [Internal product brief](docs/product-brief.md)
 - [Product and design decisions](docs/decision-log.md)
 - [Architecture and integration boundaries](docs/architecture.md)
@@ -205,6 +211,12 @@ The owner approved [containerized Kubernetes deployment in WSL](docs/kubernetes-
 - [Architecture diagrams](docs/diagrams/architecture.md)
 - [F52 verification](docs/f52-validation.md)
 - [F53 verification](docs/f53-validation.md)
+- [Performance and developer-impact benchmark](docs/performance-developer-benchmark.md)
+- [F54 verification](docs/f54-validation.md)
+- [Threat model and failure modes](docs/threat-model.md)
+- [F55 verification](docs/f55-validation.md)
+- [Operational evidence bundle](docs/operational-evidence-bundle.md)
+- [F56 verification](docs/f56-validation.md)
 
 The owner must review product and design choices before they become accepted decisions. F02 records the accepted Go HTTP/OpenAPI, PostgreSQL and Temporal foundation, OpenRouter backend and local Kubernetes target. Keycloak OIDC is included from the first release. The testing model is `google/gemma-4-26b-a4b-it:free`. D26 supersedes F07's no-container deployment choice: the current stack can now run in kind inside WSL. F03's HTTP defaults and lifecycle conventions are accepted; new API/identity/workflow decisions still require consultation.
 
