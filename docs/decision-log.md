@@ -563,3 +563,11 @@ On 10 November 2026 the portfolio delivery batch asked for F50: a self-service c
 The guide is `docs/cloud-deployment-guide.md`. It sequences the existing manifests and refuses to treat unapplied steps as done. Local validation re-ran GitOps/gateway policy tests, promote refusal of cloud targets, and the docs checker. terraform apply, live Argo, DNS, and TLS were not run. Spend estimate points at the F49 illustrative floor. G5 stays open.
 
 See the [cloud deployment guide](cloud-deployment-guide.md) and [verification](f50-validation.md).
+
+## D66 — F51 public repository hygiene
+
+On 10 November 2026 the portfolio delivery batch asked for F51: organize source/examples/docs/CI, add license and contribution guidance if missing, remove secrets from publishable artifacts, and create a release checklist. G5 remains Backlog. Repository publication is a separate explicit owner action and was not performed.
+
+MIT LICENSE, CONTRIBUTING.md, SECURITY.md, .env.example, docs/public-repository.md, and docs/release-checklist.md were added. .gitignore now ignores .cursor/, common token filenames, kubeconfig copies, and state.json. A scan found no committed .env or private keys; test redaction fixtures were retained. G5 stays open.
+
+See [public-repository.md](public-repository.md) and [verification](f51-validation.md).

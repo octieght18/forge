@@ -4,6 +4,13 @@
 !.env.example
 *.pem
 *.key
+*access-token*
+*.token.json
+kubeconfig
+kubeconfig.*
+
+# Local editor / agent paths
+.cursor/
 
 # Local data and generated output
 data/
@@ -14,6 +21,7 @@ coverage/
 Thumbs.db
 __pycache__/
 *.pyc
+**/state.json
 
 # F10 raw/profile evidence stays local by owner instruction.
 docs/profiles/
