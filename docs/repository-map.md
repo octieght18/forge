@@ -32,6 +32,7 @@ Start with the [quickstart](quickstart.md), [API examples](api-examples.md), the
 | [docs/cloud-deployment-guide.md](cloud-deployment-guide.md) | F50 bootstrap, deploy, onboard, teardown guide; cloud apply not run. |
 | [docs/public-repository.md](public-repository.md) | F51 publish hygiene; G5 remains open; visibility change is owner-only. |
 | [LICENSE](../LICENSE), [CONTRIBUTING.md](../CONTRIBUTING.md), [SECURITY.md](../SECURITY.md) | License, contribution, and security reporting entry points. |
+| [docs/diagrams/architecture.md](diagrams/architecture.md) | F52 Mermaid diagrams: trust boundaries, failure domains, async flow. |
 | [internal/config](../internal/config), [internal/service](../internal/service) | Validated configuration, HTTP deadlines, readiness and graceful drain. |
 | [internal/testsupport](../internal/testsupport) | Real PostgreSQL integration fixtures. |
 | [deploy/native](../deploy/native) | Native PostgreSQL/Keycloak/API lifecycle, private launchers, realm and real-login smoke. |

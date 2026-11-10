@@ -571,3 +571,11 @@ On 10 November 2026 the portfolio delivery batch asked for F51: organize source/
 MIT LICENSE, CONTRIBUTING.md, SECURITY.md, .env.example, docs/public-repository.md, and docs/release-checklist.md were added. .gitignore now ignores .cursor/, common token filenames, kubeconfig copies, and state.json. A scan found no committed .env or private keys; test redaction fixtures were retained. G5 stays open.
 
 See [public-repository.md](public-repository.md) and [verification](f51-validation.md).
+
+## D67 — F52 architecture diagrams and ADR index
+
+On 10 November 2026 the portfolio delivery batch asked for F52: diagrams for personas, identity, API, database, controller, Temporal, tools/models, and telemetry, plus trust boundaries, failure domains, async flow, and an ADR index linking alternatives to measured tradeoffs.
+
+Mermaid diagrams are in `docs/diagrams/architecture.md`. The ADR index lists alternatives and points at published validation samples (F08/F10/F29/F41/F47/F49 and related). No new runtime components were added. G3–G6 stay open.
+
+See [diagrams/architecture.md](diagrams/architecture.md), [adr/README.md](adr/README.md), and [verification](f52-validation.md).
