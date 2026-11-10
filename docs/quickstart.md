@@ -1,6 +1,6 @@
 # First local quickstart
 
-This guide takes a clean checkout through the **native** Ubuntu WSL installation, which also supplies the source data and login helper for the accepted Kubernetes migration. For this PC's current copied kind stack, use the [Kubernetes guide](kubernetes-local.md) and `scripts/kubernetes-stack.ps1`; stop Kubernetes before starting this native alternative because both use the same loopback ports. Use [API examples](api-examples.md) to call all seven implemented operations; run/history/report/evidence paths in OpenAPI describe later work. Temporal workers/model execution are not implemented yet.
+This guide takes a clean checkout through the **native** Ubuntu WSL installation, which also supplies the source data and login helper for the accepted Kubernetes migration. For this PC's current copied kind stack, use the [Kubernetes guide](kubernetes-local.md) and `scripts/kubernetes-stack.ps1`; stop Kubernetes before starting this native alternative because both use the same loopback ports. Use [API examples](api-examples.md) for the seven registration operations. Provisioning, authenticated runs, history/result, quotas, and the Temporal worker are implemented in later tickets; see [execution-history.md](execution-history.md), [provisioning-operations.md](provisioning-operations.md), and [workflow-replay-guide.md](workflow-replay-guide.md). Cloud apply, DNS/TLS, and live Argo remain undemonstrated ([cloud-deployment-guide.md](cloud-deployment-guide.md)).
 
 ## 1. Check prerequisites
 
@@ -114,7 +114,7 @@ Ordinary stop retains product records, identities, secrets and cursor key. Windo
 |---|---|
 | Firefox cannot reach 8083 | Start a new `login`, keep its terminal open and use the fresh `/login` URL. The helper closes after successful login or five minutes. Check `tokens/access.json` expiry and an authenticated GET before assuming the saved token failed. |
 | API returns 401 | Complete fresh login and reload `access_token`. Confirm exact issuer `http://127.0.0.1:8082/realms/forge` and audience `forge-api`; use an API access token. |
-| API returns 404 for a workload | Check the UUID and current owner. Another developer's object also returns 404; an operator can inspect it. Run endpoints are not implemented. |
+| API returns 404 for a workload | Check the UUID and current owner. Another developer's object also returns 404; an operator can inspect it. Other-tenant ids also return 404. |
 | POST returns 422 | Use the published schema/example and approved corpus IDs. Names are lowercase slugs; unsupported/unknown fields are rejected. |
 | PATCH returns 428 or 412 | GET the workload, copy its complete quoted ETag into `If-Match`, then apply the intended change against that revision. |
 | Startup fails or Windows cannot reach 8081/8082 | Verify prerequisites, `status`, readiness and ports in the native guide. Inspect private systemd diagnostics. `up` must finish Windows connectivity checks. |

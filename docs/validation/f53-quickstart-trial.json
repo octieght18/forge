@@ -1,0 +1,28 @@
+{
+  "ticket": "F53",
+  "assessed_at": "2026-11-10",
+  "environment": "cloud-agent-linux-vm",
+  "native_wsl_quickstart": "not_run",
+  "keycloak_pkce": "not_run",
+  "powershell_examples_live": "not_run",
+  "openapi_paths": 13,
+  "go_packages_ok": [
+    "internal/contract",
+    "internal/cli",
+    "internal/template",
+    "internal/httpapi",
+    "internal/execution",
+    "internal/provision"
+  ],
+  "docs_check": "pass",
+  "stale_claims_updated": [
+    "docs/quickstart.md",
+    "docs/api-examples.md"
+  ],
+  "prior_f09_seven_ops": "docs/validation/f09-local-quickstart.json",
+  "human_onboarding_measured": false,
+  "limits": [
+    "No pwsh/kind/Keycloak/PostgreSQL server on this VM",
+    "G5 remains open"
+  ]
+}

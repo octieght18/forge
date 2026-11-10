@@ -33,6 +33,7 @@ Start with the [quickstart](quickstart.md), [API examples](api-examples.md), the
 | [docs/public-repository.md](public-repository.md) | F51 publish hygiene; G5 remains open; visibility change is owner-only. |
 | [LICENSE](../LICENSE), [CONTRIBUTING.md](../CONTRIBUTING.md), [SECURITY.md](../SECURITY.md) | License, contribution, and security reporting entry points. |
 | [docs/diagrams/architecture.md](diagrams/architecture.md) | F52 Mermaid diagrams: trust boundaries, failure domains, async flow. |
+| [docs/f53-validation.md](f53-validation.md) | F53 quickstart/API docs trial and gaps on cloud Linux. |
 | [internal/config](../internal/config), [internal/service](../internal/service) | Validated configuration, HTTP deadlines, readiness and graceful drain. |
 | [internal/testsupport](../internal/testsupport) | Real PostgreSQL integration fixtures. |
 | [deploy/native](../deploy/native) | Native PostgreSQL/Keycloak/API lifecycle, private launchers, realm and real-login smoke. |

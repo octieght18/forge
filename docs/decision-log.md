@@ -579,3 +579,11 @@ On 10 November 2026 the portfolio delivery batch asked for F52: diagrams for per
 Mermaid diagrams are in `docs/diagrams/architecture.md`. The ADR index lists alternatives and points at published validation samples (F08/F10/F29/F41/F47/F49 and related). No new runtime components were added. G3–G6 stay open.
 
 See [diagrams/architecture.md](diagrams/architecture.md), [adr/README.md](adr/README.md), and [verification](f52-validation.md).
+
+## D68 — F53 quickstart and API docs validation
+
+On 10 November 2026 the portfolio delivery batch asked for F53: validate the final quickstart and published OpenAPI examples, including registration, provisioning, execution, quota errors, and cancellation, and record onboarding time.
+
+This cloud Linux VM cannot run the native WSL/PowerShell/Keycloak path. Validation covered OpenAPI inventory, contract/CLI/template/httpapi/execution/provision Go tests, and the docs checker. Stale “not implemented” claims for runs/provision/quotas were corrected in quickstart and api-examples. Prior F09 seven-operation Keycloak evidence remains the live registration sample. Human onboarding timings stay unmeasured. G5 stays open.
+
+See [verification](f53-validation.md) and [validation/f53-quickstart-trial.json](validation/f53-quickstart-trial.json).

@@ -82,11 +82,13 @@ Errors use `{"error":{"code":"...","message":"..."},"request_id":"..."}`. Respon
 | 400 | Malformed JSON, query, cursor or precondition header; correct the input. |
 | 401 | Missing/invalid/expired access token; fresh login and reload. |
 | 403 | Valid token without an allowed `forge-api` client role. |
-| 404 | Missing/inaccessible resource or an unimplemented route. |
+| 404 | Missing/inaccessible resource, other-owner miss, or other-tenant miss. |
+| 405 | DELETE and other unsupported methods on registration resources. |
 | 409 | Owner-scoped workload name conflict; inspect existing records. |
 | 412 / 428 | Stale / missing `If-Match`; GET and reconcile against a fresh ETag. |
 | 413 / 415 | Body over 64 KiB / unsupported content type. |
 | 422 | Unsupported schema, workflow/model/tools or unapproved corpus snapshot/document IDs. |
+| 429 | Per-process rate or workload/pending-run quota; `Retry-After: 1`. |
 | 503 | Dependency unavailable or operation deadline expired; check readiness and retained state before retrying ambiguous writes. |
 
-The default corpus policy approves synthetic IDs only; it does not install a corpus, compute hashes or prove citations. There is no research execution, MCP tool process, Temporal dispatcher, report/history endpoint, quota enforcement or provisioning yet. Local HTTP and Keycloak development mode are for the trusted operator's machine; production TLS/identity operations and backup recovery remain later work. See [registration conventions](registration-api.md), [contract](api-contract.md) and [native operations](local-stack.md).
+The default corpus policy approves synthetic IDs only; it does not install a corpus, compute hashes or prove citations. Registration examples here create specs only and do not call OpenRouter. Provisioning acceptance, Temporal research execution, history/result, quotas, and audit arrived in later tickets — see [provisioning-operations.md](provisioning-operations.md), [execution-history.md](execution-history.md), and [f35-validation.md](f35-validation.md). Local HTTP and Keycloak development mode are for the trusted operator's machine; production TLS, live cloud apply, and offsite backup remain gaps ([cloud-deployment-guide.md](cloud-deployment-guide.md), [backup.md](backup.md)). See [registration conventions](registration-api.md), [contract](api-contract.md) and [native operations](local-stack.md).
