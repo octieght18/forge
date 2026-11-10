@@ -1,0 +1,29 @@
+{
+  "ticket": "F54",
+  "assessed_at": "2026-11-10",
+  "paired_manual_vs_self_service_10_trials": false,
+  "human_worksheet_measured": false,
+  "sources": {
+    "f08": "docs/f08-baseline.md",
+    "f10": "docs/validation/f10-registration-summary.json",
+    "f19": "docs/f19-validation.md",
+    "f29": "docs/f29-validation.md",
+    "f47": "docs/validation/f47-failure-injection.json"
+  },
+  "summary": {
+    "f08_startup_median_s": 66.468,
+    "f08_registration_journey_median_s": 0.022,
+    "f19_kinds": 3,
+    "f19_provision_accept_median_ms": 4.041,
+    "f19_recovery_ms": 9.4041,
+    "f29_dependency_failure_us": 43361,
+    "f29_replayer_us": 535,
+    "f47_all_recovered": true,
+    "f47_duplicate_side_effects": 0
+  },
+  "limitations": [
+    "F08 and F19 harnesses are not pooled into one speedup claim",
+    "No production SLO",
+    "No live Temporal worker kill"
+  ]
+}
