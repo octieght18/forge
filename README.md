@@ -118,6 +118,8 @@ The owner approved [containerized Kubernetes deployment in WSL](docs/kubernetes-
 
 **F62** publishes [adoption review and next-iteration backlog](docs/adoption-next-iteration.md). No external feedback was collected yet.
 
+**G3** is accepted: [durable execution and safe replay review](docs/g3-validation.md). Live Temporal worker-down pickup and rerun were demonstrated; G4–G6 stay open.
+
 - [Internal product brief](docs/product-brief.md)
 - [Product and design decisions](docs/decision-log.md)
 - [Architecture and integration boundaries](docs/architecture.md)
@@ -240,6 +242,7 @@ The owner approved [containerized Kubernetes deployment in WSL](docs/kubernetes-
 - [F61 verification](docs/f61-validation.md)
 - [Adoption and next iteration](docs/adoption-next-iteration.md)
 - [F62 verification](docs/f62-validation.md)
+- [G3 verification](docs/g3-validation.md)
 
 The owner must review product and design choices before they become accepted decisions. F02 records the accepted Go HTTP/OpenAPI, PostgreSQL and Temporal foundation, OpenRouter backend and local Kubernetes target. Keycloak OIDC is included from the first release. The testing model is `google/gemma-4-26b-a4b-it:free`. D26 supersedes F07's no-container deployment choice: the current stack can now run in kind inside WSL. F03's HTTP defaults and lifecycle conventions are accepted; new API/identity/workflow decisions still require consultation.
 

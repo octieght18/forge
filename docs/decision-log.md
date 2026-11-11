@@ -659,3 +659,11 @@ On 10 November 2026 the portfolio delivery batch asked for F62: compare final ca
 `docs/adoption-next-iteration.md` compares brief measures, publishes a feedback template, and records that no external feedback was collected. The backlog prioritizes live worker-kill, NetworkPolicy/Kyverno, image signing, and optional cloud apply. G3–G6 stay open. The local Wekan board was not modified.
 
 See [adoption-next-iteration.md](adoption-next-iteration.md) and [verification](f62-validation.md).
+
+## D78 — G3 durable execution and safe replay
+
+On 11 November 2026 the owner completed gate G3 against live Temporal, dispatcher, debug worker, and an API process with `TEMPORAL_ADDRESS` on port 8085.
+
+Acceptance: defined failure/cancel/uncertain behavior (SDK measurements plus live runs); worker-down pending commands resumed as the same run ids after worker restart; live rerun produced a new run with `rerun_of` and `complete`/`answered` evidence. Mid-activity process kill was not separately timed because fixture runs finish in ~100ms; the worker-down pickup path is the live resume proof. Native API on 8081 still omits Temporal. G4–G6 stay open.
+
+See [g3-validation.md](g3-validation.md).

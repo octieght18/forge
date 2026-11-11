@@ -40,6 +40,7 @@ Start with the [quickstart](quickstart.md), [API examples](api-examples.md), the
 | [docs/articles/secure-self-service-control-plane.md](articles/secure-self-service-control-plane.md) | F58 architecture article with measured results. |
 | [docs/portfolio](portfolio/README.md) | F59 resumes and F61 release/portfolio index. |
 | [docs/platform-review.md](platform-review.md) | F60 FR01–FR12 matrix and rehearsal notes. |
+| [docs/g3-validation.md](g3-validation.md) | G3 durable execution and safe replay review receipt. |
 | [docs/adoption-next-iteration.md](adoption-next-iteration.md) | F62 brief comparison, feedback template, backlog. |
 | [internal/config](../internal/config), [internal/service](../internal/service) | Validated configuration, HTTP deadlines, readiness and graceful drain. |
 | [internal/testsupport](../internal/testsupport) | Real PostgreSQL integration fixtures. |
