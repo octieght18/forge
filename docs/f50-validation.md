@@ -20,4 +20,4 @@ Expected: GitOps applications self-heal and pin only existing digests; gateway r
 - Envoy process start
 - Any AWS API call
 
-`terraform` was not installed on this validation VM. Estimated spend cites F49 only. G5 stays open.
+`terraform` was not installed on this validation VM. Estimated spend cites F49 only. G5 was later owner-reviewed with the same no-apply limit ([g5-validation.md](g5-validation.md)).

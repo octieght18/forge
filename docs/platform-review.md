@@ -1,6 +1,6 @@
 # Final platform review and demo rehearsals — F60
 
-[D75](decision-log.md#d75--f60-final-platform-review) records the boundary. At F60 write-up G3–G6 were open; G3 and G4 have since been owner-reviewed ([g3-validation.md](g3-validation.md), [g4-validation.md](g4-validation.md)). G5–G6 stay open.
+[D75](decision-log.md#d75--f60-final-platform-review) records the boundary. At F60 write-up G3–G6 were open; G3–G5 have since been owner-reviewed ([g3-validation.md](g3-validation.md), [g4-validation.md](g4-validation.md), [g5-validation.md](g5-validation.md)). G6 stays open.
 
 ## FR01–FR12 acceptance matrix
 

@@ -55,9 +55,9 @@ Details: [capacity-cost-model.md](capacity-cost-model.md), [validation/f49-capac
 | Backup/restore drill | F46 measured; not offsite/encrypted |
 | Incident procedures | F48 runbooks + simulated reports |
 | Quota/rate outcomes | F35/F47; per-process |
-| Production recovery objectives | **Not selected**; G5 open |
+| Production recovery objectives | **Not selected**; G5 reviewed with demo limits ([g5-validation.md](g5-validation.md)) |
 | Adoption feedback | Deferred to F62 |
 
 ## Limits
 
-No terraform apply. No production SLO. G3–G6 open. Incidents are labelled simulated.
+No terraform apply. No production SLO. G3–G5 reviewed with documented limits; G6 open. Incidents are labelled simulated.

@@ -60,7 +60,7 @@ Identity notes from the module: cluster role trusts `eks.amazonaws.com` with `Am
 
 ## Production gaps (honest)
 
-- G3, G4, G5, G6 remain open.
+- G3–G5 are owner-reviewed with documented limits ([g3-validation.md](g3-validation.md), [g4-validation.md](g4-validation.md), [g5-validation.md](g5-validation.md)); G6 remains open.
 - No applied EKS, no live Argo reconciliation, no DNS/TLS, no signed API image, no enforcing NetworkPolicy on kind.
 - Rate limits and audit meters are per-process.
 - Tenant model is one engineering team, not organization isolation.

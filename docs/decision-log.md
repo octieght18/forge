@@ -673,3 +673,9 @@ See [g3-validation.md](g3-validation.md).
 On 13 November 2026 the owner completed gate G4 with **PASS with limits**. The F40 security suite was re-run and passed (httpapi, auth, audit, execution sanitization, policy manifests, MCP denial/redaction). Threat-model demo vs production separation was confirmed. Closing limits: Kind does not enforce NetworkPolicy (`DeniedObserved=false`), Kyverno was not installed live, and no image was signed in this review. Quotas and audit remain per-process / in-process. G5 and G6 stay open.
 
 See [g4-validation.md](g4-validation.md).
+
+## D80 — G5 operational deployment and recovery
+
+On 13 November 2026 the owner completed gate G5 with **PASS with limits**. Promotion and rollback tests passed; disposable backup drill measured dump 65.985041 ms and restore 150.327061 ms; failure-injection re-ran all five scenarios including database_outage and quota_exhaustion; GitOps/gateway policy tests and docs links passed. Cloud path remains documented without `terraform apply`, live Argo, or DNS/TLS. G6 stays open.
+
+See [g5-validation.md](g5-validation.md).
