@@ -667,3 +667,9 @@ On 11 November 2026 the owner completed gate G3 against live Temporal, dispatche
 Acceptance: defined failure/cancel/uncertain behavior (SDK measurements plus live runs); worker-down pending commands resumed as the same run ids after worker restart; live rerun produced a new run with `rerun_of` and `complete`/`answered` evidence. Mid-activity process kill was not separately timed because fixture runs finish in ~100ms; the worker-down pickup path is the live resume proof. Native API on 8081 still omits Temporal. G4–G6 stay open.
 
 See [g3-validation.md](g3-validation.md).
+
+## D79 — G4 multi-tenant trust controls
+
+On 13 November 2026 the owner completed gate G4 with **PASS with limits**. The F40 security suite was re-run and passed (httpapi, auth, audit, execution sanitization, policy manifests, MCP denial/redaction). Threat-model demo vs production separation was confirmed. Closing limits: Kind does not enforce NetworkPolicy (`DeniedObserved=false`), Kyverno was not installed live, and no image was signed in this review. Quotas and audit remain per-process / in-process. G5 and G6 stay open.
+
+See [g4-validation.md](g4-validation.md).

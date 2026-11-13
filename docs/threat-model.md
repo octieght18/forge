@@ -1,6 +1,6 @@
 # Tenant threat model and failure-mode analysis — F31 / F55
 
-This is a design for the demo platform. [D46](decision-log.md#d46--f31-tenant-threat-model) and [D70](decision-log.md#d70--f55-threat-model-and-failure-modes) record the boundary. **G3 and G4 remain open.** This document does not mark those gates done and does not treat the demo controls as production isolation.
+This is a design for the demo platform. [D46](decision-log.md#d46--f31-tenant-threat-model) and [D70](decision-log.md#d70--f55-threat-model-and-failure-modes) record the boundary. **G3 is Done** ([g3-validation.md](g3-validation.md)). **G4 is accepted with limits** ([g4-validation.md](g4-validation.md)): unit/CI and documented controls pass; live NetworkPolicy deny, live Kyverno, and signed-image verify remain undemonstrated. This document does not treat the demo controls as production isolation.
 
 The accepted customer is one engineering team with multiple workload owners. Multiple organizations are outside that decision. Developers read and mutate their own workloads and runs. Operators can read every owner's records and cannot mutate another owner's workload, version, run, or cancel command.
 
@@ -85,7 +85,7 @@ A tenant in this design is the engineering team. A project is a group of workloa
 
 **Demonstrated:** owner-private reads/writes; operator read-only cross-owner; other-tenant 404; service token 403; MCP allow list; secret redaction in tool errors; disposable-DB isolation during F47 outage/quota.
 
-**Required for production (not claimed):** close G3/G4; organization isolation; enforcing NetworkPolicy with observed deny; live Kyverno; reviewed image scan; cosign verify against operator key; token revocation; private model route; issued DNS+TLS; distributed quota/audit.
+**Required for production (not claimed):** organization isolation; enforcing NetworkPolicy with observed deny; live Kyverno; reviewed image scan; cosign verify against operator key; token revocation; private model route; issued DNS+TLS; distributed quota/audit. G3/G4 gate reviews are closed with documented demo limits and do not satisfy these production items.
 
 ## F40 / F55 gap table
 
@@ -96,8 +96,8 @@ A tenant in this design is the engineering team. A project is a group of workloa
 | Signed image and vulnerability scan | Tools/images absent or not-run; no clean scan claimed |
 | Production gateway, TLS, and DNS | Not issued; local API is loopback HTTP |
 | Live worker kill / Temporal server failure | F47/F29 use constructed history / SDK tests |
-| G3 / G4 gates | Explicitly still Backlog |
+| G3 / G4 live gaps above | Gates reviewed; NetworkPolicy deny, Kyverno install, and cosign still open |
 
 ## Before any production deployment
 
-Do not treat this demo as production-ready. A production deployment still requires, and this repository does not have: G3 closed, G4 closed, organization-level isolation, an enforcing network policy with an observed deny, Kyverno admission on the cluster rather than only in CI, a reviewed image scan, a signature that is verified against an operator-held key, token revocation before the five-minute access-token lifetime, a private model route, and an issued DNS name with a live TLS certificate. None of those are claimed here.
+Do not treat this demo as production-ready. A production deployment still requires, and this repository does not have: organization-level isolation, an enforcing network policy with an observed deny, Kyverno admission on the cluster rather than only in CI, a reviewed image scan, a signature that is verified against an operator-held key, token revocation before the five-minute access-token lifetime, a private model route, and an issued DNS name with a live TLS certificate. G3 and G4 owner reviews closed with demo limits; none of the production items above are claimed here.
